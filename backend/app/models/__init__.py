@@ -7,3 +7,4 @@ from app.models.rule import *  # noqa: F401,F403
 from app.models.learning import *  # noqa: F401,F403
 from app.models.log import *  # noqa: F401,F403
 from app.models.notification import *  # noqa: F401,F403
+from app.models.governance import *  # noqa: F401,F403

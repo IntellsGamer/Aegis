@@ -5,7 +5,7 @@ import re
 
 from flask import Blueprint, jsonify, request
 
-from app.dependencies import admin_required, db_session
+from app.dependencies import admin_required, current_user, db_session
 from app.exceptions import NotFoundError, ValidationError
 from app.repositories.admin_repo import (
     AuditLogRepository,
@@ -209,6 +209,120 @@ def reject_report(report_id: int):
         raise NotFoundError("Report not found")
     repo.update_status(report, "rejected")
     return jsonify({"detail": "Report rejected"})
+
+
+# --------------------------------------------------------------------------
+# Intelligence feeds and measured outcomes
+# --------------------------------------------------------------------------
+def _feed_dict(feed) -> dict:
+    meta = feed.metadata_json or {}
+    return {
+        "slug": feed.slug, "provider": feed.provider, "enabled": feed.enabled,
+        "terms_accepted": feed.terms_accepted,
+        "refresh_interval_minutes": feed.refresh_interval_minutes,
+        "last_refreshed_at": feed.last_refreshed_at.isoformat() if feed.last_refreshed_at else None,
+        "last_success_at": feed.last_success_at.isoformat() if feed.last_success_at else None,
+        "last_status": feed.last_status, "last_error": feed.last_error,
+        "terms_url": meta.get("terms_url"), "description": meta.get("description"),
+        "automatic_sync": bool(meta.get("automatic_sync", False)),
+        "data_boundary": meta.get("data_boundary"),
+    }
+
+
+@bp.get("/feeds")
+@admin_required
+def list_feeds():
+    from app.repositories.governance_repo import GovernanceRepository
+
+    return jsonify([_feed_dict(feed) for feed in GovernanceRepository(db_session()).list_feeds()])
+
+
+@bp.patch("/feeds/<slug>")
+@admin_required
+def configure_feed(slug: str):
+    from app.repositories.governance_repo import GovernanceRepository
+
+    data = request.get_json(silent=True) or {}
+    repo = GovernanceRepository(db_session())
+    feed = repo.get_feed(slug)
+    if not feed:
+        raise NotFoundError("Threat-intelligence source not found")
+    try:
+        repo.configure_feed(
+            feed,
+            enabled=bool(data.get("enabled", feed.enabled)),
+            terms_accepted=bool(data.get("terms_accepted", feed.terms_accepted)),
+            refresh_interval_minutes=data.get("refresh_interval_minutes", feed.refresh_interval_minutes),
+        )
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    AuditLogRepository(db_session()).add(current_user().id, "feed.configured", "intelligence", meta={"feed": slug, "enabled": feed.enabled})
+    return jsonify(_feed_dict(feed))
+
+
+@bp.post("/feeds/<slug>/indicators")
+@admin_required
+def import_feed_indicators(slug: str):
+    from app.repositories.governance_repo import GovernanceRepository
+
+    data = request.get_json(silent=True) or {}
+    indicators = data.get("indicators")
+    if not isinstance(indicators, list) or not indicators:
+        raise ValidationError("indicators must be a non-empty list")
+    if len(indicators) > 5_000:
+        raise ValidationError("A single import is limited to 5,000 indicators")
+    repo = GovernanceRepository(db_session())
+    feed = repo.get_feed(slug)
+    if not feed:
+        raise NotFoundError("Threat-intelligence source not found")
+    try:
+        result = repo.import_indicators(feed, indicators)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    AuditLogRepository(db_session()).add(current_user().id, "feed.imported", "intelligence", meta=result)
+    return jsonify(result), 201
+
+
+@bp.get("/outcomes")
+@admin_required
+def outcome_summary():
+    from app.repositories.governance_repo import GovernanceRepository
+
+    days = min(max(request.args.get("days", 30, type=int), 1), 365)
+    return jsonify(GovernanceRepository(db_session()).outcome_summary(days))
+
+
+@bp.post("/scans/<int:scan_id>/outcome")
+@admin_required
+def record_scan_outcome(scan_id: int):
+    from app.models import Scan
+    from app.repositories.governance_repo import GovernanceRepository
+
+    scan = db_session().get(Scan, scan_id)
+    if not scan:
+        raise NotFoundError("Scan not found")
+    data = request.get_json(silent=True) or {}
+    reasons = [{"code": finding.code, "severity": finding.severity, "impact": finding.impact} for finding in scan.findings]
+    try:
+        outcome = GovernanceRepository(db_session()).record_outcome(
+            scan=scan,
+            reviewer_user_id=current_user().id,
+            verdict=str(data.get("verdict") or ""),
+            rationale=data.get("rationale"),
+            engine_version="evidence-fusion-v2",
+            evidence_snapshot={
+                "trust_score": scan.trust_score, "risk_level": scan.risk_level,
+                "confidence": scan.confidence, "findings": reasons,
+            },
+        )
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    AuditLogRepository(db_session()).add(current_user().id, "scan.outcome_recorded", "quality", meta={"scan_id": scan.id, "verdict": outcome.verdict})
+    return jsonify({
+        "id": outcome.id, "scan_id": outcome.scan_id, "verdict": outcome.verdict,
+        "engine_version": outcome.engine_version,
+        "created_at": outcome.created_at.isoformat() if outcome.created_at else None,
+    }), 201
 
 
 # --------------------------------------------------------------------------

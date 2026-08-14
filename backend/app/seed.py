@@ -412,6 +412,8 @@ def run_seed() -> None:
         # Threat intelligence and public map reports are never fabricated during
         # setup. Remove only the old, content-addressed demonstration records.
         _purge_legacy_demo_reports(db)
+        from app.repositories.governance_repo import GovernanceRepository
+        GovernanceRepository(db).ensure_feed_catalog()
 
         AuditLogRepository(db).add(None, "seed.completed", "system",
                                    "Seed data verified and applied.")
