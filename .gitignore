@@ -6,7 +6,8 @@ venv/
 *.sqlite3
 .env
 uploads/
-models/
+# Runtime model artifacts, if a deployment chooses to retain them locally.
+/backend/models/
 .pytest_cache/
 
 # Windows alternate-data-stream sidecars
