@@ -3,16 +3,16 @@ PHISH = ("URGENT: your account will be locked unless you click "
          "http://paypa1-login.example to verify immediately.")
 
 
-def test_anonymous_text_scan(client):
+def test_anonymous_text_scan_is_not_retained_without_consent(client):
     resp = client.post("/api/v1/scans/text", json={"text": PHISH})
     assert resp.status_code == 200
     data = resp.get_json()
-    assert data["scan_id"] > 0
+    assert data["scan_id"] is None
+    assert data["retention"] == "not_stored"
     assert data["verdict"] == "threat"
     assert data["trust_score"] < 50
     assert isinstance(data["findings"], list) and data["findings"]
     assert data["reasons"]
-    return data
 
 
 def test_text_scan_validation(client):

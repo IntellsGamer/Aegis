@@ -181,7 +181,9 @@ def run_scan(
                 link=f"/report/{scan.id}",
             )
 
-        if is_public or (user and getattr(user, "settings", None) and user.settings.anonymous_reports):
+        # Public reporting is explicit on the submitted scan. A remembered
+        # account setting must never silently publish content or derived location.
+        if is_public:
             _submit_geo_report(db, scan, engine)
 
         db.commit()

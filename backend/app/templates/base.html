@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="{{ user.locale if user and user.locale else 'en' }}" dir="{{ 'rtl' if user and user.locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -39,3 +39,19 @@
 /* Leaflet dark tweak */
 .dark .leaflet-tile-pane { filter: brightness(0.7) contrast(1.1) saturate(0.9); }
 .leaflet-container { background: #0f172a; }
+
+/* RTL layout support for Persian, Arabic, Urdu, and Hebrew account locales. */
+html[dir="rtl"] body { direction: rtl; text-align: right; }
+html[dir="rtl"] input,
+html[dir="rtl"] textarea { text-align: right; }
+html[dir="rtl"] .leaflet-container,
+html[dir="rtl"] .font-mono { direction: ltr; text-align: left; }
+html[dir="rtl"] #sidebar { left: auto; right: 0; transform: translateX(100%); border-left: 1px solid rgb(226 232 240); border-right: 0; }
+html[dir="rtl"].dark #sidebar { border-left-color: rgb(30 41 59); }
+html[dir="rtl"] .nav-item { flex-direction: row-reverse; }
+html[dir="rtl"] #sidebar .flex.items-center.gap-3 { flex-direction: row-reverse; }
+@media (min-width: 1024px) {
+  html[dir="rtl"] #sidebar { transform: translateX(0); }
+  html[dir="rtl"] .lg\:ml-64 { margin-left: 0 !important; margin-right: 16rem !important; }
+}
+html[dir="rtl"] #sidebar.is-open { transform: translateX(0); }

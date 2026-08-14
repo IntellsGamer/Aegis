@@ -97,6 +97,33 @@ def _allowed_to_view(scan) -> bool:
     return bool(user and scan.user_id == user.id)
 
 
+def _response_with_retention(scan, user, save_history: bool | None = None):
+    """Serialize a result, then purge it when the caller did not opt into storage."""
+    payload = scan_service.scan_to_dict(scan)
+    keep_history = scan.is_public or (
+        bool(save_history) if save_history is not None
+        else bool(user and getattr(user, "settings", None) and user.settings.save_history)
+    )
+    if keep_history:
+        payload["retention"] = "stored"
+        return jsonify(payload)
+
+    # A result can be delivered from the active transaction without retaining
+    # the message, URL, findings, report, location, or uploaded artifact.
+    file_path = scan.file_path
+    db_session().delete(scan)
+    db_session().commit()
+    if file_path:
+        try:
+            Path(file_path).unlink(missing_ok=True)
+        except OSError:
+            pass
+    payload["retention"] = "not_stored"
+    payload["scan_id"] = None
+    payload["id"] = None
+    return jsonify(payload)
+
+
 # --------------------------------------------------------------------------
 # Scan execution
 # --------------------------------------------------------------------------
@@ -120,7 +147,7 @@ def scan_url():
         user=user, ip=geo.pop("ip", None), geo=geo, is_public=payload.is_public,
         save_history=payload.save_history,
     )
-    return jsonify(scan_service.scan_to_dict(scan))
+    return _response_with_retention(scan, user, payload.save_history)
 
 
 @bp.post("/text")
@@ -136,7 +163,7 @@ def scan_text():
         user=user, ip=geo.pop("ip", None), geo=geo, is_public=payload.is_public,
         save_history=payload.save_history,
     )
-    return jsonify(scan_service.scan_to_dict(scan))
+    return _response_with_retention(scan, user, payload.save_history)
 
 
 @bp.post("/email")
@@ -152,7 +179,7 @@ def scan_email():
         user=user, ip=geo.pop("ip", None), geo=geo, is_public=payload.is_public,
         save_history=payload.save_history,
     )
-    return jsonify(scan_service.scan_to_dict(scan))
+    return _response_with_retention(scan, user, payload.save_history)
 
 
 @bp.post("/image")
@@ -213,7 +240,9 @@ def _run_uploaded(scan_type: str, saved: dict):
         user=user, ip=geo.pop("ip", None), geo=geo,
         is_public=request.form.get("is_public") == "true",
     )
-    return scan_service.scan_to_dict(scan)
+    raw_save_history = request.form.get("save_history")
+    save_history = None if raw_save_history is None else raw_save_history.lower() == "true"
+    return _response_with_retention(scan, user, save_history)
 
 
 # --------------------------------------------------------------------------
