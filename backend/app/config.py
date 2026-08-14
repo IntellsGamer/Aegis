@@ -76,14 +76,10 @@ class Settings(BaseSettings):
     )
     require_https_scan: bool = False
 
-    # --- AI engine ---
-    ai_enabled: bool = True
-    ai_model_dir: str = "./models"
-    ai_tfidf_max_features: int = 20000
-    ai_min_confidence: float = 0.6
-    use_spacy: bool = True
-    use_sentence_transformers: bool = False
-    use_xgboost: bool = False
+    # --- Deterministic evidence engine ---
+    evidence_engine_version: str = "evidence-fusion-v2"
+    # OCR is an acquisition layer only; no language model or learned classifier
+    # is used by the prediction path.
     ocr_engine: Literal["auto", "tesseract", "easyocr", "none"] = "auto"
 
     # --- Uploads ---

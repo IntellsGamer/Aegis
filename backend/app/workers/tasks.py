@@ -1,4 +1,4 @@
-"""Background tasks: model training, digests, housekeeping."""
+"""Background tasks: operational digests and housekeeping."""
 from __future__ import annotations
 
 import logging
@@ -17,16 +17,6 @@ def _with_app(func):
             return func(*args, **kwargs)
 
     return wrapper
-
-
-@_with_app
-def train_models_task() -> dict:
-    from app.ai.model_manager import model_manager
-
-    logger.info("Starting model retraining task")
-    metrics = model_manager.train_all()
-    logger.info("Model retraining complete: %s", metrics)
-    return metrics
 
 
 @_with_app

@@ -5,7 +5,6 @@ import re
 
 from flask import Blueprint, jsonify, request
 
-from app.ai.model_manager import model_manager
 from app.dependencies import admin_required, db_session
 from app.exceptions import NotFoundError, ValidationError
 from app.repositories.admin_repo import (
@@ -18,7 +17,6 @@ from app.repositories.admin_repo import (
 from app.repositories.scan_repo import ScanRepository
 from app.repositories.user_repo import UserRepository
 from app.services import admin_service
-from app.services.notification_service import create_and_notify
 
 bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
 
@@ -351,25 +349,22 @@ def list_logs():
 
 
 # --------------------------------------------------------------------------
-# Model retraining
+# Evidence engine status
 # --------------------------------------------------------------------------
 @bp.post("/models/retrain")
 @admin_required
 def retrain():
-    try:
-        metrics = model_manager.train_all()
-    except Exception as exc:
-        return jsonify({"status": "error", "message": str(exc)}), 400
-    create_and_notify(db_session(), None, "Model retrained",
-                      "The AI classifiers were retrained on the latest dataset.",
-                      kind="system")
-    return jsonify({"status": "ok", "metrics": metrics})
+    return jsonify({
+        "status": "disabled",
+        "message": "AEGIS Evidence Fusion does not train or use a statistical model.",
+    }), 410
 
 
 @bp.get("/models/info")
 @admin_required
 def model_info():
-    return jsonify(model_manager.capabilities())
+    # Route name retained for existing dashboard clients.
+    return jsonify(admin_service.prediction_engine_info())
 
 
 @bp.get("/scans")

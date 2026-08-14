@@ -28,11 +28,8 @@ redis==5.1.1
 dnspython==2.7.0
 python-whois==0.9.4
 
-# --- AI / ML (open-source, on-device) ---
-numpy==1.26.4
-scikit-learn==1.5.2
-# xgboost==2.1.1
-scipy==1.14.1
+# --- Deterministic evidence engine ---
+# No statistical model, LLM, transformer, or training runtime is required.
 
 # --- Image / OCR / QR ---
 Pillow==10.4.0

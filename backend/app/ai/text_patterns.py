@@ -321,7 +321,30 @@ def match_count(patterns: list[Pattern], text: str) -> int:
 
 
 def find_matches(patterns: list[Pattern], text: str) -> list[str]:
-    return [p.pattern for p in patterns if p.search(text)]
+    """Return the observed phrase, not the implementation regex."""
+    matches: list[str] = []
+    for pattern in patterns:
+        match = pattern.search(text)
+        if match:
+            observed = match.group(0).strip()
+            if observed and observed not in matches:
+                matches.append(observed)
+    return matches
+
+
+# Mentioning a bank, government, cryptocurrency, or remote work is not itself a
+# threat.  These topics become meaningful scam evidence when paired with an
+# attempted action, financial solicitation, pressure, or a credential request.
+_ACTION_REQUEST_RE = re.compile(
+    r"\b(?:click|open|visit|login|log in|sign in|verify|confirm|update|"
+    r"enter|send|pay|transfer|share|download|install|reply|call)\b|"
+    r"(?:کلیک|وارد|تایید|تأیید|ارسال|پرداخت|انتقال|دانلود|نصب|تماس)",
+    re.IGNORECASE,
+)
+
+
+def has_request_context(text: str) -> bool:
+    return bool(_ACTION_REQUEST_RE.search(text))
 
 
 def analyze_language_quality(text: str) -> dict:
@@ -588,13 +611,23 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
         ("money", _MONEY_PATTERNS),
     ]
 
+    request_context = has_request_context(text)
     for category, patterns in checks:
         count = match_count(patterns, text)
         if count == 0:
             continue
         code, title, desc = CATEGORY_MAP[category]
-        examples = find_matches(patterns, text)[:3]
-        evidence = "; ".join(e.strip("\\b") for e in examples)
+        examples = find_matches(patterns, text)[:4]
+
+        # Generic topical language is deliberately weak until the message asks
+        # the recipient to do something. This prevents false positives such as
+        # a news article that mentions Bitcoin or an ordinary bank newsletter.
+        requires_action = category in {"bank", "government", "crypto", "fake_job", "romance"}
+        contextual = request_context or category not in {"bank", "government", "crypto", "fake_job", "romance"}
+        if requires_action and not contextual:
+            continue
+
+        evidence = "; ".join(examples)
         findings.append(
             {
                 "category": category,
@@ -603,8 +636,14 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
                 "description": desc,
                 "evidence": evidence[:500],
                 "severity": _severity_for_code(code),
-                "impact": 0.0,  # actual impact comes from the rules table
-                "confidence": min(0.95, 0.55 + 0.1 * count),
+                "impact": 0.0,  # calibrated by the trust engine
+                "confidence": min(0.95, 0.55 + 0.08 * count + (0.08 if request_context else 0.0)),
+                "extra": {
+                    "source": "pattern",
+                    "match_count": count,
+                    "matched_terms": examples,
+                    "request_context": request_context,
+                },
             }
         )
         total_signals += count
@@ -623,6 +662,7 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
                 "severity": "low",
                 "impact": 0.0,
                 "confidence": 0.6,
+                "extra": {"source": "pattern", "match_count": 1},
             }
         )
 
@@ -639,6 +679,7 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
                 "severity": "safe",
                 "impact": 0.0,
                 "confidence": 0.7,
+                "extra": {"source": "pattern", "match_count": legit_count},
             }
         )
 
