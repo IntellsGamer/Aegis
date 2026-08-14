@@ -46,3 +46,22 @@ The product maps to practical anti-phishing guidance: prevention combines user-f
 [1] [CISA, NSA, FBI & MS-ISAC, *Phishing Guidance: Stopping the Attack Cycle at Phase One*](https://www.cisa.gov/sites/default/files/2025-03/Phishing%20Guidance%20-%20Stopping%20the%20Attack%20Cycle%20at%20Phase%20One%20508.pdf)
 
 [2] [NIST, *SP 800-63B: Digital Identity Guidelines—Authentication and Authenticator Management*](https://pages.nist.gov/800-63-4/sp800-63b.html)
+
+## Extended competition proof points
+
+After opening the casefile, use **Admin → Engine Conformance** before moving to the broader readiness screen. This surface proves a different point from the user-facing assessment: Aegis has fixed, fictional regression fixtures that run through the active parser and configured evidence-fusion policy. Each expected property is visible alongside the observed risk, confidence, and finding codes. State clearly that this is a conformance contract, **not** an accuracy benchmark; it demonstrates that a harmless service notice does not regress into a phishing verdict and that planned lookalike and obscured-link cues remain inspectable.
+
+Then open **Admin → Analyst Triage**. The queue is intentionally limited to persisted high-risk assessments that can be reviewed meaningfully. A reviewer sees the target, assessment state, strongest recorded evidence, evidence-family summary, a casefile handoff, and the latest governed outcome. Explicitly point out the exclusion rule: a private or reserved destination blocked by the SSRF safety boundary is not offered as a “confirmed malicious” incident, because the platform refuses to confuse an acquisition boundary with proof of wrongdoing. Recording an outcome is an audited human action; it does not alter the score, train a model, or create public intelligence.
+
+| Jury question | Evidence to show |
+| --- | --- |
+| How do you prevent silent regressions? | **Engine Conformance**: three versioned fictional fixtures execute through the active deterministic parser and rule policy, with expected and observed contracts side by side. |
+| Is this an accuracy claim? | The conformance panel explicitly states it is not a benchmark or measured-accuracy claim. Read that sentence rather than over-claiming it verbally. |
+| Can a human reviewer work a case? | **Analyst Triage**: priority, evidence families, strongest observations, review state, casefile handoff, and a separate recorded outcome. |
+| Can a blocked internal URL be misclassified as malicious? | No. The scanner blocks acquisition, labels the safety boundary, and the triage queue excludes that boundary-only state from human maliciousness confirmation. |
+
+This operational distinction reflects the broader incident-response principle that a team should preserve observable evidence, make a controlled decision, contain risk, and improve through governed review rather than treat every alert as a self-validating verdict.[3] MITRE’s phishing guidance similarly describes phishing across links, attachments, and third-party services, and calls for correlation with the telemetry actually available—an important boundary Aegis exposes instead of fabricating.[4]
+
+[3] [NIST, *SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management*](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r3.pdf)
+
+[4] [MITRE ATT&CK, *Phishing: T1566*](https://attack.mitre.org/techniques/T1566/)

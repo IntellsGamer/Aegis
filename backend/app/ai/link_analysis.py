@@ -49,19 +49,31 @@ def _finding(
 
 
 def _label_typosquat(host: str) -> tuple[str | None, float]:
-    """Find deceptive brand-like labels even when a suffix obscures the host."""
-    labels = _LABEL_RE.findall(host.lower())
-    for label in labels:
+    """Find deceptive labels while resisting ordinary subdomain collisions.
+
+    A subdomain is not an ownership boundary, so it can carry a lookalike such
+    as ``paypa1-login.example``.  But broad edit-distance matching over every
+    label also produces false positives for ordinary names.  A subdomain match
+    therefore needs either an obfuscation cue (digit or separator) or a much
+    stronger character similarity than a registrable label would require.
+    """
+    raw_labels = [item for item in host.lower().strip(".").split(".") if item]
+    domain_label = raw_labels[-2] if len(raw_labels) >= 2 else ""
+    for raw_label in raw_labels:
+        label = "".join(_LABEL_RE.findall(raw_label))
         if len(label) < 4:
             continue
+        obfuscated_label = any(char.isdigit() for char in raw_label) or "-" in raw_label or "_" in raw_label
         for brand in BRANDS:
-            # An embedded brand in a registrable-looking label is suspicious
-            # unless it is simply the real brand label.
+            if len(brand) < 4:
+                continue
+            # An embedded brand in a non-brand label is a strong lexical cue.
             if brand in label and label != brand:
                 return brand, 0.95
             if abs(len(label) - len(brand)) <= 2:
                 ratio = difflib.SequenceMatcher(None, label, brand).ratio()
-                if ratio >= 0.82:
+                threshold = 0.82 if (raw_label == domain_label or obfuscated_label) else 0.92
+                if ratio >= threshold:
                     return brand, ratio
     return None, 0.0
 

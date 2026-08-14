@@ -4,9 +4,9 @@ from __future__ import annotations
 from datetime import timedelta
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from app.models import Scan, Threat
+from app.models import Scan, ScanOutcome, Threat
 from app.repositories.admin_repo import AuditLogRepository, ThreatReportRepository, ThreatRepository
 from app.repositories.scan_repo import ScanRepository
 from app.repositories.user_repo import UserRepository
@@ -88,6 +88,70 @@ def dashboard_stats(db: Session) -> dict:
         ],
         # Kept as an API-compatible key for existing dashboard consumers.
         "model_info": prediction_engine_info(),
+    }
+
+
+def triage_queue(db: Session, limit: int = 25) -> dict:
+    """Return a bounded human-review queue for persisted high-risk scans.
+
+    The queue is descriptive only: assigning an outcome remains a separate,
+    authenticated governance action and never changes the evidence-fusion score.
+    """
+    limit = max(1, min(int(limit), 100))
+    candidates = db.scalars(
+        select(Scan)
+        .where(Scan.risk_level.in_(("high", "critical")), Scan.status == "completed")
+        .options(selectinload(Scan.findings))
+        .order_by(Scan.completed_at.desc(), Scan.id.desc())
+        .limit(limit * 3)
+    ).all()
+    # A safety-boundary block prevents acquisition; it is not proof of a
+    # malicious destination and must never be offered for analyst confirmation.
+    scans = [scan for scan in candidates if not any(item.code == "unsafe_destination" for item in scan.findings)][:limit]
+    scan_ids = [scan.id for scan in scans]
+    latest_outcome: dict[int, ScanOutcome] = {}
+    if scan_ids:
+        outcomes = db.scalars(
+            select(ScanOutcome)
+            .where(ScanOutcome.scan_id.in_(scan_ids))
+            .order_by(ScanOutcome.scan_id.asc(), ScanOutcome.created_at.desc(), ScanOutcome.id.desc())
+        ).all()
+        for outcome in outcomes:
+            latest_outcome.setdefault(outcome.scan_id, outcome)
+
+    severity_priority = {"critical": 100, "high": 70}
+    items = []
+    for scan in scans:
+        findings = sorted(scan.findings, key=lambda item: item.impact or 0.0)[:4]
+        families: dict[str, int] = {}
+        for finding in scan.findings:
+            families[finding.category or "analysis"] = families.get(finding.category or "analysis", 0) + 1
+        outcome = latest_outcome.get(scan.id)
+        assessment_state = "limited" if any(item.code == "destination_unresolved" for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
+        items.append({
+            "scan_id": scan.id,
+            "target": (scan.input_url or scan.input_text or scan.file_name or "")[:500],
+            "scan_type": scan.scan_type,
+            "risk_level": scan.risk_level,
+            "trust_score": scan.trust_score,
+            "confidence": scan.confidence,
+            "assessment_state": assessment_state,
+            "created_at": scan.created_at.isoformat() if scan.created_at else None,
+            "priority": severity_priority.get(scan.risk_level, 0) + round((1 - (scan.trust_score or 100) / 100) * 10),
+            "evidence_families": [{"name": key, "count": value} for key, value in sorted(families.items())],
+            "strongest_evidence": [{
+                "code": item.code, "title": item.title, "severity": item.severity,
+                "evidence": item.evidence, "impact": item.impact,
+            } for item in findings],
+            "review": {
+                "state": outcome.verdict if outcome else "awaiting_review",
+                "recorded_at": outcome.created_at.isoformat() if outcome and outcome.created_at else None,
+                "rationale": outcome.rationale if outcome else None,
+            },
+        })
+    return {
+        "items": items, "total": len(items), "limit": limit,
+        "purpose": "Human review queue for high-risk persisted assessments. Safety-boundary-only blocks are excluded; an outcome is separate from the engine score.",
     }
 
 

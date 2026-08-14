@@ -37,3 +37,24 @@ This increment will prioritize three connected surfaces that can be shown in one
 | Assessment casefile | Evidence source, confidence, contribution, assessment state, integrity fingerprint, and concrete containment actions | Fingerprint detects a changed exported payload but is not represented as a digital signature or external validation |
 | Operational Readiness | No-training policy, feed terms and activation state, outcome counts, quality terminology, and privacy posture | Outcome counts remain review data; they never claim measured classifier accuracy or automatic retraining |
 | Guided demo | End-to-end scan, explainability, response, and report generation in a repeatable short path | The scenario is explicitly fictional and contains no live indicator claim or hidden network action |
+
+## Operational triage rationale
+
+MITRE ATT&CK identifies phishing as technique **T1566** within Initial Access and describes delivery through malicious attachments, links, and third-party services, including social platforms. Its detection guidance emphasizes correlating message metadata, file creation, process execution, and network activity when those telemetry sources exist.[3] Aegis does not claim endpoint telemetry it does not possess; its triage surface must instead make the available email, URL, file, and evidence-family observations explicit and package them for a human reviewer.
+
+NIST SP 800-61r3 frames incident response as an organizational capability that connects preparation, detection, response, and continuous improvement. A casefile and review queue therefore need measurable states, reviewer decisions, and a clear boundary between a human-confirmed outcome and the assessment engine itself.[4]
+
+[3] [MITRE ATT&CK, *Phishing: T1566*](https://attack.mitre.org/techniques/T1566/)
+
+[4] [NIST, *SP 800-61r3: Incident Response Recommendations and Considerations for Cybersecurity Risk Management*](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r3.pdf)
+
+## Selected next increment
+
+The next increment will add an **Analyst Triage Queue** and an **Engine Conformance Scorecard** to the administrator experience. The triage queue will surface bounded, high-risk persisted assessments, their state, strongest evidence families, and latest human-review outcome. Reviewers will continue to use the existing auditable outcome endpoint; the queue itself will not create automatic policy decisions, public reports, or rule changes.
+
+The scorecard will execute a compact, versioned set of fictional deterministic fixtures through the production text parser and evidence-fusion engine. It will show each expected property, observed result, and a pass/fail summary. It is deliberately a *conformance test suite*, not a benchmark, live-threat feed, or claim of detection accuracy. Together these capabilities demonstrate both operational workflow and engineering discipline.
+
+| Capability | Contest question answered | Boundary |
+| --- | --- | --- |
+| Analyst Triage Queue | Can an operator turn evidence into a controlled decision rather than stare at a dashboard? | Only persisted high/critical scans are listed; review remains human and separately logged. |
+| Conformance Scorecard | How does the project detect regression without a black-box accuracy number? | Fictitious fixed fixtures validate intended contracts; no accuracy or real-world generalization claim is made. |

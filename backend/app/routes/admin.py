@@ -36,6 +36,20 @@ def analytics():
     return jsonify(admin_service.analytic_breakdown(db_session()))
 
 
+@bp.get("/triage")
+@admin_required
+def triage():
+    return jsonify(admin_service.triage_queue(db_session(), request.args.get("limit", 25, type=int)))
+
+
+@bp.get("/conformance")
+@admin_required
+def conformance():
+    from app.services.conformance_service import run_conformance_suite
+
+    return jsonify(run_conformance_suite(db_session()))
+
+
 @bp.get("/readiness")
 @admin_required
 def readiness():

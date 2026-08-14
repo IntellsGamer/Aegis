@@ -108,7 +108,8 @@ print("admin login:", resp.status_code)
 if resp.status_code == 200:
     for path in ["/admin",
                  "/api/v1/admin/stats", "/api/v1/admin/threats", "/api/v1/admin/rules",
-                 "/api/v1/admin/keywords", "/api/v1/admin/users", "/api/v1/admin/logs"]:
+                 "/api/v1/admin/keywords", "/api/v1/admin/users", "/api/v1/admin/logs",
+                 "/api/v1/admin/triage", "/api/v1/admin/conformance", "/api/v1/admin/readiness"]:
         r = client.get(path)
         print(f"admin {path}: {r.status_code}")
         if r.status_code != 200:

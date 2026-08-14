@@ -47,6 +47,12 @@
     } else if (tab === 'audit') {
       const data = await api('GET', '/api/v1/admin/logs');
       renderAudit(data.items || [], data.total);
+    } else if (tab === 'triage') {
+      const data = await api('GET', '/api/v1/admin/triage');
+      renderTriage(data);
+    } else if (tab === 'conformance') {
+      const data = await api('GET', '/api/v1/admin/conformance');
+      renderConformance(data);
     } else if (tab === 'readiness') {
       const data = await api('GET', '/api/v1/admin/readiness');
       renderReadiness(data);
@@ -187,6 +193,40 @@
       </tr>`).join('');
     box.innerHTML = adminBox('Audit Log', `
       <div class="overflow-x-auto"><table class="w-full text-left">${rows || '<tr><td class="py-4 text-sm text-slate-400">No logs.</td></tr>'}</table></div>`);
+  }
+
+  function reviewBadge(value) {
+    const label = String(value || 'awaiting_review').replaceAll('_', ' ');
+    const cls = value === 'confirmed_malicious' ? 'bg-red-600 text-white' : value === 'confirmed_benign' ? 'bg-emerald-600 text-white' : value === 'awaiting_review' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+    return `<span class="rounded px-2 py-1 text-xs font-semibold ${cls}">${esc(label)}</span>`;
+  }
+
+  function renderTriage(data) {
+    const box = document.getElementById('admin-content');
+    const items = data.items || [];
+    const cards = items.map((item) => {
+      const families = (item.evidence_families || []).map((family) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(family.name)} · ${esc(family.count)}</span>`).join('');
+      const evidence = (item.strongest_evidence || []).map((signal) => `<li class="rounded-lg bg-slate-50 px-3 py-2 text-xs dark:bg-slate-950"><span class="font-semibold">${esc(signal.title || signal.code)}</span>${signal.evidence ? `<span class="mt-1 block break-all text-slate-500">${esc(signal.evidence)}</span>` : ''}</li>`).join('');
+      const awaiting = item.review?.state === 'awaiting_review';
+      return `<article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"><div class="flex flex-wrap items-start justify-between gap-4"><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><span class="rounded bg-red-600 px-2 py-1 font-mono text-xs font-bold text-white">P${esc(item.priority)}</span><span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(item.risk_level)}</span><span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(item.assessment_state)}</span>${reviewBadge(item.review?.state)}</div><p class="mt-3 break-all font-mono text-sm">${esc(item.target || '')}</p><p class="mt-2 text-xs text-slate-500">${esc(item.scan_type)} assessment · score ${esc(item.trust_score)} · evidence confidence ${Math.round(Number(item.confidence || 0) * 100)}% · ${esc((item.created_at || '').slice(0, 19).replace('T', ' '))}</p></div><a href="/report/${item.scan_id}" class="rounded-lg border border-aegis-400 px-3 py-2 text-sm font-semibold text-aegis-700 transition hover:bg-aegis-50 dark:text-aegis-300 dark:hover:bg-aegis-950">Open casefile</a></div><div class="mt-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence families</p><div class="mt-2 flex flex-wrap gap-2">${families || '<span class="text-xs text-slate-500">No family summary available.</span>'}</div></div><div class="mt-4"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Strongest recorded evidence</p><ul class="mt-2 grid gap-2">${evidence || '<li class="text-xs text-slate-500">No evidence summary available.</li>'}</ul></div>${item.review?.rationale ? `<p class="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300"><strong>Latest review:</strong> ${esc(item.review.rationale)}</p>` : ''}<div class="mt-5 flex flex-wrap gap-2">${awaiting ? `<button class="triage-outcome rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500" data-id="${item.scan_id}" data-verdict="confirmed_malicious">Confirm malicious</button><button class="triage-outcome rounded-lg border border-emerald-500 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300" data-id="${item.scan_id}" data-verdict="confirmed_benign">Confirm benign</button><button class="triage-outcome rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:border-aegis-500 dark:border-slate-700" data-id="${item.scan_id}" data-verdict="inconclusive">Mark inconclusive</button>` : '<p class="text-xs text-slate-500">A latest review is recorded. Use the casefile and audit log for follow-up.</p>'}</div></article>`;
+    }).join('');
+    box.innerHTML = `<div class="space-y-6"><section class="rounded-2xl border border-aegis-200 bg-gradient-to-br from-aegis-50 via-white to-slate-50 p-6 dark:border-aegis-900 dark:from-aegis-950/30 dark:via-slate-900 dark:to-slate-900"><p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Human review workflow</p><h2 class="mt-1 text-xl font-bold">Analyst triage queue</h2><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">Recent high-risk persisted assessments are ordered for human review. Recording an outcome is separate from scoring: it does not retrain the engine, change evidence, or publish intelligence automatically.</p><p class="mt-3 text-xs text-slate-500">${esc(data.purpose || '')}</p></section><div class="grid gap-4">${cards || '<div class="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-900">No high-risk persisted assessments are awaiting operational triage.</div>'}</div></div>`;
+    box.querySelectorAll('.triage-outcome').forEach((button) => button.addEventListener('click', async () => {
+      const verdict = button.dataset.verdict;
+      try {
+        await api('POST', `/api/v1/admin/scans/${button.dataset.id}/outcome`, { verdict, rationale: 'Recorded from the analyst triage queue.' });
+        toast(`Outcome recorded: ${verdict.replaceAll('_', ' ')}`, 'success');
+        loadTab('triage');
+      } catch (error) { toast(error.message, 'error'); }
+    }));
+  }
+
+  function renderConformance(data) {
+    const box = document.getElementById('admin-content');
+    const summary = data.summary || {};
+    const allPass = Number(summary.failed || 0) === 0;
+    const cases = (data.cases || []).map((item) => `<article class="rounded-xl border ${item.passed ? 'border-emerald-200 dark:border-emerald-900' : 'border-red-300 dark:border-red-900'} p-4"><div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-semibold">${esc(item.title)}</p><p class="mt-1 text-sm text-slate-500">${esc(item.description)}</p></div><span class="rounded px-2 py-1 text-xs font-bold ${item.passed ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}">${item.passed ? 'PASS' : 'FAIL'}</span></div><dl class="mt-3 grid gap-2 text-xs sm:grid-cols-3"><div><dt class="text-slate-500">Observed risk</dt><dd class="font-mono">${esc(item.observed?.risk_level || '—')}</dd></div><div><dt class="text-slate-500">Trust score</dt><dd class="font-mono">${esc(item.observed?.trust_score ?? '—')}</dd></div><div><dt class="text-slate-500">Evidence confidence</dt><dd class="font-mono">${item.observed?.confidence !== undefined ? `${Math.round(Number(item.observed.confidence) * 100)}%` : '—'}</dd></div></dl><ul class="mt-4 space-y-2">${(item.checks || []).map((check) => `<li class="flex gap-2 text-xs"><span class="font-bold ${check.passed ? 'text-emerald-500' : 'text-red-500'}">${check.passed ? '✓' : '×'}</span><span>${esc(check.name)} <span class="text-slate-500">(${esc(check.observed)})</span></span></li>`).join('')}</ul></article>`).join('');
+    box.innerHTML = `<div class="space-y-6"><section class="rounded-2xl border ${allPass ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/20' : 'border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950/20'} p-6"><div class="flex flex-wrap items-start justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] ${allPass ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}">Engineering regression contract</p><h2 class="mt-1 text-xl font-bold">Deterministic engine conformance</h2><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">${esc(data.purpose || '')}</p></div><div class="rounded-xl bg-white/80 p-4 text-right dark:bg-slate-950/60"><p class="text-xs text-slate-500">Suite ${esc(data.suite_version || '')}</p><p class="mt-1 font-mono text-3xl font-bold">${esc(summary.passed ?? 0)}/${esc(summary.total ?? 0)}</p><p class="mt-1 text-xs text-slate-500">fixtures passing</p></div></div><p class="mt-4 text-xs text-slate-500">${esc(data.fixtures_notice || '')}</p></section><div class="grid gap-4">${cases}</div></div>`;
   }
 
   function renderReadiness(data) {

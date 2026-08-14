@@ -47,3 +47,9 @@ The end-user casefile path was exited cleanly and the browser was prepared for a
 The administrator session successfully exposed the renamed **Operational Readiness** tab in place of the obsolete ML-training control. The dashboard and administrative data remained accessible after the feature update.
 
 The public landing page now presents deterministic evidence fusion, assessment boundaries, casefile preservation, and a visible guided-demo entry point. The obsolete ML claim has been removed from the user-facing narrative.
+
+## Operations and conformance check
+
+The live **Engine Conformance** administrator panel rendered three fictional, local-only deterministic fixtures with a 3/3 pass result. Each card exposed its expected contract and observed risk, score, confidence, and finding-code checks. The view explicitly stated that it is a regression conformance suite—not a benchmark or measured accuracy claim.
+
+The live Analyst Triage panel initially revealed that a safety-boundary block could be presented for maliciousness confirmation. The queue was corrected to exclude `unsafe_destination` assessments because a refused network acquisition is not evidence of maliciousness. Focused regressions passed; the live panel was then reloaded for the corrected state.
