@@ -134,33 +134,74 @@ class ThreatReportRepository:
         self.db.add(report)
         self.db.flush()
 
-    def geo_points(self, max_points: int = 2000):
+    def map_aggregates(self, range_days: int, max_points: int = 250) -> list[dict]:
+        """Return only approved, real reports as country-level aggregates.
+
+        Stored coordinates are intentionally never emitted to the public map:
+        they may be user-supplied, overly precise, or derived from a source with
+        different privacy terms. A country centroid is used solely as a visual
+        anchor and is marked as such in the payload.
+        """
+        from app.services.geo_service import country_centroid
+
+        cutoff = utcnow() - timedelta(days=range_days)
         rows = self.db.execute(
             select(
-                ThreatReport.latitude, ThreatReport.longitude, ThreatReport.risk if False else None,
-                ThreatReport.country_name, ThreatReport.category, ThreatReport.content_type,
+                ThreatReport.country,
+                ThreatReport.country_name,
+                ThreatReport.category,
+                ThreatReport.content_type,
+                func.count(ThreatReport.id),
             )
-            .where(ThreatReport.latitude.is_not(None), ThreatReport.longitude.is_not(None))
+            .where(
+                ThreatReport.status == "approved",
+                ThreatReport.created_at >= cutoff,
+                ThreatReport.country.is_not(None),
+            )
+            .group_by(
+                ThreatReport.country,
+                ThreatReport.country_name,
+                ThreatReport.category,
+                ThreatReport.content_type,
+            )
+            .order_by(func.count(ThreatReport.id).desc())
             .limit(max_points)
         ).all()
         points = []
-        for lat, lng, _, country, category, ctype in rows:
-            if lat is None or lng is None:
+        for code, country, category, content_type, count in rows:
+            centroid = country_centroid(code)
+            if not centroid:
                 continue
-            points.append(
-                {"lat": float(lat), "lng": float(lng), "country": country,
-                 "category": category or "unknown", "type": ctype or "url"}
-            )
+            points.append({
+                "lat": centroid[0], "lng": centroid[1], "country": country or code,
+                "country_code": code, "category": category or "unknown",
+                "type": content_type or "url", "count": int(count),
+                "provenance": "approved_community_report",
+                "location_precision": "country_aggregate",
+            })
         return points
 
-    def country_counts(self):
+    def country_counts(self, range_days: int) -> list[dict]:
+        cutoff = utcnow() - timedelta(days=range_days)
         rows = self.db.execute(
-            select(ThreatReport.country_name, func.count(ThreatReport.id))
-            .where(ThreatReport.country_name.is_not(None))
-            .group_by(ThreatReport.country_name)
+            select(ThreatReport.country, ThreatReport.country_name, func.count(ThreatReport.id))
+            .where(
+                ThreatReport.status == "approved",
+                ThreatReport.created_at >= cutoff,
+                ThreatReport.country.is_not(None),
+            )
+            .group_by(ThreatReport.country, ThreatReport.country_name)
             .order_by(func.count(ThreatReport.id).desc())
         ).all()
-        return [{"country": c, "count": n} for c, n in rows]
+        return [{"country_code": code, "country": name or code, "count": int(count)} for code, name, count in rows]
+
+    def approved_count(self, range_days: int) -> int:
+        cutoff = utcnow() - timedelta(days=range_days)
+        return self.db.scalar(
+            select(func.count(ThreatReport.id)).where(
+                ThreatReport.status == "approved", ThreatReport.created_at >= cutoff
+            )
+        ) or 0
 
     def count(self) -> int:
         return self.db.scalar(select(func.count(ThreatReport.id))) or 0

@@ -1,0 +1,69 @@
+"""Regression coverage for SSRF-safe acquisition and truthful public map data."""
+from __future__ import annotations
+
+import pytest
+
+from app.database import SessionLocal
+from app.repositories.admin_repo import ThreatReportRepository
+from app.security.safe_url import UnsafeDestination, validate_public_url
+from app.services.url_scanner import _scan_url_sync
+
+
+def test_safe_url_rejects_private_and_non_web_destinations():
+    for target in (
+        "http://127.0.0.1/",
+        "http://169.254.169.254/latest/meta-data/",
+        "http://[::1]/",
+        "file:///etc/passwd",
+    ):
+        with pytest.raises(UnsafeDestination):
+            validate_public_url(target)
+
+
+def test_url_scanner_blocks_private_target_before_network_access():
+    result = _scan_url_sync("http://127.0.0.1:8000/admin")
+
+    assert result["meta"]["network_fetch"] == "blocked"
+    assert result["meta"]["status_code"] == 0
+    assert result["findings"][0]["code"] == "unsafe_destination"
+    assert result["findings"][0]["extra"]["source"] == "safe_fetch"
+
+
+def test_map_excludes_pending_and_returns_approved_country_aggregate(client):
+    db = SessionLocal()
+    try:
+        reports = ThreatReportRepository(db)
+        reports.create({
+            "content_type": "url", "content": "https://pending.example/", "category": "phishing",
+            "country": "IR", "country_name": "Iran", "status": "pending",
+            "latitude": 35.0, "longitude": 51.0,
+        })
+        reports.create({
+            "content_type": "url", "content": "https://approved.example/", "category": "phishing",
+            "country": "IR", "country_name": "Iran", "status": "approved",
+            # Stored precise coordinates must not appear in public payloads.
+            "latitude": 35.6892, "longitude": 51.3890,
+        })
+        db.commit()
+
+        response = client.get("/api/v1/threats/map?range=1")
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body["data_state"] == "verified_approved_reports"
+        assert body["location_precision"] == "country_aggregate"
+        assert body["total_reports"] == 1
+        assert len(body["points"]) == 1
+        point = body["points"][0]
+        assert point["country_code"] == "IR"
+        assert point["provenance"] == "approved_community_report"
+        assert point["location_precision"] == "country_aggregate"
+        assert point["count"] == 1
+        assert (point["lat"], point["lng"]) != (35.6892, 51.3890)
+    finally:
+        db.rollback()
+        db.close()
+
+
+def test_map_rejects_unbounded_range(client):
+    response = client.get("/api/v1/threats/map?range=365")
+    assert response.status_code == 422

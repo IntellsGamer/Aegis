@@ -36,7 +36,7 @@ from app.ai.url_analysis import (
     tracking_params,
 )
 from app.config import settings
-from app.utils.http import get_http_client
+from app.security.safe_url import UnsafeDestination, fetch_public_url, validate_public_url
 
 BRAND_FAVICONS = {
     "paypal": "https://www.paypal.com/favicon.ico",
@@ -177,30 +177,28 @@ def _dns_records(host: str) -> dict:
 
 
 def _fetch_page(url: str) -> dict:
-    """Fetch the final page after following redirects (bounded)."""
-    client = httpx.Client(
-        timeout=httpx.Timeout(settings.http_timeout),
-        follow_redirects=True,
-        max_redirects=settings.max_redirects,
-        headers={"User-Agent": settings.user_agent},
-        verify=True,
-    )
+    """Fetch a bounded public page through the SSRF-safe acquisition boundary."""
     try:
-        with client as c:
-            response = c.get(url)
+        response = fetch_public_url(url, max_bytes=settings.max_remote_response_bytes)
+        headers = response["headers"]
+        content_type = headers.get("content-type", "")
+        encoding = "utf-8"
+        if "charset=" in content_type.lower():
+            encoding = content_type.lower().split("charset=", 1)[1].split(";", 1)[0].strip() or "utf-8"
         return {
-            "status": response.status_code,
-            "final_url": str(response.url),
-            "headers": dict(response.headers),
-            "content": response.text or "",
-            "content_type": response.headers.get("content-type", ""),
-            "server": response.headers.get("server"),
-            "redirect_chain": [str(r.url) for r in response.history] + [str(response.url)],
-            "security_headers": _security_headers(response.headers),
-            "has_cors_policy": bool(response.headers.get("access-control-allow-origin")),
+            "status": response["status"],
+            "final_url": response["url"],
+            "headers": headers,
+            "content": response["content"].decode(encoding, errors="replace"),
+            "content_type": content_type,
+            "server": headers.get("server"),
+            "redirect_chain": response["redirect_chain"],
+            "security_headers": _security_headers(headers),
+            "has_cors_policy": bool(headers.get("access-control-allow-origin")),
+            "resolved_addresses": response["resolved_addresses"],
         }
-    except httpx.HTTPError as exc:
-        return {"error": str(exc)[:300], "status": 0, "content": "", "headers": {}, "redirect_chain": []}
+    except UnsafeDestination as exc:
+        return {"error": str(exc)[:300], "status": 0, "content": "", "headers": {}, "redirect_chain": [], "blocked": True}
     except Exception as exc:  # pragma: no cover
         return {"error": str(exc)[:300], "status": 0, "content": "", "headers": {}, "redirect_chain": []}
 
@@ -218,14 +216,13 @@ def _security_headers(headers) -> dict:
 
 def _robots_txt(base_url: str) -> dict:
     try:
-        resp = httpx.get(
-            urljoin(base_url, "/robots.txt"),
-            timeout=4,
-            headers={"User-Agent": settings.user_agent},
-        )
-        if resp.status_code == 200:
-            blocked = "disallow: /" in resp.text.lower()
-            return {"present": True, "blocks_all": blocked, "sample": resp.text[:400]}
+        response = fetch_public_url(urljoin(base_url, "/robots.txt"), max_bytes=100_000, max_redirects=2)
+        if response["status"] == 200:
+            text = response["content"].decode("utf-8", errors="replace")
+            blocked = "disallow: /" in text.lower()
+            return {"present": True, "blocks_all": blocked, "sample": text[:400]}
+    except UnsafeDestination:
+        return {"present": False, "blocked": True}
     except Exception:
         pass
     return {"present": False}
@@ -248,24 +245,22 @@ def _favicon_analysis(base_url: str, brand: str | None) -> dict:
 
 def _fetch_favicon_hash(url: str) -> str | None:
     try:
-        resp = httpx.get(
-            urljoin(url, "/favicon.ico") if not url.startswith("http") else url,
-            timeout=5,
-            headers={"User-Agent": settings.user_agent},
-        )
-        if resp.status_code != 200:
+        target = urljoin(url, "/favicon.ico") if not url.startswith("http") else url
+        response = fetch_public_url(target, accept="image/*,*/*;q=0.8", max_bytes=512_000, max_redirects=2)
+        if response["status"] != 200:
             return None
+        content = response["content"]
         try:
             from PIL import Image
             from io import BytesIO
 
-            image = Image.open(BytesIO(resp.content)).convert("L").resize((16, 16))
+            image = Image.open(BytesIO(content)).convert("L").resize((16, 16))
             pixels = list(image.getdata())
             avg = sum(pixels) / len(pixels)
             bits = "".join("1" if p >= avg else "0" for p in pixels)
             return bits
         except Exception:
-            return hashlib.sha256(resp.content).hexdigest()[:32]
+            return hashlib.sha256(content).hexdigest()[:32]
     except Exception:
         return None
 
@@ -305,6 +300,24 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
             "description": description, "severity": severity, "evidence": evidence,
             "confidence": confidence, "extra": extra or {},
         })
+
+    # Validate the initial destination before any transport, DNS, or content
+    # request. Lexical analysis on private targets is not useful enough to
+    # justify turning AEGIS into a private-network probe.
+    try:
+        initial_destination = validate_public_url(url)
+    except UnsafeDestination as exc:
+        add("unsafe_destination", "security", "Unsafe destination blocked",
+            "AEGIS refused to fetch a private, reserved, malformed, or non-web destination.",
+            "critical", str(exc), 0.99, {"source": "safe_fetch", "network_fetch": "blocked"})
+        return {
+            "findings": findings,
+            "meta": {
+                "url": url, "host": host, "final_url": url, "status_code": 0,
+                "network_fetch": "blocked", "block_reason": str(exc)[:300],
+                "redirect_chain": [],
+            },
+        }
 
     # ---- 1. Transport -----------------------------------------------------
     if scheme == "https":
@@ -490,6 +503,11 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
     # ---- 7. Page fetch & content analysis -----------------------------------
     page = _fetch_page(url)
     page_url = url
+    if page.get("blocked"):
+        add("unsafe_destination", "security", "Unsafe redirect blocked",
+            "A redirect or linked fetch target was blocked by AEGIS network safety policy.",
+            "high", page.get("error"), 0.99,
+            {"source": "safe_fetch", "network_fetch": "blocked"})
     if page.get("final_url") and page["final_url"] != url:
         page_url = page["final_url"]
         final_parsed = urlparse(page_url)
@@ -638,5 +656,7 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
             "server": page.get("server"),
             "content_type": page.get("content_type"),
             "redirect_chain": chain,
+            "network_fetch": "blocked" if page.get("blocked") else "completed",
+            "resolved_addresses": page.get("resolved_addresses", list(initial_destination.addresses)),
         },
     }

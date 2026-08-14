@@ -409,8 +409,9 @@ def run_seed() -> None:
         admin.is_verified = True
         users.save(admin)
 
-        # --- sample community threats for the map -------------------------------
-        _seed_sample_threats(db)
+        # Threat intelligence and public map reports are never fabricated during
+        # setup. Remove only the old, content-addressed demonstration records.
+        _purge_legacy_demo_reports(db)
 
         AuditLogRepository(db).add(None, "seed.completed", "system",
                                    "Seed data verified and applied.")
@@ -434,46 +435,23 @@ def _seed_scenarios(learning: LearningRepository) -> None:
             learning.add_scenario(scenario)
 
 
-def _seed_sample_threats(db) -> None:
-    from app.models import Threat, ThreatReport
+def _purge_legacy_demo_reports(db) -> None:
+    """Remove only the exact fake map records shipped by older AEGIS versions."""
+    from sqlalchemy import delete
+    from app.models import ThreatReport
 
-    from sqlalchemy import func, select
-
-    count = db.scalar(select(func.count(Threat.id))) or 0
-    if count == 0:
-        samples = [
-            ("url", "paypal-secure-verify.tk", "phishing", "PayPal lookalike login", 0.97),
-            ("url", "free-bitcoin-doubler.io", "crypto", "Bitcoin doubling scam", 0.95),
-            ("url", "amazon-giftcard-redeem.top", "phishing", "Amazon gift card scam", 0.94),
-            ("url", "192.168.45.7/login", "credential_harvesting", "IP-based login harvester", 0.9),
-            ("phone", "+447700900123", "advance_fee", "Delivery fee scam caller", 0.88),
-            ("url", "admin-update-account.ga", "credential_harvesting", "Account update phish", 0.92),
-            ("url", "irs-fine-payment.icu", "government", "IRS fine impersonation", 0.96),
-        ]
-        for kind, value, category, title, confidence in samples:
-            db.add(Threat(threat_type=kind, value=value, category=category,
-                          title=title, confidence=confidence, source="seed"))
-
-    report_count = db.scalar(select(func.count(ThreatReport.id))) or 0
-    if report_count == 0:
-        from app.services.geo_service import coordinates_for_country
-
-        samples = [
-            ("url", "https://secure-login-refund.info", "phishing", "US"),
-            ("url", "https://btc-doubler.io", "crypto", "NG"),
-            ("text", "URGENT: your parcel is held in customs, pay the fee now", "advance_fee", "GB"),
-            ("url", "https://bank-verification-alert.tk", "phishing", "BR"),
-            ("qr", "https://payparking-quick.top/pay", "quishing", "DE"),
-            ("url", "https://courier-fee-release.xyz", "advance_fee", "IN"),
-        ]
-        for ctype, content, category, country in samples:
-            coords = coordinates_for_country(country)
-            if not coords:
-                continue
-            db.add(ThreatReport(
-                content_type=ctype, content=content, category=category,
-                country=country,
-                country_name={"US": "United States", "NG": "Nigeria", "GB": "United Kingdom",
-                              "BR": "Brazil", "DE": "Germany", "IN": "India"}.get(country),
-                latitude=coords[0], longitude=coords[1], status="approved",
-            ))
+    demo_content = {
+        "https://secure-login-refund.info",
+        "https://btc-doubler.io",
+        "URGENT: your parcel is held in customs, pay the fee now",
+        "https://bank-verification-alert.tk",
+        "https://payparking-quick.top/pay",
+        "https://courier-fee-release.xyz",
+    }
+    db.execute(
+        delete(ThreatReport).where(
+            ThreatReport.user_id.is_(None),
+            ThreatReport.status == "approved",
+            ThreatReport.content.in_(demo_content),
+        )
+    )

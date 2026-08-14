@@ -35,15 +35,19 @@ def submit_report():
         raise ValidationError("Content is required")
     from app.dependencies import current_user
 
+    # Public map coordinates are never accepted from an untrusted client. A
+    # report remains pending until moderation; approved reports are displayed
+    # only as country-level aggregates.
+    country = (data.get("country") or "").strip().upper()
     payload = {
         "content_type": content_type,
         "content": content[:500],
         "category": data.get("category", "unknown"),
         "description": (data.get("description") or "")[:1000],
-        "latitude": data.get("latitude"),
-        "longitude": data.get("longitude"),
-        "country": data.get("country"),
-        "country_name": data.get("country_name"),
+        "country": country[:4] or None,
+        "country_name": (data.get("country_name") or "").strip()[:128] or None,
+        "latitude": None,
+        "longitude": None,
     }
     user = current_user()
     if user:
@@ -59,12 +63,26 @@ def submit_report():
 
 @bp.get("/map")
 def threat_map():
+    try:
+        range_days = int(request.args.get("range", "1"))
+    except ValueError:
+        raise ValidationError("Map range must be an integer number of days")
+    if range_days not in {1, 7, 30}:
+        raise ValidationError("Map range must be one of: 1, 7, or 30 days")
+
     repo = ThreatReportRepository(db_session())
-    points = repo.geo_points()
-    countries = repo.country_counts()
+    points = repo.map_aggregates(range_days)
+    countries = repo.country_counts(range_days)
+    total_reports = repo.approved_count(range_days)
     return jsonify({
-        "points": [{"lat": p["lat"], "lng": p["lng"], "risk": p["category"] or "unknown",
-                    "type": p["type"], "country": p["country"]} for p in points],
+        "points": points,
         "countries": countries,
-        "total_reports": repo.count(),
+        "total_reports": total_reports,
+        "range_days": range_days,
+        "data_state": "verified_approved_reports",
+        "location_precision": "country_aggregate",
+        "empty_reason": (
+            "No approved reports with a verified country are available for this period."
+            if not points else None
+        ),
     })

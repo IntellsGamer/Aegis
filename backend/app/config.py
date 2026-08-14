@@ -69,12 +69,16 @@ class Settings(BaseSettings):
     # --- URLs used by scanners ---
     http_timeout: float = 8.0
     max_redirects: int = 5
+    max_remote_response_bytes: int = 2_000_000
     max_scan_recipients: int = 2000
     user_agent: str = (
         "AEGIS-TrustScan/1.0 (+https://aegis.local/security)"
         " Mozilla/5.0 (compatible) SecurityResearch/1.0"
     )
     require_https_scan: bool = False
+    # Optional local MaxMind-compatible City MMDB path. When unset, no IP
+    # geolocation occurs and the public map remains real-data-only.
+    geoip_city_db: Optional[str] = None
 
     # --- Deterministic evidence engine ---
     evidence_engine_version: str = "evidence-fusion-v2"
