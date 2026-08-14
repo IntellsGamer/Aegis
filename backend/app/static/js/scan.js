@@ -8,6 +8,12 @@
   let currentScanTarget = null;
   let currentResult = null;
   const tabs = document.querySelectorAll('.scan-tab');
+  const GUIDED_DEMO = {
+    subject: 'Action required: verify your digital service account',
+    sender: 'Account Review <security@paypa1-account-review.example>',
+    body: 'This is a fictional AEGIS demonstration scenario. Your account requires urgent verification. Review it now at https://paypa1-account-review.example/verify?account=demo. Do not enter real credentials.',
+    headers: 'From: Account Review <security@paypa1-account-review.example>\nSubject: Action required: verify your digital service account',
+  };
   const feedbackPanel = document.getElementById('feedback-panel');
   const feedbackPanelMarkup = feedbackPanel?.innerHTML || '';
   const panels = {};
@@ -40,6 +46,17 @@
   }
 
   tabs.forEach((tab) => tab.addEventListener('click', () => activate(tab.dataset.tab)));
+
+  function loadGuidedDemo() {
+    clearCurrentAssessment();
+    activate('email');
+    document.getElementById('email-subject').value = GUIDED_DEMO.subject;
+    document.getElementById('email-sender').value = GUIDED_DEMO.sender;
+    document.getElementById('email-body').value = GUIDED_DEMO.body;
+    document.getElementById('email-headers').value = GUIDED_DEMO.headers;
+    toast('Fictional credential-lure demo loaded. Review the evidence, then choose Analyze.', 'info');
+    document.getElementById('email-body')?.focus();
+  }
 
   function bindDrop(zoneId, inputId, previewId, onSelect) {
     const zone = document.getElementById(zoneId);
@@ -181,6 +198,7 @@
       <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500"><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${esc(stored)}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">scan type: ${esc(data.scan_type || currentScanType || '')}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">engine: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
     </article>`;
     document.getElementById('download-pdf-btn')?.classList.toggle('hidden', !currentScanId);
+    document.getElementById('casefile-btn')?.classList.toggle('hidden', !currentScanId);
     if (feedbackPanel) feedbackPanel.classList.toggle('hidden', !(currentScanId && data.retention !== 'not_stored'));
     document.getElementById('report-btn')?.classList.toggle('hidden', limited || !currentScanTarget);
     box.classList.remove('hidden');
@@ -199,6 +217,9 @@
     document.querySelectorAll('.scan-run').forEach((button) => button.addEventListener('click', () => runScan(button.dataset.kind)));
     document.getElementById('new-scan-btn')?.addEventListener('click', () => { clearCurrentAssessment(); activate(currentKind); });
     document.getElementById('copy-evidence-btn')?.addEventListener('click', copyEvidence);
+    document.getElementById('casefile-btn')?.addEventListener('click', () => { if (currentScanId) window.location.href = `/report/${currentScanId}`; });
+    document.getElementById('load-demo-btn')?.addEventListener('click', loadGuidedDemo);
+    if (new URLSearchParams(window.location.search).get('demo') === 'credential-lure') loadGuidedDemo();
     document.getElementById('download-pdf-btn')?.addEventListener('click', () => { if (currentScanId) window.location.href = `/api/v1/scans/${currentScanId}/report.pdf`; });
     document.getElementById('report-btn')?.addEventListener('click', async () => {
       if (!currentScanId || !currentScanTarget) return;

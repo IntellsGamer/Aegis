@@ -35,3 +35,15 @@ The post-fix reachable-domain scan remained in its explicit loading state after 
 ## Final reachable-domain precision recheck
 
 The post-fix browser scan of `https://example.com/` completed as **Safe** with a 94.2/100 trust score. Its evidence set contained only the legitimate HTTPS and certificate observations; the earlier typosquatting finding was absent. This confirms the false-positive correction in the live product.
+
+## Contest walkthrough check
+
+The live `scan?demo=credential-lure` path loaded an explicitly labelled fictional email without submitting automatically. After the user-facing Analyze action, the normal deterministic engine produced a threat assessment from multiple independent email and URL cues, displayed its evidence, and exposed the new **Open Casefile** transition. No live threat-intelligence confirmation was claimed.
+
+The live casefile rendered the recorded evidence families, detailed evidence chain, browser-local containment checklist, limitations, SHA-256 integrity fingerprint, and source disclosure. After the provenance correction, the email case correctly displayed `network_acquisition: not_applicable` rather than implying a remote fetch.
+
+The end-user casefile path was exited cleanly and the browser was prepared for an administrator-only readiness review using the seeded local administrator account.
+
+The administrator session successfully exposed the renamed **Operational Readiness** tab in place of the obsolete ML-training control. The dashboard and administrative data remained accessible after the feature update.
+
+The public landing page now presents deterministic evidence fusion, assessment boundaries, casefile preservation, and a visible guided-demo entry point. The obsolete ML claim has been removed from the user-facing narrative.

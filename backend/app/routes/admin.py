@@ -36,6 +36,35 @@ def analytics():
     return jsonify(admin_service.analytic_breakdown(db_session()))
 
 
+@bp.get("/readiness")
+@admin_required
+def readiness():
+    """Expose operational trust controls without relabelling confidence as accuracy."""
+    from app.repositories.governance_repo import GovernanceRepository
+
+    db = db_session()
+    feeds = GovernanceRepository(db).list_feeds()
+    feed_rows = [{
+        "slug": feed.slug, "provider": feed.provider, "enabled": feed.enabled,
+        "terms_accepted": feed.terms_accepted, "last_status": feed.last_status,
+        "last_success_at": feed.last_success_at.isoformat() if feed.last_success_at else None,
+        "data_boundary": (feed.metadata_json or {}).get("data_boundary"),
+    } for feed in feeds]
+    return jsonify({
+        "engine": admin_service.prediction_engine_info(),
+        "assessment_quality": admin_service.analytic_breakdown(db).get("assessment_quality", {}),
+        "outcome_review": GovernanceRepository(db).outcome_summary(30),
+        "feeds": feed_rows,
+        "safeguards": [
+            {"control": "No training boundary", "detail": "Scan outcomes and feedback are retained for review; they do not automatically retrain a model or rewrite rule weights."},
+            {"control": "Acquisition boundary", "detail": "Private, reserved, loopback, and non-web destinations are blocked before remote acquisition."},
+            {"control": "Retention consent", "detail": "Private results are retained only when the user explicitly opts into scan history."},
+            {"control": "Public intelligence governance", "detail": "Only approved community reports appear on public country-level activity views."},
+        ],
+        "measurement_note": "Coverage confidence is not a claim of measured accuracy. Confirmed outcomes remain separately governed review data.",
+    })
+
+
 # --------------------------------------------------------------------------
 # Users
 # --------------------------------------------------------------------------

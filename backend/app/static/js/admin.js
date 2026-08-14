@@ -47,8 +47,9 @@
     } else if (tab === 'audit') {
       const data = await api('GET', '/api/v1/admin/logs');
       renderAudit(data.items || [], data.total);
-    } else if (tab === 'retrain') {
-      renderRetrain();
+    } else if (tab === 'readiness') {
+      const data = await api('GET', '/api/v1/admin/readiness');
+      renderReadiness(data);
     }
   }
 
@@ -188,21 +189,20 @@
       <div class="overflow-x-auto"><table class="w-full text-left">${rows || '<tr><td class="py-4 text-sm text-slate-400">No logs.</td></tr>'}</table></div>`);
   }
 
-  function renderRetrain() {
+  function renderReadiness(data) {
     const box = document.getElementById('admin-content');
-    box.innerHTML = adminBox('ML Model Training', `
-      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Retrain the on-device phishing classifier using the current keyword corpus. Training runs synchronously on small datasets.</p>
-      <div id="train-status" class="mb-4 text-sm"></div>
-      <button id="train-btn" class="px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold">Start Training</button>`);
-    document.getElementById('train-btn').addEventListener('click', async () => {
-      const status = document.getElementById('train-status');
-      status.textContent = 'Training started…';
-      try {
-        const res = await api('POST', '/api/v1/admin/models/retrain');
-        const m = res.metrics || {};
-        status.innerHTML = `<span class="text-emerald-500">✓ Training complete</span><pre class="mt-2 text-xs bg-slate-100 dark:bg-slate-900 rounded p-2 overflow-x-auto">${esc(JSON.stringify(m, null, 2))}</pre>`;
-      } catch (e) { status.innerHTML = `<span class="text-red-500">${esc(e.message)}</span>`; }
-    });
+    const engine = data.engine || {};
+    const quality = data.assessment_quality || {};
+    const outcomes = data.outcome_review || {};
+    const outcomeRows = Object.entries(outcomes.by_verdict || {}).map(([key, value]) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(key.replaceAll('_', ' '))}: <strong>${esc(value)}</strong></span>`).join('');
+    const feedRows = (data.feeds || []).map((feed) => `<tr class="border-b border-slate-100 dark:border-slate-800"><td class="px-2 py-2 font-mono text-sm">${esc(feed.provider || feed.slug)}</td><td class="px-2 py-2 text-sm">${feed.enabled ? '<span class="text-emerald-500">enabled</span>' : '<span class="text-slate-400">disabled</span>'}</td><td class="px-2 py-2 text-sm">${feed.terms_accepted ? '<span class="text-emerald-500">accepted</span>' : '<span class="text-amber-500">not accepted</span>'}</td><td class="px-2 py-2 text-xs text-slate-500">${esc(feed.data_boundary || '—')}</td></tr>`).join('') || '<tr><td class="px-2 py-4 text-sm text-slate-500" colspan="4">No governed feed records yet.</td></tr>';
+    const safeguards = (data.safeguards || []).map((item) => `<li class="rounded-xl border border-slate-200 p-3 dark:border-slate-800"><p class="text-sm font-semibold">${esc(item.control)}</p><p class="mt-1 text-xs leading-5 text-slate-500">${esc(item.detail)}</p></li>`).join('');
+    box.innerHTML = `<div class="space-y-6">
+      <section class="overflow-hidden rounded-2xl border border-aegis-200 bg-gradient-to-br from-aegis-50 via-white to-slate-50 p-6 dark:border-aegis-900 dark:from-aegis-950/30 dark:via-slate-900 dark:to-slate-900"><div class="flex flex-wrap items-start justify-between gap-5"><div><p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Operational accountability</p><h2 class="mt-1 text-xl font-bold">Readiness & governance</h2><p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">A review surface for the controls that make AEGIS explainable and governable. It reports observed coverage and outcome review, never fabricated model accuracy.</p></div><div class="rounded-xl border border-aegis-200 bg-white/80 p-4 text-right dark:border-aegis-900 dark:bg-slate-950/60"><p class="text-xs text-slate-500">Engine</p><p class="mt-1 font-semibold text-aegis-700 dark:text-aegis-300">${esc(engine.version || 'evidence-fusion-v2')}</p><p class="mt-1 text-xs text-slate-500">${engine.training_required ? 'training required' : 'no model training'}</p></div></div></section>
+      <section class="grid gap-4 md:grid-cols-3"><div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Completed assessments</p><p class="mt-2 font-mono text-3xl font-bold">${esc(quality.completed ?? 0)}</p><p class="mt-2 text-xs text-slate-500">Persisted assessments in the quality view.</p></div><div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">High-coverage share</p><p class="mt-2 font-mono text-3xl font-bold">${quality.high_confidence_share !== undefined ? `${Math.round(Number(quality.high_confidence_share) * 100)}%` : '—'}</p><p class="mt-2 text-xs text-slate-500">Coverage and agreement, not predictive accuracy.</p></div><div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Outcome review · ${esc(outcomes.window_days || 30)}d</p><p class="mt-2 font-mono text-3xl font-bold">${esc(outcomes.total ?? 0)}</p><p class="mt-2 text-xs text-slate-500">Human or policy-confirmed outcomes.</p></div></section>
+      <section class="grid gap-6 lg:grid-cols-2"><div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><h3 class="font-semibold">Engine disclosure</h3><p class="mt-2 text-sm text-slate-500">${esc(engine.prediction_method || 'Deterministic evidence fusion')}</p><div class="mt-4 flex flex-wrap gap-2">${(engine.evidence_sources || []).map((source) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(source)}</span>`).join('')}</div><p class="mt-4 text-xs leading-5 text-slate-500">${esc(data.measurement_note || '')}</p><div class="mt-4 flex flex-wrap gap-2">${outcomeRows || '<span class="text-xs text-slate-500">No outcomes in this review window.</span>'}</div></div><div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><h3 class="font-semibold">Control boundaries</h3><ul class="mt-4 grid gap-3">${safeguards}</ul></div></section>
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"><div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="font-semibold">Governed intelligence sources</h3><p class="mt-1 text-sm text-slate-500">Sources remain disabled until their terms are explicitly accepted; their state is visible here for review.</p></div><span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${(data.feeds || []).filter((feed) => feed.enabled).length}/${(data.feeds || []).length} enabled</span></div><div class="mt-4 overflow-x-auto"><table class="w-full text-left"><thead class="text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-2 py-2">Source</th><th class="px-2 py-2">State</th><th class="px-2 py-2">Terms</th><th class="px-2 py-2">Boundary</th></tr></thead><tbody>${feedRows}</tbody></table></div></section>
+    </div>`;
   }
 
   document.addEventListener('DOMContentLoaded', () => {

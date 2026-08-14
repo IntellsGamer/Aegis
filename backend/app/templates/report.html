@@ -1,27 +1,23 @@
 {% extends 'base.html' %}
-{% block title %}Scan Report{% endblock %}
+{% block title %}Assessment Casefile{% endblock %}
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="mx-auto max-w-6xl">
   <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h1 class="text-2xl font-bold">Scan Report</h1>
-      <p class="text-sm text-slate-500 dark:text-slate-400" id="report-meta">{{ scan_type|title }} scan · {{ created_at }}</p>
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Reviewable security record</p>
+      <h1 class="mt-1 text-2xl font-bold">Assessment casefile</h1>
+      <p id="report-meta" class="mt-1 text-sm text-slate-500 dark:text-slate-400">Loading case details…</p>
     </div>
-    <div class="flex gap-2">
-      <button id="pdf-btn" class="px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition">Download PDF</button>
-      <button id="share-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Copy Share Link</button>
-    </div>
-  </div>
-  <div id="report-content">
-    <div class="flex justify-center py-24">
-      <div class="w-12 h-12 border-4 border-aegis-500 border-t-transparent rounded-full animate-spin"></div>
+    <div class="flex flex-wrap gap-2">
+      <button id="casefile-json-btn" class="rounded-lg bg-aegis-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-aegis-500">Export casefile JSON</button>
+      <button id="pdf-btn" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:border-aegis-500 dark:border-slate-700">Download PDF</button>
+      <button id="share-btn" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:border-aegis-500 dark:border-slate-700">Copy case link</button>
     </div>
   </div>
+  <div id="report-content"><div class="flex justify-center py-24"><div class="h-12 w-12 animate-spin rounded-full border-4 border-aegis-500 border-t-transparent"></div></div></div>
 </div>
 {% endblock %}
 {% block scripts %}
-<script>
-  window.__REPORT_SCAN_ID__ = {{ scan.id }};
-</script>
+<script>window.__REPORT_SCAN_ID__ = {{ scan.id }};</script>
 <script src="{{ url_for('static', filename='js/report.js') }}"></script>
 {% endblock %}

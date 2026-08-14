@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
+import json
 import mimetypes
 import os
 import re
@@ -382,51 +384,108 @@ def submit_scan_feedback(scan_id: int):
     return jsonify({"id": outcome.id, "verdict": outcome.verdict, "detail": "Feedback recorded"}), 201
 
 
-@bp.get("/<int:scan_id>/incident-packet")
-@optional_login
-def incident_packet(scan_id: int):
-    """Return a structured response packet for a permitted scan.
+def _build_casefile(scan, repo) -> dict:
+    """Build a reviewable, self-contained record from a persisted scan.
 
-    This does not claim external confirmation. It packages the engine's own
-    evidence, its version, and the user-facing containment steps so a team can
-    attach it to a case-management or SIEM workflow without reinterpreting the
-    score as an opaque model verdict.
+    The payload intentionally distinguishes locally observed evidence, opted-in
+    intelligence sources, and coverage limits. Its fingerprint is an integrity
+    aid for exported content, not a signature or a claim of external validation.
     """
-    scan, repo = _get_scan_or_404(scan_id)
-    if not _allowed_to_view(scan):
-        raise NotFoundError("Scan not found")
-    report = repo.get_report(scan_id)
+    report = repo.get_report(scan.id)
+    scan_data = scan_service.scan_to_dict(scan)
     findings = [finding.to_dict() for finding in scan.findings]
-    indicators = []
+    evidence = []
+    families: dict[str, dict] = {}
     for finding in findings:
         extra = finding.get("extra") or {}
-        indicators.append({
+        category = finding.get("category") or "other"
+        impact = float(extra.get("engine_impact", finding.get("impact") or 0.0))
+        evidence.append({
             "code": finding.get("code"), "title": finding.get("title"),
+            "description": finding.get("description"), "category": category,
             "severity": finding.get("severity"), "confidence": finding.get("confidence"),
             "evidence": finding.get("evidence"), "source": extra.get("source", "scanner_observation"),
-            "engine_impact": extra.get("engine_impact", finding.get("impact")),
+            "engine_impact": impact,
+            "observation_scope": "local" if str(extra.get("source", "")).startswith("local_") else "assessment",
         })
-    recommendations = (report.recommendation or "").splitlines() if report and report.recommendation else []
-    return jsonify({
+        family = families.setdefault(category, {"family": category, "signals": 0, "net_impact": 0.0})
+        family["signals"] += 1
+        family["net_impact"] += impact
+    for family in families.values():
+        family["net_impact"] = round(family["net_impact"], 2)
+
+    limitations = [
+        "Evidence confidence describes collection coverage and cross-family agreement; it is not measured predictive accuracy.",
+        "A casefile records this assessment only. It does not establish criminal attribution or external confirmation.",
+    ]
+    state = scan_data["assessment_state"]
+    if state == "limited":
+        limitations.insert(0, "Remote destination checks were not completed because the hostname could not be resolved.")
+    elif state == "blocked":
+        limitations.insert(0, "The destination was not probed because it crossed AEGIS network-safety boundaries.")
+
+    recommendations = [line.strip() for line in (report.recommendation or "").splitlines() if line.strip()] if report else []
+    response_playbook = [{"phase": "Contain", "action": action, "owner": "User or service desk"} for action in recommendations]
+    external_sources = sorted({item["source"] for item in evidence if str(item["source"]).startswith("feed:")})
+    finding_codes = {item.get("code") for item in evidence}
+    if "destination_unresolved" in finding_codes:
+        network_acquisition = "not_attempted"
+    elif "unsafe_destination" in finding_codes:
+        network_acquisition = "blocked"
+    elif scan.scan_type == "url" and state == "complete":
+        network_acquisition = "completed"
+    else:
+        network_acquisition = "not_applicable"
+    payload = {
         "case_id": f"AEGIS-{scan.id}",
         "created_at": scan.created_at.isoformat() if scan.created_at else None,
         "classification": {
-            "risk_level": scan.risk_level, "trust_score": scan.trust_score,
-            "evidence_confidence": scan.confidence,
+            "assessment_state": state, "verdict": scan_data["verdict"], "risk_level": scan.risk_level,
+            "trust_score": scan.trust_score, "evidence_confidence": scan.confidence,
             "engine": "evidence-fusion-v2",
             "interpretation": "Evidence confidence reflects coverage and agreement; it is not measured predictive accuracy.",
         },
-        "target": scan.input_url or scan.input_text or scan.file_name,
-        "scan_type": scan.scan_type,
-        "evidence": indicators,
-        "containment_actions": [item for item in recommendations if item.strip()],
+        "target": scan_data["target"], "scan_type": scan.scan_type,
+        "evidence": evidence,
+        "evidence_families": sorted(families.values(), key=lambda item: abs(item["net_impact"]), reverse=True),
+        "containment_actions": recommendations,
+        "response_playbook": response_playbook,
+        "timeline": report.timeline if report and report.timeline else [],
+        "limitations": limitations,
         "report_summary": report.summary if report else scan.summary,
         "provenance": {
             "generated_by": "AEGIS deterministic evidence fusion",
-            "external_intelligence": sorted({item["source"] for item in indicators if str(item["source"]).startswith("feed:")}),
-            "network_acquisition": next((f.get("extra", {}).get("network_fetch") for f in findings if f.get("code") == "unsafe_destination"), "not_applicable"),
+            "training_boundary": "No model training or automatic rule changes are performed from this casefile or feedback.",
+            "external_intelligence": external_sources,
+            "network_acquisition": network_acquisition,
+            "retention": "Stored at the account holder's explicit history preference when this casefile exists.",
         },
-    })
+    }
+    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    payload["integrity"] = {
+        "algorithm": "SHA-256", "fingerprint": hashlib.sha256(canonical).hexdigest(),
+        "scope": "Canonical casefile payload before this integrity field; fingerprint is not a digital signature.",
+    }
+    return payload
+
+
+@bp.get("/<int:scan_id>/casefile")
+@optional_login
+def casefile(scan_id: int):
+    scan, repo = _get_scan_or_404(scan_id)
+    if not _allowed_to_view(scan):
+        raise NotFoundError("Scan not found")
+    return jsonify(_build_casefile(scan, repo))
+
+
+@bp.get("/<int:scan_id>/incident-packet")
+@optional_login
+def incident_packet(scan_id: int):
+    """Compatibility endpoint for teams integrating an AEGIS casefile."""
+    scan, repo = _get_scan_or_404(scan_id)
+    if not _allowed_to_view(scan):
+        raise NotFoundError("Scan not found")
+    return jsonify(_build_casefile(scan, repo))
 
 
 @bp.get("/<int:scan_id>/report.pdf")

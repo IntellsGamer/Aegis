@@ -11,22 +11,24 @@
       Know who to trust.<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-aegis-400 to-aegis-200">Before they know you.</span>
     </h1>
     <p class="text-lg text-slate-300 mb-8 max-w-xl">
-      AEGIS analyzes URLs, emails, messages, images, QR codes and files against an explainable trust engine and on-device ML models — giving you a verdict you can understand.
+      AEGIS assesses URLs, emails, messages, images, QR codes and files through deterministic evidence fusion — preserving observable reasons, coverage limits and next actions instead of returning a black-box label.
     </p>
     <div class="flex flex-wrap gap-3">
       {% if user %}
       <a href="{{ url_for('pages.scan') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Launch Scanner</a>
       <a href="{{ url_for('pages.dashboard') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Go to Dashboard</a>
+      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="px-6 py-3 rounded-xl border border-aegis-500/70 hover:bg-aegis-950/50 text-aegis-200 transition">View guided demo</a>
       {% else %}
       <a href="{{ url_for('pages.register') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Get Started Free</a>
       <a href="{{ url_for('pages.login') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Sign In</a>
+      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="px-6 py-3 rounded-xl border border-aegis-500/70 hover:bg-aegis-950/50 text-aegis-200 transition">View guided demo</a>
       {% endif %}
     </div>
   </div>
 </section>
 
 <section class="mt-10">
-  <h2 class="text-2xl font-bold mb-6">Six analysis engines, one verdict</h2>
+  <h2 class="text-2xl font-bold mb-6">Six input paths, one evidence model</h2>
   <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% set scanners = [
       ('URL', 'Reputation, WHOIS, DNS, domain age, lookalike detection, typo-squatting and URL structure analysis.'),
@@ -48,30 +50,19 @@
 
 <section class="mt-10 grid lg:grid-cols-2 gap-8 items-center">
   <div>
-    <h2 class="text-2xl font-bold mb-4">An explainable Trust Score</h2>
+    <h2 class="text-2xl font-bold mb-4">An explainable assessment, not a black box</h2>
     <p class="text-slate-600 dark:text-slate-300 mb-4">
-      Every scan produces a score from 0 to 100 built from ~90 configurable rules across domain, content, behaviour and sender signals. Instead of a black box, AEGIS gives you the exact reasons, their weights, and concrete recommendations.
+      AEGIS fuses evidence across transport, sender, content, reputation and page-behaviour families. It displays the observed reasons, their contribution, the collection limits, and the next safe action—without claiming that a score is proof.
     </p>
     <ul class="space-y-2 text-sm">
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Human-readable verdicts: Safe · Suspicious · Threat</li>
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Per-signal breakdown with confidence levels</li>
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Rule customization for enterprises and admins</li>
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Clear states: completed · limited · safety boundary applied</li>
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Per-signal contribution, source and evidence confidence</li>
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Reviewable casefile and governed community intelligence</li>
     </ul>
   </div>
   <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-    <div class="flex items-center justify-between mb-4">
-      <span class="font-mono text-sm text-slate-400">Trust Score</span>
-      <span class="font-mono text-2xl font-bold text-aegis-500">83/100</span>
-    </div>
-    <div class="h-3 rounded-full bg-slate-200 dark:bg-slate-800 mb-6">
-      <div class="h-3 rounded-full bg-gradient-to-r from-aegis-500 to-emerald-500" style="width: 83%"></div>
-    </div>
-    <div class="space-y-2 text-sm font-mono">
-      <div class="flex justify-between"><span class="text-slate-500">Domain age &gt; 5 years</span><span class="text-emerald-500">+18</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Reputation DB hit (known safe)</span><span class="text-emerald-500">+25</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Valid SPF / DKIM alignment</span><span class="text-emerald-500">+15</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">No phishing language detected</span><span class="text-emerald-500">+25</span></div>
-    </div>
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">What every assessment preserves</p>
+    <div class="mt-4 space-y-3 text-sm"><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Evidence chain</p><p class="mt-1 text-xs text-slate-500">Each observation keeps its source, reliability and evidence-family contribution.</p></div><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Assessment boundary</p><p class="mt-1 text-xs text-slate-500">Limited and blocked paths are disclosed rather than silently treated as normal results.</p></div><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Safe next step</p><p class="mt-1 text-xs text-slate-500">Containment guidance, a portable casefile and governed reporting follow the assessment.</p></div></div>
   </div>
 </section>
 {% endblock %}
