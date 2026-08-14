@@ -56,3 +56,21 @@ def test_analyst_outcome_is_recorded_separately_from_engine_confidence(client):
     summary = client.get("/api/v1/admin/outcomes?days=30")
     assert summary.status_code == 200
     assert summary.get_json()["by_verdict"]["confirmed_malicious"] >= 1
+
+
+def test_incident_packet_preserves_evidence_and_response_context(client):
+    _login_admin(client)
+    scan_response = client.post("/api/v1/scans/text", json={
+        "text": "URGENT: Click http://paypa1-login.example to confirm your bank account now."
+    })
+    assert scan_response.status_code == 200
+    scan_id = scan_response.get_json()["scan_id"]
+
+    packet = client.get(f"/api/v1/scans/{scan_id}/incident-packet")
+    assert packet.status_code == 200
+    body = packet.get_json()
+    assert body["case_id"] == f"AEGIS-{scan_id}"
+    assert body["classification"]["engine"] == "evidence-fusion-v2"
+    assert "not measured predictive accuracy" in body["classification"]["interpretation"]
+    assert body["evidence"]
+    assert body["containment_actions"]

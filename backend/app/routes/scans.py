@@ -311,6 +311,53 @@ def get_report(scan_id: int):
     })
 
 
+@bp.get("/<int:scan_id>/incident-packet")
+@optional_login
+def incident_packet(scan_id: int):
+    """Return a structured response packet for a permitted scan.
+
+    This does not claim external confirmation. It packages the engine's own
+    evidence, its version, and the user-facing containment steps so a team can
+    attach it to a case-management or SIEM workflow without reinterpreting the
+    score as an opaque model verdict.
+    """
+    scan, repo = _get_scan_or_404(scan_id)
+    if not _allowed_to_view(scan):
+        raise NotFoundError("Scan not found")
+    report = repo.get_report(scan_id)
+    findings = [finding.to_dict() for finding in scan.findings]
+    indicators = []
+    for finding in findings:
+        extra = finding.get("extra") or {}
+        indicators.append({
+            "code": finding.get("code"), "title": finding.get("title"),
+            "severity": finding.get("severity"), "confidence": finding.get("confidence"),
+            "evidence": finding.get("evidence"), "source": extra.get("source", "scanner_observation"),
+            "engine_impact": extra.get("engine_impact", finding.get("impact")),
+        })
+    recommendations = (report.recommendation or "").splitlines() if report and report.recommendation else []
+    return jsonify({
+        "case_id": f"AEGIS-{scan.id}",
+        "created_at": scan.created_at.isoformat() if scan.created_at else None,
+        "classification": {
+            "risk_level": scan.risk_level, "trust_score": scan.trust_score,
+            "evidence_confidence": scan.confidence,
+            "engine": "evidence-fusion-v2",
+            "interpretation": "Evidence confidence reflects coverage and agreement; it is not measured predictive accuracy.",
+        },
+        "target": scan.input_url or scan.input_text or scan.file_name,
+        "scan_type": scan.scan_type,
+        "evidence": indicators,
+        "containment_actions": [item for item in recommendations if item.strip()],
+        "report_summary": report.summary if report else scan.summary,
+        "provenance": {
+            "generated_by": "AEGIS deterministic evidence fusion",
+            "external_intelligence": sorted({item["source"] for item in indicators if str(item["source"]).startswith("feed:")}),
+            "network_acquisition": next((f.get("extra", {}).get("network_fetch") for f in findings if f.get("code") == "unsafe_destination"), "not_applicable"),
+        },
+    })
+
+
 @bp.get("/<int:scan_id>/report.pdf")
 @optional_login
 def export_pdf(scan_id: int):
