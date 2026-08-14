@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Set New Password{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+    <h1 class="text-xl font-bold mb-2">Set a new password</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Choose a strong password for {{ email }}.</p>
+    <form id="reset-form" data-email="{{ email }}" data-token="{{ token }}" class="space-y-4" novalidate>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="password">New password</label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password"
+               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="confirm">Confirm password</label>
+        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password"
+               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <button type="submit" class="w-full py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition disabled:opacity-50" id="reset-btn">Update Password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

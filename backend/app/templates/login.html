@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Sign In{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto">
+  <div class="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+    <div class="flex items-center gap-2 mb-6">
+      <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="w-10 h-10">
+      <div>
+        <h1 class="text-xl font-bold">Welcome back</h1>
+        <p class="text-sm text-slate-500 dark:text-slate-400">Sign in to your AEGIS account</p>
+      </div>
+    </div>
+    <form id="login-form" class="space-y-4" novalidate>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email"
+               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-sm font-medium" for="password">Password</label>
+          <a href="{{ url_for('pages.forgot') }}" class="text-xs text-aegis-600 dark:text-aegis-400 hover:underline">Forgot password?</a>
+        </div>
+        <input type="password" id="password" name="password" required autocomplete="current-password"
+               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div class="flex items-center justify-between text-sm">
+        <label class="flex items-center gap-2"><input type="checkbox" name="remember" class="rounded accent-aegis-500"> Remember me</label>
+        <a href="{{ url_for('pages.register') }}" class="text-aegis-600 dark:text-aegis-400 hover:underline">Create account</a>
+      </div>
+      <button type="submit" class="w-full py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition disabled:opacity-50" id="login-btn">Sign In</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

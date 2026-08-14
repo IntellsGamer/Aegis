@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.db
+*.sqlite3
+.env
+uploads/
+models/
+.pytest_cache/
+
+# Windows alternate-data-stream sidecars
+*Zone.Identifier

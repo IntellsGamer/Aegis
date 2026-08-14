@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<section class="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-aegis-900 via-slate-900 to-slate-950 text-white">
+  <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, #22d3ee 0, transparent 40%), radial-gradient(circle at 80% 60%, #06b6d4 0, transparent 45%);"></div>
+  <div class="relative px-8 py-16 lg:py-24 max-w-3xl">
+    <p class="inline-flex items-center gap-2 text-sm font-mono text-aegis-300 border border-aegis-500/30 rounded-full px-3 py-1 mb-6">
+      <span class="w-2 h-2 rounded-full bg-aegis-400 animate-pulse"></span> Digital Trust Shield
+    </p>
+    <h1 class="text-4xl lg:text-6xl font-bold leading-tight mb-4">
+      Know who to trust.<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-aegis-400 to-aegis-200">Before they know you.</span>
+    </h1>
+    <p class="text-lg text-slate-300 mb-8 max-w-xl">
+      AEGIS analyzes URLs, emails, messages, images, QR codes and files against an explainable trust engine and on-device ML models — giving you a verdict you can understand.
+    </p>
+    <div class="flex flex-wrap gap-3">
+      {% if user %}
+      <a href="{{ url_for('pages.scan') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Launch Scanner</a>
+      <a href="{{ url_for('pages.dashboard') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Go to Dashboard</a>
+      {% else %}
+      <a href="{{ url_for('pages.register') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Get Started Free</a>
+      <a href="{{ url_for('pages.login') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Sign In</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="mt-10">
+  <h2 class="text-2xl font-bold mb-6">Six analysis engines, one verdict</h2>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% set scanners = [
+      ('URL', 'Reputation, WHOIS, DNS, domain age, lookalike detection, typo-squatting and URL structure analysis.'),
+      ('Email', 'Header forensics, SPF/DKIM/DMARC, phishing patterns and attachment checks.'),
+      ('Message', 'Text-pattern detection for phishing, urgency, greed and impersonation language.'),
+      ('Image', 'OCR text extraction and visual-phishing pattern recognition.'),
+      ('QR Code', 'Decode and resolve the destination, then scan the URL behind it.'),
+      ('File', 'Document metadata, macros and embedded URL extraction (pypdf-based).'),
+    ] %}
+    {% for name, desc in scanners %}
+    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-aegis-500/50 transition">
+      <div class="text-2xl mb-2">{{ '🔗' if loop.index == 1 else '📧' if loop.index == 2 else '💬' if loop.index == 3 else '🖼️' if loop.index == 4 else '📱' if loop.index == 5 else '📄' }}</div>
+      <h3 class="font-semibold mb-1">{{ name }} Scanner</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="mt-10 grid lg:grid-cols-2 gap-8 items-center">
+  <div>
+    <h2 class="text-2xl font-bold mb-4">An explainable Trust Score</h2>
+    <p class="text-slate-600 dark:text-slate-300 mb-4">
+      Every scan produces a score from 0 to 100 built from ~90 configurable rules across domain, content, behaviour and sender signals. Instead of a black box, AEGIS gives you the exact reasons, their weights, and concrete recommendations.
+    </p>
+    <ul class="space-y-2 text-sm">
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Human-readable verdicts: Safe · Suspicious · Threat</li>
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Per-signal breakdown with confidence levels</li>
+      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Rule customization for enterprises and admins</li>
+    </ul>
+  </div>
+  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div class="flex items-center justify-between mb-4">
+      <span class="font-mono text-sm text-slate-400">Trust Score</span>
+      <span class="font-mono text-2xl font-bold text-aegis-500">83/100</span>
+    </div>
+    <div class="h-3 rounded-full bg-slate-200 dark:bg-slate-800 mb-6">
+      <div class="h-3 rounded-full bg-gradient-to-r from-aegis-500 to-emerald-500" style="width: 83%"></div>
+    </div>
+    <div class="space-y-2 text-sm font-mono">
+      <div class="flex justify-between"><span class="text-slate-500">Domain age &gt; 5 years</span><span class="text-emerald-500">+18</span></div>
+      <div class="flex justify-between"><span class="text-slate-500">Reputation DB hit (known safe)</span><span class="text-emerald-500">+25</span></div>
+      <div class="flex justify-between"><span class="text-slate-500">Valid SPF / DKIM alignment</span><span class="text-emerald-500">+15</span></div>
+      <div class="flex justify-between"><span class="text-slate-500">No phishing language detected</span><span class="text-emerald-500">+25</span></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

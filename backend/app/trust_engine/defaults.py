@@ -1,0 +1,247 @@
+"""Default trust-engine rule registry.
+
+Every rule maps a finding `code` produced by a scanner to a scoring impact,
+a severity and a human-readable explanation template. Rules are stored in the
+`rules` table and can be tuned from the admin panel without code changes.
+"""
+from __future__ import annotations
+
+DEFAULT_RULES: list[dict] = [
+    # --- URL / technical ---
+    {"code": "https_secure", "name": "HTTPS enabled", "category": "transport",
+     "impact": 5, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "The site is served over an encrypted HTTPS connection."},
+    {"code": "http_insecure", "name": "Insecure HTTP", "category": "transport",
+     "impact": -12, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The site is served over plain HTTP without encryption, so "
+                "your data can be intercepted."},
+    {"code": "ssl_cert_valid", "name": "Valid SSL certificate", "category": "transport",
+     "impact": 4, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "The SSL certificate is currently valid."},
+    {"code": "ssl_cert_expired", "name": "Expired SSL certificate", "category": "transport",
+     "impact": -8, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The SSL certificate has expired, which is a common sign of a "
+                "neglected or fraudulent site."},
+    {"code": "ssl_cert_untrusted", "name": "Untrusted certificate", "category": "transport",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The SSL certificate was not issued by a trusted authority."},
+    {"code": "ssl_cert_mismatch", "name": "Certificate hostname mismatch", "category": "transport",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The SSL certificate does not match the domain you are visiting."},
+    {"code": "ssl_self_signed", "name": "Self-signed certificate", "category": "transport",
+     "impact": -10, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The site uses a self-signed certificate, which is unusual for "
+                "legitimate services."},
+    {"code": "domain_very_old", "name": "Long-established domain", "category": "reputation",
+     "impact": 8, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "The domain was registered more than five years ago, which is a "
+                "positive trust signal."},
+    {"code": "domain_old", "name": "Established domain", "category": "reputation",
+     "impact": 4, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "The domain has been registered for more than a year."},
+    {"code": "domain_young", "name": "Recently registered domain", "category": "reputation",
+     "impact": -3, "weight": 1.0, "severity": "low", "enabled": True,
+     "explain": "The domain was registered recently (less than a year old). This alone is not a threat, but combined with other signals it may warrant caution."},
+    {"code": "domain_fresh", "name": "Very new domain", "category": "reputation",
+     "impact": -5, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "This domain was registered within the last 14 days. Scammers frequently use fresh domains, but many legitimate sites also start with new domains."},
+    {"code": "typosquatting", "name": "Typosquatting", "category": "impersonation",
+     "impact": -35, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "This domain looks like it is imitating a well-known brand. "
+                "Always type the brand address yourself."},
+    {"code": "brand_impersonation", "name": "Brand impersonation", "category": "impersonation",
+     "impact": -30, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The page pretends to belong to a known brand. Scammers create "
+                "copycat pages to steal credentials."},
+    {"code": "punycode", "name": "Punycode / homograph attack", "category": "impersonation",
+     "impact": -25, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The domain uses non-ASCII characters that can visually imitate "
+                "letters from another alphabet (homograph attack)."},
+    {"code": "suspicious_tld", "name": "Suspicious top-level domain", "category": "reputation",
+     "impact": -8, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The domain uses a top-level domain frequently abused by scammers."},
+    {"code": "free_hosting", "name": "Free hosting domain", "category": "reputation",
+     "impact": -6, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The site is hosted on a free-hosting platform that scammers "
+                "often abuse."},
+    {"code": "shortened_url", "name": "Shortened link", "category": "obfuscation",
+     "impact": -2, "weight": 1.0, "severity": "info", "enabled": True,
+     "explain": "The link uses a URL shortener. This can hide destinations but is also used legitimately for tracking."},
+    {"code": "ip_address_url", "name": "IP address instead of domain", "category": "obfuscation",
+     "impact": -14, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The link points directly to an IP address rather than a named "
+                "domain, which bypasses brand checks."},
+    {"code": "hidden_redirect", "name": "Hidden redirect", "category": "obfuscation",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The page redirects to a different site without your action. "
+                "Hidden redirects are used to move victims to phishing pages."},
+    {"code": "open_redirect", "name": "Open redirect", "category": "obfuscation",
+     "impact": -10, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The site can redirect to arbitrary external addresses, a "
+                "technique used to launder malicious links."},
+    {"code": "url_entropy_high", "name": "High URL entropy", "category": "obfuscation",
+     "impact": -3, "weight": 1.0, "severity": "low", "enabled": True,
+     "explain": "The address contains many random-looking characters, unusual "
+                "for legitimate pages."},
+    {"code": "tracking_params", "name": "Tracking parameters present", "category": "obfuscation",
+     "impact": -1, "weight": 1.0, "severity": "info", "enabled": True,
+     "explain": "The link contains tracking parameters."},
+    {"code": "suspicious_keywords_url", "name": "Suspicious keywords in URL", "category": "obfuscation",
+     "impact": -10, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The address contains words strongly associated with scams and "
+                "phishing (such as login, verify, secure)."},
+    {"code": "known_threat", "name": "Known threat match", "category": "reputation",
+     "impact": -60, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "This exact address is already known to be malicious and has "
+                "been blocked."},
+    {"code": "login_form", "name": "Login form present", "category": "credential",
+     "impact": -2, "weight": 1.0, "severity": "info", "enabled": True,
+     "explain": "The page contains a login form. On sites that imitate a bank or "
+                "brand, stolen credentials are the target."},
+    {"code": "payment_request", "name": "Payment request on page", "category": "credential",
+     "impact": -2, "weight": 1.0, "severity": "info", "enabled": True,
+     "explain": "The page offers payment or purchase options. This is normal for commercial sites but may be suspicious on non-commerce domains."},
+    {"code": "external_scripts", "name": "External scripts loaded", "category": "code",
+     "impact": -1, "weight": 1.0, "severity": "info", "enabled": True,
+     "explain": "The page loads scripts from external domains. This is common for legitimate sites that use CDNs, but can also be used by malicious sites."},
+    {"code": "js_obfuscated", "name": "Obfuscated JavaScript", "category": "code",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The page contains heavily obfuscated JavaScript, typically used "
+                "to hide malicious behavior."},
+    {"code": "hidden_iframe", "name": "Hidden iframe", "category": "code",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The page embeds invisible iframes, a classic clickjacking and "
+                "phishing technique."},
+    {"code": "mixed_content", "name": "Mixed content", "category": "code",
+     "impact": -5, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The secure page loads insecure HTTP resources."},
+    {"code": "meta_refresh", "name": "Meta refresh redirect", "category": "obfuscation",
+     "impact": -8, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The page auto-redirects after a few seconds."},
+    {"code": "hidden_form", "name": "Hidden form", "category": "code",
+     "impact": -10, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The page contains forms hidden from view that could submit "
+                "your data to an attacker."},
+    {"code": "favicon_mismatch", "name": "Favicon impersonation", "category": "impersonation",
+     "impact": -6, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The site imitates the favicon of a well-known brand."},
+    {"code": "no_content", "name": "Empty or minimal content", "category": "code",
+     "impact": -3, "weight": 1.0, "severity": "low", "enabled": True,
+     "explain": "The page has almost no content, which is common for scam pages "
+                "that are registered and quickly discarded."},
+    {"code": "robots_blocked", "name": "Search engines blocked", "category": "code",
+     "impact": -4, "weight": 1.0, "severity": "low", "enabled": True,
+     "explain": "The site asks search engines not to index it."},
+
+    # --- Text / language ---
+    {"code": "urgency_words", "name": "Urgency language", "category": "manipulation",
+     "impact": -12, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message pressures you to act immediately. Scammers create "
+                "urgency to stop you from thinking and checking."},
+    {"code": "fear_tactics", "name": "Fear tactics", "category": "manipulation",
+     "impact": -12, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message threatens account closure or legal action to "
+                "scare you into complying."},
+    {"code": "reward_scam", "name": "Too-good-to-be-true reward", "category": "manipulation",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message promises prizes or winnings you did not enter for."},
+    {"code": "investment_scam", "name": "Investment offer", "category": "fraud",
+     "impact": -25, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message promotes an investment with guaranteed returns, "
+                "a hallmark of fraud."},
+    {"code": "crypto_scam", "name": "Cryptocurrency request", "category": "fraud",
+     "impact": -22, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message asks you to send cryptocurrency, which cannot be "
+                "recovered once sent."},
+    {"code": "fake_job", "name": "Fake job offer", "category": "fraud",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message offers a job with unusual conditions, often a "
+                "front for fraud."},
+    {"code": "romance_scam", "name": "Romance scam pattern", "category": "fraud",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message uses emotional language typical of romance scams."},
+    {"code": "gov_impersonation", "name": "Government impersonation", "category": "impersonation",
+     "impact": -28, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message claims to be from a government agency. Real "
+                "agencies do not demand payment via message."},
+    {"code": "bank_impersonation", "name": "Bank impersonation", "category": "impersonation",
+     "impact": -30, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message pretends to be from a bank. Your bank will never "
+                "ask for your password or one-time code."},
+    {"code": "requests_otp", "name": "Requests verification code", "category": "credential",
+     "impact": -25, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message asks for a verification or one-time code. Sharing "
+                "this code gives the attacker access to your account."},
+    {"code": "requests_password", "name": "Requests password", "category": "credential",
+     "impact": -35, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message asks for your password. No legitimate service "
+                "will ever ask for your password."},
+    {"code": "remote_access", "name": "Remote access request", "category": "credential",
+     "impact": -30, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message asks you to install software or allow remote "
+                "access to your device."},
+    {"code": "social_engineering", "name": "Social engineering", "category": "manipulation",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message tries to manipulate you with emotional or "
+                "authority-based language."},
+    {"code": "identity_theft", "name": "Identity theft attempt", "category": "fraud",
+     "impact": -25, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message asks for personal identity documents or details "
+                "that can be used to steal your identity."},
+    {"code": "verification_request", "name": "Account verification request", "category": "fraud",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message asks you to 'verify' your account by logging in "
+                "through the provided link."},
+    {"code": "sender_spoofing", "name": "Sender name spoofing", "category": "impersonation",
+     "impact": -25, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The displayed sender name does not match the real sender "
+                "address."},
+    {"code": "spf_fail", "name": "SPF authentication failed", "category": "email_auth",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The email failed SPF authentication, meaning it was probably "
+                "not sent by the claimed domain."},
+    {"code": "dkim_fail", "name": "DKIM authentication failed", "category": "email_auth",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The email failed DKIM verification."},
+    {"code": "dmarc_fail", "name": "DMARC authentication failed", "category": "email_auth",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The email failed DMARC policy checks."},
+    {"code": "reply_to_spoof", "name": "Reply-To mismatch", "category": "email_auth",
+     "impact": -15, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "Replies to this email go to a different address than the "
+                "sender, a common phishing technique."},
+    {"code": "email_link_suspicious", "name": "Suspicious link in email", "category": "email_auth",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The email contains links to domains that look suspicious."},
+    {"code": "email_attachment_suspicious", "name": "Suspicious attachment", "category": "email_auth",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The email carries an attachment type that is commonly used to "
+                "spread malware."},
+    {"code": "lottery_scam", "name": "Lottery scam", "category": "fraud",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "The message claims you won a lottery or prize you never entered."},
+    {"code": "phishing_link", "name": "Phishing link detected", "category": "impersonation",
+     "impact": -30, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "The message contains a link that points to a phishing page."},
+    {"code": "bad_grammar", "name": "Poor grammar / broken language", "category": "manipulation",
+     "impact": -4, "weight": 1.0, "severity": "low", "enabled": True,
+     "explain": "The message has grammar errors typical of bulk scam messages."},
+    {"code": "unknown_sender", "name": "Unknown sender", "category": "email_auth",
+     "impact": -5, "weight": 1.0, "severity": "medium", "enabled": True,
+     "explain": "The message comes from an address you do not know."},
+
+    # --- Positive signals ---
+    {"code": "brand_confirmed", "name": "Legitimate domain match", "category": "reputation",
+     "impact": 10, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "The domain matches a well-known legitimate brand exactly."},
+    {"code": "no_scam_patterns", "name": "No scam patterns found", "category": "analysis",
+     "impact": 5, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "No known scam indicators were found in the content."},
+    {"code": "secure_reputation", "name": "Clean reputation", "category": "reputation",
+     "impact": 4, "weight": 1.0, "severity": "safe", "enabled": True,
+     "explain": "No known malicious activity is associated with this address."},
+]
+
+SEVERITY_LEVELS = {"info": 0, "safe": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
+
+DEFAULT_EXPLAIN = "This indicator was detected by the AEGIS analysis engine."

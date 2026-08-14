@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AEGIS - AI-Powered Digital Trust & Scam Analysis Platform">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org; connect-src 'self' https://*.tile.openstreetmap.org; font-src 'self' data:;">
+  <meta name="theme-color" content="#0f172a">
+  <title>{% block title %}AEGIS{% endblock %} · AEGIS</title>
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="icon" href="{{ url_for('static', filename='icons/icon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <!-- Load Tailwind from local static file -->
+  <script src="{{ url_for('static', filename='js/3.4.17.js') }}"></script>
+  <link href="{{ url_for('static', filename='css/app.css') }}" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen antialiased transition-colors"
+      data-page="{{ active }}">
+  <div class="flex min-h-screen">
+    {% if user %}
+    <!-- Sidebar -->
+    <aside id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transform transition-transform duration-200
+             bg-slate-900 dark:bg-slate-950 border-r border-slate-800 flex flex-col"
+      aria-label="Main navigation">
+      <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-800">
+        <a href="{{ url_for('pages.dashboard') }}" class="flex items-center gap-2">
+          <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="w-9 h-9">
+          <span class="text-xl font-bold tracking-wide text-white">AEGIS</span>
+        </a>
+      </div>
+      <nav class="flex-1 py-4 px-3 space-y-1 text-sm">
+        {% set items = [
+          ('dashboard', 'pages.dashboard', 'Dashboard'),
+          ('scan', 'pages.scan', 'Scan Analyzer'),
+          ('map', 'pages.map_page', 'Threat Map'),
+          ('learn', 'pages.learn', 'Learning Center'),
+          ('profile', 'pages.profile', 'My Profile'),
+        ] %}
+        {% if user.is_admin %}
+          {% set items = items + [('admin', 'pages.admin', 'Admin Panel')] %}
+        {% endif %}
+        {% for key, endpoint, label in items %}
+        <a href="{{ url_for(endpoint) }}"
+           class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                  {% if active == key %}bg-aegis-600 text-white{% else %}text-slate-400 hover:bg-slate-800 hover:text-white{% endif %}"
+           data-nav="{{ key }}">
+          <span class="nav-icon" data-icon="{{ key }}"></span>
+          {{ label }}
+        </a>
+        {% endfor %}
+      </nav>
+      <div class="p-4 border-t border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-aegis-700 flex items-center justify-center text-white font-bold">
+            {{ (user.username or 'U')[0]|upper }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm text-white truncate">{{ user.username }}</p>
+            <p class="text-xs text-slate-400 truncate">{{ user.email }}</p>
+          </div>
+          <button data-action="logout" class="text-slate-400 hover:text-red-400" title="Logout" aria-label="Logout">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          </button>
+        </div>
+      </div>
+    </aside>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+    {% endif %}
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col {% if user %}lg:ml-64{% endif %} min-w-0">
+      {% if user %}
+      <header class="sticky top-0 z-20 h-16 flex items-center gap-4 px-4 lg:px-8 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur">
+        <button id="sidebar-toggle" class="lg:hidden text-slate-500" aria-label="Open menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <form class="relative flex-1 max-w-md" data-action="search" role="search">
+          <input type="search" id="global-search" placeholder="Search scans, threats…"
+                 class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+          <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </form>
+        <div class="flex-1"></div>
+        <button data-action="toggle-theme" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Toggle theme">
+          <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+        <div class="relative" id="notif-wrap">
+          <button data-action="notifications" class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Notifications">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
+          </button>
+          <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl z-50"></div>
+        </div>
+      </header>
+      {% endif %}
+
+      <main class="flex-1 px-4 lg:px-8 py-6 lg:py-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="border-t border-slate-200 dark:border-slate-800 px-6 py-4 text-xs text-slate-400">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <span>AEGIS Digital Trust &amp; Scam Analysis Platform · v{{ app_version }}</span>
+          <span class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            All analysis runs on-device with open-source models
+          </span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast-root" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

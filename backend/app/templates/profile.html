@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <h1 class="text-2xl font-bold mb-6">My Profile</h1>
+    <form id="profile-form" class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="p-username">Username</label>
+        <input type="text" id="p-username" name="username" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500" value="{{ user.username }}">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="p-email">Email</label>
+        <input type="email" id="p-email" name="email" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500" value="{{ user.email }}">
+      </div>
+      <div class="sm:col-span-2 flex items-center gap-3">
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="p-prefs" name="email_notifications" class="rounded accent-aegis-500" {% if user.email_notifications %}checked{% endif %}> Email notifications</label>
+      </div>
+      <div class="sm:col-span-2 flex justify-end">
+        <button type="submit" class="px-5 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition">Save Changes</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <h2 class="font-semibold mb-4">Change Password</h2>
+    <form id="password-form" class="grid sm:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1" for="p-current">Current</label>
+        <input type="password" id="p-current" name="current_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="p-new">New</label>
+        <input type="password" id="p-new" name="new_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="p-confirm">Confirm</label>
+        <input type="password" id="p-confirm" name="confirm_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      </div>
+      <div class="sm:col-span-3 flex justify-end">
+        <button type="submit" class="px-5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Update Password</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="p-6 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30">
+    <h2 class="font-semibold text-red-700 dark:text-red-400 mb-2">Danger Zone</h2>
+    <p class="text-sm text-red-600/80 dark:text-red-400/70 mb-4">Permanently delete your account and all associated scan data. This cannot be undone.</p>
+    <button id="delete-account-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Delete My Account</button>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

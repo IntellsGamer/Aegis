@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Threat Map{% endblock %}
+{% block content %}
+<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold">Threat Map</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">Live heatmap of reported threats from the last 24 hours.</p>
+  </div>
+  <div class="flex items-center gap-4 text-sm">
+    <label class="flex items-center gap-2"><input type="radio" name="range" value="24" checked class="accent-aegis-500"> 24h</label>
+    <label class="flex items-center gap-2"><input type="radio" name="range" value="7" class="accent-aegis-500"> 7 days</label>
+    <label class="flex items-center gap-2"><input type="radio" name="range" value="30" class="accent-aegis-500"> 30 days</label>
+  </div>
+</div>
+<div class="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+  <div id="map" class="h-[60vh] bg-slate-200 dark:bg-slate-900"></div>
+</div>
+<div class="mt-6 grid sm:grid-cols-3 gap-4">
+  <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <p class="text-xs text-slate-500 uppercase font-medium mb-1">Total Reports</p>
+    <p class="text-2xl font-bold font-mono" id="map-total">—</p>
+  </div>
+  <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <p class="text-xs text-slate-500 uppercase font-medium mb-1">Countries Affected</p>
+    <p class="text-2xl font-bold font-mono" id="map-countries">—</p>
+  </div>
+  <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <p class="text-xs text-slate-500 uppercase font-medium mb-1">Top Vector</p>
+    <p class="text-2xl font-bold font-mono" id="map-vector">—</p>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<link rel="stylesheet" href="static/css/leaflet.css">
+<script src="static/js/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

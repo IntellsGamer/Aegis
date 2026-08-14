@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Not Found{% endblock %}
+{% block content %}
+<div class="max-w-lg mx-auto text-center py-24">
+  <p class="font-mono text-7xl font-bold text-aegis-500 mb-4">404</p>
+  <h1 class="text-2xl font-bold mb-2">Page not found</h1>
+  <p class="text-slate-500 dark:text-slate-400 mb-8">The page you're looking for doesn't exist or has been moved.</p>
+  <a href="{{ url_for('pages.home') }}" class="px-6 py-3 rounded-xl bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition">Back to Safety</a>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+# --- Web framework (WSGI) ---
+Flask==3.0.3
+gunicorn==22.0.0
+
+# --- Database ---
+SQLAlchemy==2.0.35
+alembic==1.13.3
+psycopg2-binary==2.9.9
+
+# --- Config / validation ---
+pydantic==2.9.2
+pydantic-settings==2.6.1
+email-validator==2.2.0
+
+# --- Auth / security ---
+passlib[bcrypt]==1.7.4
+bcrypt==4.2.1
+PyJWT==2.9.0
+
+# --- Async / HTTP ---
+httpx==0.27.2
+
+# --- Background workers ---
+celery==5.4.0
+redis==5.1.1
+
+# --- Network intelligence ---
+dnspython==2.7.0
+python-whois==0.9.4
+
+# --- AI / ML (open-source, on-device) ---
+numpy==1.26.4
+scikit-learn==1.5.2
+# xgboost==2.1.1
+scipy==1.14.1
+
+# --- Image / OCR / QR ---
+Pillow==10.4.0
+zxing-cpp==2.2.0
+pytesseract==0.3.13
+
+# --- Files ---
+pypdf==5.1.0
+
+# --- PDF reports ---
+reportlab==4.2.5
+
+# --- Dev / test ---
+pytest==8.3.3

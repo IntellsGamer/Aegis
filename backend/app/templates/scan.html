@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Scan Analyzer{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold">Scan Analyzer</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">Analyze any link, email, message, image, QR code or file against the AEGIS trust engine.</p>
+  </div>
+
+  <div class="grid sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="scan-tabs" role="tablist">
+    {% set kinds = [
+      ('url', '🔗', 'URL'),
+      ('email', '📧', 'Email'),
+      ('text', '💬', 'Message'),
+      ('image', '🖼️', 'Image'),
+      ('qr', '📱', 'QR Code'),
+      ('file', '📄', 'File'),
+    ] %}
+    {% for key, icon, label in kinds %}
+    <button class="scan-tab px-3 py-2.5 rounded-xl border text-sm font-medium transition
+                   {% if loop.first %}border-aegis-500 bg-aegis-50 dark:bg-aegis-950 text-aegis-700 dark:text-aegis-300{% else %}border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:border-aegis-400{% endif %}"
+            data-tab="{{ key }}" role="tab">
+      <span class="mr-1">{{ icon }}</span>{{ label }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <!-- URL -->
+    <div class="scan-panel" data-panel="url">
+      <label class="block text-sm font-medium mb-2" for="url-input">Enter a URL to analyze</label>
+      <div class="flex gap-2">
+        <input type="url" id="url-input" placeholder="https://example.com" class="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+        <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="url">Analyze</button>
+      </div>
+    </div>
+    <!-- Email -->
+    <div class="scan-panel hidden" data-panel="email">
+      <label class="block text-sm font-medium mb-2" for="email-subject">Subject</label>
+      <input type="text" id="email-subject" placeholder="Message subject" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      <label class="block text-sm font-medium mb-2" for="email-sender">Sender address</label>
+      <input type="text" id="email-sender" placeholder="sender@example.com" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      <label class="block text-sm font-medium mb-2" for="email-body">Message body</label>
+      <textarea id="email-body" rows="6" placeholder="Paste the email content here…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
+      <label class="block text-sm font-medium mb-2" for="email-headers">Raw headers (optional)</label>
+      <textarea id="email-headers" rows="4" placeholder="Received: from…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-aegis-500 font-mono"></textarea>
+      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="email">Analyze</button>
+    </div>
+    <!-- Text -->
+    <div class="scan-panel hidden" data-panel="text">
+      <label class="block text-sm font-medium mb-2" for="text-input">Paste a message to analyze</label>
+      <textarea id="text-input" rows="7" placeholder="Paste SMS, DM or chat message here…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
+      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="text">Analyze</button>
+    </div>
+    <!-- Image -->
+    <div class="scan-panel hidden" data-panel="image">
+      <label class="block text-sm font-medium mb-2" for="image-input">Upload an image</label>
+      <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="image-zone">
+        <p class="text-3xl mb-2">🖼️</p>
+        <p class="text-sm text-slate-500">Drop an image here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
+        <input type="file" id="image-input" accept="image/*" class="hidden">
+      </div>
+      <div id="image-preview" class="hidden mt-3"><img class="max-h-48 rounded-lg mx-auto" alt="preview"></div>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="image" disabled>Analyze</button>
+    </div>
+    <!-- QR -->
+    <div class="scan-panel hidden" data-panel="qr">
+      <label class="block text-sm font-medium mb-2" for="qr-input">Upload a QR code image</label>
+      <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="qr-zone">
+        <p class="text-3xl mb-2">📱</p>
+        <p class="text-sm text-slate-500">Drop a QR code here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
+        <input type="file" id="qr-input" accept="image/*" class="hidden">
+      </div>
+      <div id="qr-preview" class="hidden mt-3"><img class="max-h-48 rounded-lg mx-auto" alt="preview"></div>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="qr" disabled>Analyze</button>
+    </div>
+    <!-- File -->
+    <div class="scan-panel hidden" data-panel="file">
+      <label class="block text-sm font-medium mb-2" for="file-input">Upload a document</label>
+      <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="file-zone">
+        <p class="text-3xl mb-2">📄</p>
+        <p class="text-sm text-slate-500">Drop a PDF or document here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
+        <input type="file" id="file-input" accept=".pdf,.txt,.doc,.docx,.eml" class="hidden">
+      </div>
+      <div id="file-preview" class="hidden mt-3 text-sm text-slate-500"></div>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="file" disabled>Analyze</button>
+    </div>
+  </div>
+
+  <div id="result-box" class="mt-6 hidden">
+    <div id="result-content"></div>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <button id="report-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Report as Threat</button>
+      <button id="download-pdf-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Download Report (PDF)</button>
+      <button id="new-scan-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">New Scan</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scan.js') }}"></script>
+{% endblock %}

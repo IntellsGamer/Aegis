@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Learning Center{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold">Learning Center</h1>
+  <p class="text-sm text-slate-500 dark:text-slate-400">Lessons, quizzes and a scam simulator to sharpen your detection skills.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <div class="flex items-center gap-4 mb-4">
+      <h2 class="font-semibold text-lg">Lessons</h2>
+      <div class="flex gap-1 text-sm bg-slate-200 dark:bg-slate-800 rounded-lg p-1">
+        <button class="lesson-filter px-3 py-1 rounded-md bg-white dark:bg-slate-900 shadow text-aegis-600 dark:text-aegis-400" data-cat="all">All</button>
+        <button class="lesson-filter px-3 py-1 rounded-md text-slate-500" data-cat="phishing">Phishing</button>
+        <button class="lesson-filter px-3 py-1 rounded-md text-slate-500" data-cat="identity">Identity</button>
+        <button class="lesson-filter px-3 py-1 rounded-md text-slate-500" data-cat="tech">Tech Scams</button>
+      </div>
+    </div>
+    <div id="lessons" class="space-y-3">
+      <div class="animate-pulse h-20 rounded-xl bg-slate-100 dark:bg-slate-800"></div>
+      <div class="animate-pulse h-20 rounded-xl bg-slate-100 dark:bg-slate-800"></div>
+    </div>
+    <div id="lesson-detail" class="hidden"></div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <h2 class="font-semibold mb-4">Quizzes</h2>
+      <div id="quizzes" class="space-y-2">
+        <div class="animate-pulse h-8 rounded bg-slate-100 dark:bg-slate-800"></div>
+      </div>
+    </div>
+    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <h2 class="font-semibold mb-4">Scam Simulator</h2>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Can you spot the scam? Play through realistic scenarios and see the trust analysis.</p>
+      <select id="scenario-select" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm mb-3">
+        <option value="">Choose a scenario…</option>
+      </select>
+      <div id="simulator"></div>
+    </div>
+    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <h2 class="font-semibold mb-4">Your Progress</h2>
+      <div id="progress" class="space-y-3 text-sm">
+        <div class="animate-pulse h-6 rounded bg-slate-100 dark:bg-slate-800"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/learn.js') }}"></script>
+{% endblock %}
