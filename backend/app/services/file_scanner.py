@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from app.ai.text_patterns import URL_RE
+from app.security.file_safety import UnsafeUpload, inspect_upload
 
 
 async def scan_file(file_path: str, filename: str, mime: str | None = None) -> dict:
@@ -45,6 +46,18 @@ def _extract_text_file(path: str) -> str:
 def _scan_file_sync(file_path: str, filename: str, mime: str | None = None) -> dict:
     findings: list[dict] = []
     ext = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
+    try:
+        inspection = inspect_upload(Path(file_path).read_bytes(), filename, "file")
+        findings.extend(inspection.findings)
+    except (OSError, UnsafeUpload) as exc:
+        return {
+            "findings": [{
+                "code": "unsafe_upload", "category": "file_safety", "title": "Unsafe or malformed upload",
+                "description": "The file could not be safely validated for analysis.", "evidence": str(exc)[:300],
+                "severity": "high", "impact": 0.0, "confidence": 0.95,
+            }],
+            "meta": {"extracted_chars": 0, "links": [], "suspicious_terms": 1, "file_safety": "blocked"},
+        }
 
     text = ""
     if ext == "pdf" or (mime and "pdf" in mime):
@@ -84,5 +97,6 @@ def _scan_file_sync(file_path: str, filename: str, mime: str | None = None) -> d
             "links": links[:10],
             "link_count": len(links),
             "suspicious_terms": suspicious_terms,
+            "file_safety": "static_inspection_complete",
         },
     }

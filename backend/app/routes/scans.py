@@ -17,6 +17,7 @@ from app.dependencies import db_session, login_required, optional_login
 from app.exceptions import APIError, NotFoundError, ValidationError
 from app.repositories.scan_repo import ScanRepository
 from app.schemas.scan import ScanOut, EmailScanRequest, TextScanRequest, UrlScanRequest
+from app.security.file_safety import UnsafeUpload, inspect_upload
 from app.security.sanitize import sanitize_filename
 from app.services import geo_service, scan_service
 from app.services.report_service import generate_pdf
@@ -59,6 +60,10 @@ def _save_upload(file_storage, scan_type: str) -> dict:
     content = file_storage.read()
     if len(content) > MAX_UPLOAD:
         raise APIError(f"File exceeds {settings.max_upload_mb} MB limit", status_code=413)
+    try:
+        inspect_upload(content, filename or f"upload.{ext}", scan_type)
+    except UnsafeUpload as exc:
+        raise ValidationError(str(exc)) from exc
     upload_dir = Path(settings.upload_dir) / scan_type
     upload_dir.mkdir(parents=True, exist_ok=True)
     safe_name = sanitize_filename(filename or f"upload.{ext}")
@@ -223,6 +228,10 @@ def scan_file():
 
 
 def _save_bytes(data: bytes, name: str, mime: str, kind: str) -> dict:
+    try:
+        inspect_upload(data, name, kind)
+    except UnsafeUpload as exc:
+        raise ValidationError(str(exc)) from exc
     upload_dir = Path(settings.upload_dir) / kind
     upload_dir.mkdir(parents=True, exist_ok=True)
     path = upload_dir / f"{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{os.urandom(3).hex()}-{name}"
