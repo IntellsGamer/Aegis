@@ -144,16 +144,24 @@
     box.classList.remove('hidden');
     currentScanTarget = data.target || '';
 
-    const reasons = (data.reasons || []).map((r) => `
-      <div class="flex items-start gap-3 py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">
-        <span class="mt-1 w-2 h-2 rounded-full shrink-0 ${r.impact >= 0 ? 'bg-emerald-500' : 'bg-red-500'}"></span>
-        <div class="flex-1">
-          <p class="text-sm font-medium">${esc(r.reason)}</p>
-          <p class="text-xs text-slate-500 mt-0.5">Confidence ${r.confidence !== null ? (r.confidence * 100).toFixed(0) + '%' : '—'} · impact ${r.impact > 0 ? '+' : ''}${r.impact}</p>
-        </div>
-      </div>`).join('');
+    const reasons = (data.reasons || []).map((r) => {
+      const hostile = Number(r.impact) < 0;
+      const impactText = hostile ? `${Math.abs(Number(r.impact)).toFixed(1)} risk weight` : `${Math.abs(Number(r.impact)).toFixed(1)} protective weight`;
+      return `
+        <div class="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
+          <span class="mt-1.5 w-2 h-2 rounded-full shrink-0 ${hostile ? 'bg-red-500' : 'bg-emerald-500'}"></span>
+          <div class="flex-1">
+            <p class="text-sm font-medium">${esc(r.reason)}</p>
+            <p class="text-xs text-slate-500 mt-0.5">Source reliability ${r.confidence !== null ? (r.confidence * 100).toFixed(0) + '%' : '—'} · ${impactText}</p>
+          </div>
+        </div>`;
+    }).join('');
 
     const highlights = (data.highlights || []).map((h) => `<span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs">${esc(h)}</span>`).join('');
+    const score = Number(data.trust_score || 0);
+    const scoreColor = score >= 85 ? 'text-emerald-500' : score >= 60 ? 'text-amber-500' : 'text-red-500';
+    const barColor = score >= 85 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
+    const confidence = data.confidence !== null && data.confidence !== undefined ? `${(Number(data.confidence) * 100).toFixed(0)}%` : '—';
 
     content.innerHTML = `
       <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -164,12 +172,13 @@
           </div>
           <div class="text-center">
             <p class="text-sm text-slate-500 mb-1">Trust Score</p>
-            <p class="font-mono text-4xl font-bold ${(data.trust_score || 0) >= 70 ? 'text-emerald-500' : (data.trust_score || 0) >= 40 ? 'text-amber-500' : 'text-red-500'}">${data.trust_score ?? '—'}<span class="text-lg">/100</span></p>
+            <p class="font-mono text-4xl font-bold ${scoreColor}">${data.trust_score ?? '—'}<span class="text-lg">/100</span></p>
+            <p class="mt-1 text-xs text-slate-500">Evidence confidence ${confidence}</p>
           </div>
           <div>${window.Aegis.badgeFor(data.verdict)}</div>
         </div>
         <div class="h-3 rounded-full bg-slate-200 dark:bg-slate-800 mb-6">
-          <div class="h-3 rounded-full transition-all ${(data.trust_score || 0) >= 70 ? 'bg-emerald-500' : (data.trust_score || 0) >= 40 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${data.trust_score || 0}%"></div>
+          <div class="h-3 rounded-full transition-all ${barColor}" style="width: ${score}%"></div>
         </div>
         <div class="grid lg:grid-cols-2 gap-6">
           <div>
@@ -186,8 +195,9 @@
           </div>
         </div>
         <div class="mt-6 flex items-center gap-2 text-xs text-slate-400">
-          <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800">scan_type: ${esc(data.scan_type || currentScanType || '')}</span>
-          <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800">model: ${esc(data.model_used || 'rules')}</span>
+          <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800">scan type: ${esc(data.scan_type || currentScanType || '')}</span>
+          <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800">engine: ${esc(data.model_used || 'evidence-fusion-v2')}</span>
+          <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800">confidence reflects evidence coverage, not certainty</span>
         </div>
       </div>`;
 

@@ -2,10 +2,26 @@
 {% block title %}Scan Analyzer{% endblock %}
 {% block content %}
 <div class="max-w-4xl mx-auto">
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold">Scan Analyzer</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400">Analyze any link, email, message, image, QR code or file against the AEGIS trust engine.</p>
-  </div>
+  <section class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div class="border-b border-slate-100 bg-gradient-to-br from-aegis-50 via-white to-slate-50 p-6 dark:border-slate-800 dark:from-aegis-950/30 dark:via-slate-900 dark:to-slate-900">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Evidence-first assessment</p>
+          <h1 class="text-2xl font-bold tracking-tight">Scan Analyzer</h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Inspect a link, email, message, image, QR code, or file. AEGIS combines observable evidence, controls for repeated signals, and explains the resulting assessment.</p>
+        </div>
+        <div class="rounded-xl border border-aegis-200 bg-white/80 px-4 py-3 text-right dark:border-aegis-900 dark:bg-slate-950/60">
+          <p class="text-xs font-medium text-slate-500">Prediction path</p>
+          <p class="mt-1 text-sm font-semibold text-aegis-700 dark:text-aegis-300">No model training</p>
+        </div>
+      </div>
+    </div>
+    <div class="grid gap-px bg-slate-100 text-sm dark:bg-slate-800 sm:grid-cols-3">
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">1. Collect</p><p class="mt-1 text-xs leading-5 text-slate-500">Extract links, sender signals, content cues, and technical observations.</p></div>
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">2. Correlate</p><p class="mt-1 text-xs leading-5 text-slate-500">Reduce repeated cues and elevate agreement across independent evidence families.</p></div>
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">3. Explain</p><p class="mt-1 text-xs leading-5 text-slate-500">Show the calibrated reasons, confidence, and next actions rather than a black-box label.</p></div>
+    </div>
+  </section>
 
   <div class="grid sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="scan-tabs" role="tablist">
     {% set kinds = [
@@ -25,7 +41,7 @@
     {% endfor %}
   </div>
 
-  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+  <div id="scan-box" class="p-6 rounded-2xl border border-slate-200 shadow-sm dark:border-slate-800 bg-white dark:bg-slate-900">
     <!-- URL -->
     <div class="scan-panel" data-panel="url">
       <label class="block text-sm font-medium mb-2" for="url-input">Enter a URL to analyze</label>
@@ -48,7 +64,10 @@
     </div>
     <!-- Text -->
     <div class="scan-panel hidden" data-panel="text">
-      <label class="block text-sm font-medium mb-2" for="text-input">Paste a message to analyze</label>
+      <div class="mb-2 flex items-center justify-between gap-3">
+        <label class="block text-sm font-medium" for="text-input">Paste a message to analyze</label>
+        <span class="text-xs text-slate-400">Text and embedded links stay local to the assessment path</span>
+      </div>
       <textarea id="text-input" rows="7" placeholder="Paste SMS, DM or chat message here…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
       <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="text">Analyze</button>
     </div>

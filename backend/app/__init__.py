@@ -111,16 +111,23 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     @app.before_request
     def csrf_token_cookie():
-        if "aegis_csrf" not in request.cookies and request.method in ("GET", "HEAD", "OPTIONS"):
-            # issued lazily on safe requests so forms have a token available
-            pass
+        """Make the current token available to templates on the first safe request."""
+        current = request.cookies.get("aegis_csrf")
+        if current:
+            g.csrf_token = current
+        elif request.method in ("GET", "HEAD", "OPTIONS"):
+            # The template receives this token in a meta tag during the same
+            # response that sets the HttpOnly cookie. JavaScript never needs to
+            # read the cookie, preserving the double-submit comparison.
+            g.csrf_token = secrets.token_urlsafe(32)
         return None
 
     @app.after_request
     def ensure_csrf_cookie(response):
-        if "aegis_csrf" not in request.cookies:
+        token = getattr(g, "csrf_token", None)
+        if token and "aegis_csrf" not in request.cookies:
             response.set_cookie(
-                "aegis_csrf", secrets.token_urlsafe(32),
+                "aegis_csrf", token,
                 httponly=True, samesite="Lax", secure=False,
             )
         return response

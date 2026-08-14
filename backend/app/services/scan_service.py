@@ -140,7 +140,22 @@ def run_scan(
             findings, db=db, ai_confidence=ai_conf, ai_label=ai_label
         )
 
+        # Persist the calibrated contribution that the user sees in the report.
+        # Scanner findings retain their raw provenance in ``extra``; the engine
+        # contribution is the explainable, correlation-aware display impact.
+        reason_by_code = {reason.code: reason for reason in engine.reasons}
         for finding in findings:
+            reason = reason_by_code.get(finding.get("code"))
+            if reason:
+                finding["impact"] = reason.impact
+                finding["confidence"] = reason.confidence
+                extra = dict(finding.get("extra") or {})
+                extra.update({
+                    "engine_version": engine.engine_version,
+                    "engine_impact": reason.impact,
+                    "occurrences": reason.occurrences,
+                })
+                finding["extra"] = extra
             scan_repo.add_finding(scan.id, finding)
 
         summary = _build_summary(scan_type, engine, raw_result.get("meta", {}))
@@ -209,7 +224,10 @@ def _build_summary(scan_type: str, engine: EngineResult, meta: dict) -> str:
         base = f"The {label.lower()} shows strong signs of a scam."
     else:
         base = f"The {label.lower()} is very likely a scam."
-    return f"{base} Trust score {engine.trust_score}/100, confidence {engine.confidence:.0%}."
+    return (
+        f"{base} Trust score {engine.trust_score}/100, estimated risk "
+        f"{engine.risk_probability:.0%}, evidence confidence {engine.confidence:.0%}."
+    )
 
 
 def _recommendation_text(engine: EngineResult) -> str:
@@ -220,7 +238,7 @@ def _build_timeline(scan_type: str, engine: EngineResult) -> list[dict]:
     return [
         {"step": "Input received", "detail": f"{SCAN_LABELS.get(scan_type, 'Content')} captured for analysis"},
         {"step": "Indicator analysis", "detail": f"{len(engine.reasons)} indicators evaluated"},
-        {"step": "Trust score computed", "detail": f"Score {engine.trust_score}/100 ({engine.risk_level} risk)"},
+        {"step": "Evidence fused", "detail": f"Score {engine.trust_score}/100 ({engine.risk_level} risk; confidence {engine.confidence:.0%})"},
         {"step": "Recommendations generated", "detail": f"{len(engine.recommendations)} actionable tips"},
     ]
 
@@ -265,7 +283,7 @@ def scan_to_dict(scan: Scan) -> dict:
         "confidence": scan.confidence,
         "summary": scan.summary,
         "status": scan.status,
-        "model_used": scan.provider or "engine",
+        "model_used": "evidence-fusion-v2",
         "reasons": reasons,
         "recommendations": recommendations,
         "highlights": highlights,

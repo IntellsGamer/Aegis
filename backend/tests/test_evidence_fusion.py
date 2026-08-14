@@ -80,3 +80,29 @@ def test_text_scan_keeps_local_link_evidence_without_model_inference():
     assert raw["meta"]["link_assessments"]
     assert "shortened_url" in {item["code"] for item in raw["findings"]}
     assert result.risk_level in {"medium", "high", "critical"}
+
+
+def test_first_rendered_csrf_token_authorizes_a_live_scan_submission():
+    """The initial page response must include the same token as its HttpOnly cookie."""
+    import re
+
+    from app import create_app
+
+    app = create_app({"TESTING": False, "SECRET_KEY": "evidence-fusion-test-secret"})
+    with app.test_client() as production_client:
+        page = production_client.get("/scan")
+        assert page.status_code == 200
+        token_match = re.search(
+            rb'<meta name="csrf-token" content="([^"]+)">', page.data
+        )
+        assert token_match, "The first rendered page must expose a CSRF token"
+        token = token_match.group(1).decode()
+        assert "aegis_csrf=" in page.headers.get("Set-Cookie", "")
+
+        scan = production_client.post(
+            "/api/v1/scans/text",
+            json={"text": "URGENT: click http://paypa1-login.example now"},
+            headers={"X-CSRF-Token": token},
+        )
+        assert scan.status_code == 200
+        assert scan.get_json()["verdict"] == "threat"

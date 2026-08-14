@@ -1,7 +1,7 @@
 """Server-rendered page routes (Jinja2 templates)."""
 from __future__ import annotations
 
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, abort, g, redirect, render_template, request, url_for
 
 from app.config import settings
 from app.dependencies import admin_required, current_user, login_required
@@ -17,7 +17,7 @@ def _base_context(active: str = "") -> dict:
         "user": user,
         "active": active,
         "app_version": settings.app_version,
-        "csrf_token": request.cookies.get("aegis_csrf", ""),
+        "csrf_token": getattr(g, "csrf_token", request.cookies.get("aegis_csrf", "")),
     }
 
 
