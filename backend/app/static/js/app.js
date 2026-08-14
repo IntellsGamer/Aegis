@@ -84,6 +84,7 @@
             safe: ['bg-emerald-500', 'Safe'],
             suspicious: ['bg-amber-500', 'Suspicious'],
             threat: ['bg-red-500', 'Threat'],
+            unverified: ['bg-slate-500', 'Unverified'],
         };
         const [cls, label] = map[level] || ['bg-slate-500', level];
         return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white ${cls}">${label}</span>`;
@@ -197,5 +198,5 @@
         connectSSE();
     });
 
-    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, csrfToken };
+    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, setTheme, getTheme, csrfToken };
 })();

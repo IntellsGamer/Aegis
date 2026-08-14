@@ -307,6 +307,37 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
     try:
         initial_destination = validate_public_url(url)
     except UnresolvedDestination as exc:
+        # DNS failure prevents remote checks, not analysis of the submitted
+        # string. Preserve independently observable lexical evidence so a
+        # suspicious-looking URL is not presented as neutral simply because it
+        # is offline or disposable. No request is made on this path.
+        if PUNYCODE_RE.search(host):
+            add("punycode", "impersonation", "Punycode / homograph attack",
+                "The domain uses non-ASCII characters that can imitate latin letters.", "high", host, 0.9)
+        brand, similarity = detect_typosquatting(host)
+        if brand and similarity >= 0.78:
+            is_legitimate = host in {brand, f"www.{brand}", f"{brand}.com", f"www.{brand}.com"} or host.endswith(f".{brand}.com")
+            if not is_legitimate:
+                add("typosquatting", "impersonation", "Typosquatting",
+                    f"This domain looks like it is imitating '{brand}'.", "critical", host, 0.95,
+                    {"brand": brand, "similarity": similarity, "source": "local_url_analysis"})
+        suspicious_kw = contains_suspicious_keywords(url)
+        if suspicious_kw:
+            add("suspicious_keywords_url", "obfuscation", "Suspicious keywords in URL",
+                "The address contains words commonly found in phishing links.", "high", ", ".join(suspicious_kw[:6]), 0.8,
+                {"source": "local_url_analysis"})
+        if "@" in url:
+            add("url_entropy_high", "obfuscation", "Suspicious '@' in URL",
+                "The address embeds an @ symbol to hide the true host.", "high", url[:120], 0.8,
+                {"source": "local_url_analysis"})
+        host_chain = _safe_domain_list(host)
+        for threat in known_threats:
+            threat_l = threat.lower()
+            if threat_l in host_chain or host in threat_l or threat_l == host:
+                add("known_threat", "reputation", "Known threat match",
+                    "This address is already known to be malicious and has been blocked.", "critical", threat, 0.99,
+                    {"source": "local_indicator_match"})
+                break
         add("destination_unresolved", "availability", "Destination could not be resolved",
             "AEGIS could not complete remote checks because the hostname did not resolve. This is a coverage limitation, not proof of a threat.",
             "info", str(exc), 0.95, {"source": "safe_fetch", "network_fetch": "not_attempted", "assessment_state": "limited"})

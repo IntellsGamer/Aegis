@@ -8,7 +8,23 @@
   let currentScanTarget = null;
   let currentResult = null;
   const tabs = document.querySelectorAll('.scan-tab');
+  const feedbackPanel = document.getElementById('feedback-panel');
+  const feedbackPanelMarkup = feedbackPanel?.innerHTML || '';
   const panels = {};
+
+  function resetFeedbackPanel() {
+    if (!feedbackPanel) return;
+    feedbackPanel.innerHTML = feedbackPanelMarkup;
+    feedbackPanel.classList.add('hidden');
+  }
+
+  function clearCurrentAssessment() {
+    currentScanId = null;
+    currentScanType = null;
+    currentScanTarget = null;
+    currentResult = null;
+    resetFeedbackPanel();
+  }
   document.querySelectorAll('.scan-panel').forEach((panel) => { panels[panel.dataset.panel] = panel; });
 
   function activate(kind) {
@@ -62,9 +78,11 @@
   async function runScan(kind) {
     const button = document.querySelector(`.scan-run[data-kind="${kind}"]`);
     if (!button) return;
-    button.disabled = true;
-    button.textContent = 'Analyzing…';
-    const payload = { is_public: false };
+          button.disabled = true;
+      button.textContent = 'Analyzing…';
+      clearCurrentAssessment();
+      const payload = { is_public: false };
+
     try {
       if (kind === 'url') {
         payload.url = document.getElementById('url-input').value.trim();
@@ -163,7 +181,7 @@
       <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500"><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${esc(stored)}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">scan type: ${esc(data.scan_type || currentScanType || '')}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">engine: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
     </article>`;
     document.getElementById('download-pdf-btn')?.classList.toggle('hidden', !currentScanId);
-    document.getElementById('feedback-panel')?.classList.toggle('hidden', !currentScanId);
+    if (feedbackPanel) feedbackPanel.classList.toggle('hidden', !(currentScanId && data.retention !== 'not_stored'));
     document.getElementById('report-btn')?.classList.toggle('hidden', limited || !currentScanTarget);
     box.classList.remove('hidden');
     window.scrollTo({ top: Math.max(0, box.offsetTop - 80), behavior: 'smooth' });
@@ -179,7 +197,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.scan-run').forEach((button) => button.addEventListener('click', () => runScan(button.dataset.kind)));
-    document.getElementById('new-scan-btn')?.addEventListener('click', () => activate(currentKind));
+    document.getElementById('new-scan-btn')?.addEventListener('click', () => { clearCurrentAssessment(); activate(currentKind); });
     document.getElementById('copy-evidence-btn')?.addEventListener('click', copyEvidence);
     document.getElementById('download-pdf-btn')?.addEventListener('click', () => { if (currentScanId) window.location.href = `/api/v1/scans/${currentScanId}/report.pdf`; });
     document.getElementById('report-btn')?.addEventListener('click', async () => {
@@ -189,16 +207,17 @@
         toast(data.message || 'Submitted for moderation', 'success');
       } catch (error) { toast(error.message, 'error'); }
     });
-    document.querySelectorAll('.feedback-btn').forEach((button) => button.addEventListener('click', async () => {
+    feedbackPanel?.addEventListener('click', async (event) => {
+      const button = event.target.closest('.feedback-btn');
+      if (!button) return;
       if (!currentScanId) { toast('Only stored scans can receive outcome feedback', 'info'); return; }
       const verdict = button.dataset.feedback;
       button.disabled = true;
       try {
         await api('POST', `/api/v1/scans/${currentScanId}/feedback`, { verdict });
-        const panel = document.getElementById('feedback-panel');
-        panel.innerHTML = '<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Thanks. Your outcome was recorded separately for quality review.</p>';
+        feedbackPanel.innerHTML = '<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Thanks. Your outcome was recorded separately for quality review.</p>';
         toast('Outcome recorded', 'success');
       } catch (error) { toast(error.message, 'error'); button.disabled = false; }
-    }));
+    });
   });
 })();

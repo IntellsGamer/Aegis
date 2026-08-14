@@ -85,4 +85,6 @@ def test_unresolvable_hostname_is_a_limited_assessment_not_a_threat(client):
     assert body["assessment_state"] == "limited"
     assert body["verdict"] == "unverified"
     assert body["retention"] == "not_stored"
-    assert body["findings"][0]["code"] == "destination_unresolved"
+    codes = {finding["code"] for finding in body["findings"]}
+    assert "destination_unresolved" in codes
+    assert "suspicious_keywords_url" in codes

@@ -143,54 +143,46 @@ def extract_tld(host: str) -> str:
 
 
 def detect_typosquatting(host: str) -> tuple[str | None, float]:
-    """Return (brand, similarity) if host closely resembles a known brand."""
-    host = host.lower()
-    if not host:
+    """Return a likely impersonated brand from the registrable hostname label.
+
+    A comparison across the whole hostname is deceptively unsafe: it turns a
+    short brand token such as ``x`` into a match for ordinary domains including
+    ``example.com``.  Only the effective domain label and its dash/underscore
+    tokens are relevant to this lexical signal.  Remote reputation and page
+    evidence remain separate signals in the fusion engine.
+    """
+    host = host.lower().strip(".")
+    labels = [label for label in host.split(".") if label]
+    if len(labels) < 2:
         return None, 0.0
-    
-    # First, check if this is a legitimate domain for any brand
+
+    # This intentionally conservative extraction handles ordinary TLDs. It is
+    # a lexical heuristic, not an assertion about PSL ownership.
+    domain_label = labels[-2]
+    tokens = [token for token in re.split(r"[-_]", domain_label) if token]
+
     for brand in BRANDS:
-        # Exact match or common legitimate patterns
-        if host == brand or host == f"www.{brand}" or host == f"{brand}.com" or host == f"www.{brand}.com":
-            return None, 0.0  # Legitimate domain, not typosquatting
-    
-    best_brand: str | None = None
-    best_score = 0.0
-    
-    for brand in BRANDS:
-        # Skip if this is the exact brand domain or a legitimate subdomain
-        if host == brand or host == f"www.{brand}" or host == f"{brand}.com" or host == f"www.{brand}.com":
+        # Very short names are too collision-prone for generic substring or
+        # edit-distance checks. They can still be assessed by other evidence.
+        if len(brand) < 4:
             continue
-            
-        # Check for brand in domain (e.g., "paypal-security.com" contains "paypal")
-        # But only flag if it's not the actual brand domain and it's a clear impersonation
-        if brand in host and host != brand:
-            # Make sure it's not a legitimate subdomain (e.g., "login.paypal.com")
-            host_parts = host.split('.')
-            # If the brand appears as a subdomain of the brand's own domain (e.g., login.paypal.com)
-            # then it's legitimate, not typosquatting
-            if len(host_parts) >= 2 and host_parts[-2] == brand and host_parts[-1] in ('com', 'org', 'net', 'io'):
-                continue
-            # Check if the brand appears as the main domain with a legitimate TLD
-            if host == f"{brand}.com" or host == f"www.{brand}.com" or host.endswith(f".{brand}.com"):
-                continue
-            # It's suspicious - brand appears in the domain but it's not the legit domain
+        if host == f"{brand}.com" or host == f"www.{brand}.com" or host.endswith(f".{brand}.com"):
+            continue
+
+        # A full brand token or compound root label is a strong lexical cue.
+        if brand in domain_label:
             return brand, 0.95
-        
-        # Levenshtein-style closeness via difflib ratio on similar length strings
-        if abs(len(host) - len(brand)) <= 3:
-            ratio = difflib.SequenceMatcher(None, host, brand).ratio()
-            if ratio >= 0.78 and ratio > best_score:
-                # Extra check: if ratio is very high and the brand is a substring, 
-                # it's likely the legitimate domain with a TLD
-                if ratio >= 0.9 and (brand in host or host in brand):
-                    # Check if it's a legitimate domain pattern
-                    if host == f"{brand}.com" or host == f"www.{brand}.com" or host == f"{brand}.org":
-                        continue
-                best_brand = brand
-                best_score = ratio
-    
-    return (best_brand, best_score) if best_brand and best_score >= 0.78 else (None, 0.0)
+
+        # Check keyboard-style mutations on individual domain tokens rather
+        # than the entire hostname, e.g. paypa1-login.example -> paypal.
+        for token in tokens:
+            if len(token) < 4 or abs(len(token) - len(brand)) > 2:
+                continue
+            ratio = difflib.SequenceMatcher(None, token, brand).ratio()
+            if ratio >= 0.82:
+                return brand, ratio
+
+    return None, 0.0
 
 
 def is_shortened(url: str) -> tuple[bool, str | None]:
