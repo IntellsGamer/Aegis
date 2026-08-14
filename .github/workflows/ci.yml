@@ -7,7 +7,12 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} · Python 3.12
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     defaults:
       run:
         working-directory: backend
@@ -21,14 +26,18 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
-      - name: Install system deps (tesseract for OCR)
+      - name: Install optional OCR system dependency on Linux
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y tesseract-ocr
 
-      - name: Install Python deps
-        run: pip install -r requirements.txt
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip
+
+      - name: Install project dependencies
+        run: python -m pip install -r requirements.txt
 
       - name: Run pytest
         run: python -m pytest -q
 
-      - name: Run smoke test
+      - name: Run portable smoke test
         run: python smoke_test.py

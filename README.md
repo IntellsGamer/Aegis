@@ -27,15 +27,25 @@ The evidence families reflect common anti-phishing red flags: independent verifi
 | Backend | Python 3.12, Flask 3, SQLAlchemy 2, Pydantic 2 |
 | Frontend | Server-rendered Jinja2, vanilla JavaScript, PWA-ready; no build step |
 | Prediction | Deterministic evidence fusion, URL/page evidence, email authentication, and curated multilingual patterns |
-| Infrastructure | SQLite for development, PostgreSQL for production, Redis/Celery, Gunicorn |
+| Infrastructure | SQLite for development; PostgreSQL/Redis/Celery/Gunicorn for Linux containers; Waitress for native Windows production |
 
 ## Quick Start
 
+| Platform | Native local startup |
+|---|---|
+| **Windows 10/11** | Run `powershell -ExecutionPolicy Bypass -File .\\scripts\\setup-windows.ps1`, then ` .\\scripts\\run-windows.ps1` |
+| **Linux / macOS** | Create a virtual environment in `backend`, install `requirements.txt`, then run `python run.py` |
+| **Linux container / Windows Docker Desktop** | Run `AEGIS_SECRET_KEY=<long-random-secret> docker compose up --build` |
+
+For a complete native Windows installation, optional Tesseract OCR configuration, production mode, and troubleshooting, see [the Windows guide](docs/windows.md). The core local application works without Redis, Celery, PostgreSQL, Docker, or OCR; image text extraction requires a Tesseract installation or configuration.
+
+On Linux or macOS, the minimal native path is:
+
 ```bash
 cd backend
-python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
-sudo apt-get install -y tesseract-ocr   # Optional OCR engine
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
 python run.py                            # http://localhost:8000
 ```
 
@@ -47,6 +57,10 @@ Set a unique `AEGIS_SECRET_KEY` and production database configuration before any
 cd backend
 PYTHONPATH=. python -m pytest -q
 PYTHONPATH=. python smoke_test.py
+
+# Windows PowerShell
+# .\\.venv\\Scripts\\python.exe -m pytest -q
+# .\\.venv\\Scripts\\python.exe smoke_test.py
 ```
 
 The focused evidence-engine tests demonstrate that benign topical language does not become a threat by itself, repeated related cues have diminishing influence, and independent hostile observations raise the verdict appropriately.

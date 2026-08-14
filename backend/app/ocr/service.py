@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import io
 import logging
+import os
 import shutil
 import tempfile
 from pathlib import Path
@@ -35,14 +36,27 @@ try:
 except Exception:  # pragma: no cover
     HAS_PYTESSERACT = False
 
+def _configure_tesseract_command() -> str | None:
+    """Apply an explicitly configured Tesseract binary before capability checks."""
+    if not HAS_PYTESSERACT or not settings.tesseract_cmd:
+        return None
+    candidate = Path(settings.tesseract_cmd).expanduser()
+    if candidate.is_file():
+        pytesseract.pytesseract.tesseract_cmd = str(candidate)
+        return str(candidate)
+    logger.warning("Configured Tesseract executable does not exist: %s", candidate)
+    return None
+
+
+_CONFIGURED_TESSERACT_CMD = _configure_tesseract_command()
 _HAS_TESSERACT_BIN = False
 if HAS_PYTESSERACT:
     try:
-        _HAS_TESSERACT_BIN = shutil.which("tesseract") is not None or bool(
+        _HAS_TESSERACT_BIN = bool(_CONFIGURED_TESSERACT_CMD) or shutil.which("tesseract") is not None or bool(
             pytesseract.get_tesseract_version()
         )
     except Exception:  # pragma: no cover - tesseract binary missing
-        _HAS_TESSERACT_BIN = shutil.which("tesseract") is not None
+        _HAS_TESSERACT_BIN = bool(_CONFIGURED_TESSERACT_CMD) or shutil.which("tesseract") is not None
 
 HAS_EASYOCR = False
 _EASYOCR_READER = None
@@ -91,9 +105,16 @@ def extract_text(image_bytes: bytes) -> dict:
         if HAS_EASYOCR:
             return _extract_easyocr(preprocessed)
 
+    if os.name == "nt":
+        tesseract_help = (
+            "Install Tesseract for Windows and either add it to PATH or set "
+            "AEGIS_TESSERACT_CMD=C:\\Program Files\\Tesseract-OCR\\tesseract.exe."
+        )
+    else:
+        tesseract_help = "Install Tesseract with your package manager (for example: apt install tesseract-ocr)."
     raise RuntimeError(
-        "No OCR engine available. Install Tesseract (apt install tesseract-ocr) "
-        "or EasyOCR (pip install easyocr) to enable image analysis."
+        f"No OCR engine available. {tesseract_help} "
+        "Alternatively, set AEGIS_OCR_ENGINE=none to disable image text extraction."
     )
 
 

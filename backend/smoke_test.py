@@ -1,8 +1,18 @@
 """Quick smoke test: pages render and core APIs respond (no external calls)."""
 import os
+
+# The smoke test owns this disposable local database. Removing it makes repeated
+# runs deterministic on Windows as well as POSIX shells.
+try:
+    os.remove("smoke_test.db")
+except FileNotFoundError:
+    pass
+
 os.environ["AEGIS_ENVIRONMENT"] = "test"
 os.environ["AEGIS_DATABASE_URL"] = "sqlite:///./smoke_test.db"
-os.environ["AEGIS_OCR_ENGINE"] = "tesseract"
+# OCR is optional and can require a system binary. Keep the cross-platform
+# core smoke path independent from a native Tesseract installation.
+os.environ["AEGIS_OCR_ENGINE"] = "none"
 os.environ["AEGIS_EMAIL_ENABLED"] = "false"
 os.environ["AEGIS_SEED_ON_STARTUP"] = "false"
 

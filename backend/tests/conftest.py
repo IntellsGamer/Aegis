@@ -8,7 +8,9 @@ _TEST_DB = tempfile.mktemp(prefix="aegis_test_", suffix=".db")
 os.environ["AEGIS_ENVIRONMENT"] = "test"
 os.environ["AEGIS_DATABASE_URL"] = f"sqlite:///{_TEST_DB}"
 os.environ["AEGIS_EMAIL_ENABLED"] = "false"
-os.environ["AEGIS_OCR_ENGINE"] = "tesseract"
+# OCR has a native system dependency and is intentionally disabled for the
+# portable core test suite. Dedicated OCR integration tests can opt in.
+os.environ["AEGIS_OCR_ENGINE"] = "none"
 
 from app import create_app  # noqa: E402
 

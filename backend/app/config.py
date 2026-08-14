@@ -81,6 +81,9 @@ class Settings(BaseSettings):
     # OCR is an acquisition layer only; no language model or learned classifier
     # is used by the prediction path.
     ocr_engine: Literal["auto", "tesseract", "easyocr", "none"] = "auto"
+    # Optional absolute path to the Tesseract executable. This is especially
+    # useful for native Windows installs where the installer is not on PATH.
+    tesseract_cmd: Optional[str] = None
 
     # --- Uploads ---
     upload_dir: str = "./uploads"
