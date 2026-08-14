@@ -32,7 +32,7 @@ def summary():
     suspicious = [r for r in rows if r.risk_level == "medium"]
     scores = [r.trust_score for r in rows if r.trust_score is not None]
     avg = round(sum(scores) / len(scores), 1) if scores else None
-    saved = len(threats)
+    needs_attention = len(threats) + len(suspicious)
     # Map risk_level to verdict for display
     def get_verdict(risk_level):
         if risk_level in ("high", "critical"):
@@ -45,7 +45,7 @@ def summary():
         "scans": len(rows),
         "threats": len(threats),
         "avg_score": avg,
-        "saved": saved,
+        "needs_attention": needs_attention,
         "recent_threats": [{
             "id": r.id, "target": r.input_url or r.input_text or r.file_name or str(r.id),
             "domain": r.input_url or r.input_text or r.file_name or str(r.id), "verdict": get_verdict(r.risk_level),

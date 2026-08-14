@@ -9,6 +9,13 @@
   <a href="{{ url_for('pages.scan') }}" class="px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition">+ New Scan</a>
 </div>
 
+<section id="first-run" class="mb-6 hidden overflow-hidden rounded-2xl border border-aegis-200 bg-gradient-to-r from-aegis-50 to-white p-6 dark:border-aegis-900 dark:from-aegis-950/40 dark:to-slate-900">
+  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Start with evidence</p>
+  <h2 class="mt-1 text-xl font-bold">Analyze the message or link that made you pause.</h2>
+  <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">AEGIS will show the evidence it collected, clearly state coverage limitations, and suggest the next safe action. It does not treat a lack of evidence as proof that something is safe.</p>
+  <div class="mt-4 flex flex-wrap gap-3"><a href="{{ url_for('pages.scan') }}" class="rounded-lg bg-aegis-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-aegis-500">Analyze a link or message</a><a href="{{ url_for('pages.learn') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:border-aegis-500 dark:border-slate-700">Learn common warning signs</a></div>
+</section>
+
 <div id="stats-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
   <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
@@ -29,13 +36,13 @@
         <div class="animate-pulse h-12 rounded-lg bg-slate-100 dark:bg-slate-800"></div>
       </div>
     </div>
-    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div id="activity-card" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <h2 class="font-semibold mb-4">Scan Activity (14 days)</h2>
       <div id="activity-chart" class="h-56"><canvas id="activity-canvas"></canvas></div>
     </div>
   </div>
   <div class="space-y-6">
-    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div id="score-card" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <h2 class="font-semibold mb-4">Trust Score Trend</h2>
       <div id="score-chart" class="h-40"><canvas id="score-canvas"></canvas></div>
     </div>

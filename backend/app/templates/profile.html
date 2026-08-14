@@ -1,55 +1,36 @@
 {% extends 'base.html' %}
-{% block title %}Profile{% endblock %}
+{% block title %}Profile & Preferences{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto space-y-6">
-  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-    <h1 class="text-2xl font-bold mb-6">My Profile</h1>
-    <form id="profile-form" class="grid sm:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium mb-1" for="p-username">Username</label>
-        <input type="text" id="p-username" name="username" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500" value="{{ user.username }}">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="p-email">Email</label>
-        <input type="email" id="p-email" name="email" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500" value="{{ user.email }}">
-      </div>
-      <div class="sm:col-span-2 flex items-center gap-3">
-        <label class="flex items-center gap-2 text-sm"><input type="checkbox" id="p-prefs" name="email_notifications" class="rounded accent-aegis-500" {% if user.email_notifications %}checked{% endif %}> Email notifications</label>
-      </div>
-      <div class="sm:col-span-2 flex justify-end">
-        <button type="submit" class="px-5 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition">Save Changes</button>
-      </div>
+<div class="mx-auto max-w-3xl space-y-6">
+  <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Account</p>
+    <h1 class="mt-1 text-2xl font-bold">Profile & preferences</h1>
+    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Control how AEGIS displays, stores, and notifies you about your security assessments.</p>
+    <form id="profile-form" class="mt-6 grid gap-4 sm:grid-cols-2">
+      <div><label class="mb-1 block text-sm font-medium" for="p-username">Username</label><input id="p-username" class="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950" value="{{ user.username }}" readonly></div>
+      <div><label class="mb-1 block text-sm font-medium" for="p-email">Email</label><input id="p-email" class="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-500 dark:border-slate-800 dark:bg-slate-950" value="{{ user.email }}" readonly></div>
+      <div class="sm:col-span-2"><label class="mb-1 block text-sm font-medium" for="p-full-name">Display name</label><input id="p-full-name" maxlength="128" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500 dark:border-slate-700 dark:bg-slate-950" value="{{ user.full_name or '' }}" placeholder="Optional display name"></div>
+      <div class="sm:col-span-2 flex justify-end"><button type="submit" class="rounded-lg bg-aegis-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-aegis-500">Save profile</button></div>
     </form>
-  </div>
+  </section>
 
-  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-    <h2 class="font-semibold mb-4">Change Password</h2>
-    <form id="password-form" class="grid sm:grid-cols-3 gap-4">
-      <div>
-        <label class="block text-sm font-medium mb-1" for="p-current">Current</label>
-        <input type="password" id="p-current" name="current_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+  <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <h2 class="text-lg font-semibold">Privacy, notifications & display</h2>
+    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">A scan is retained only when you choose history storage. Public threat submissions are always an explicit, per-scan action and go through moderation.</p>
+    <form id="settings-form" class="mt-5 space-y-5">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div><label class="mb-1 block text-sm font-medium" for="p-locale">Language and layout</label><select id="p-locale" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="en">English</option><option value="fa">فارسی (RTL)</option><option value="ar">العربية (RTL)</option></select><p class="mt-1 text-xs text-slate-500">RTL layout applies after saving and reloading.</p></div>
+        <div><label class="mb-1 block text-sm font-medium" for="p-theme">Color theme</label><select id="p-theme" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="dark">Dark</option><option value="light">Light</option></select></div>
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="p-new">New</label>
-        <input type="password" id="p-new" name="new_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="p-confirm">Confirm</label>
-        <input type="password" id="p-confirm" name="confirm_password" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      </div>
-      <div class="sm:col-span-3 flex justify-end">
-        <button type="submit" class="px-5 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Update Password</button>
-      </div>
+      <fieldset class="grid gap-3 rounded-xl border border-slate-200 p-4 text-sm dark:border-slate-800"><legend class="px-1 text-sm font-semibold">Data and accessibility</legend><label class="flex items-start gap-3"><input id="p-save-history" type="checkbox" class="mt-1 rounded accent-aegis-500"><span><strong>Save my scan history</strong><span class="mt-0.5 block text-xs text-slate-500">When off, completed private scans are returned to you but not retained by AEGIS.</span></span></label><label class="flex items-start gap-3"><input id="p-high-contrast" type="checkbox" class="mt-1 rounded accent-aegis-500"><span><strong>High contrast</strong><span class="mt-0.5 block text-xs text-slate-500">Increase visual contrast for the interface.</span></span></label></fieldset>
+      <fieldset class="grid gap-3 rounded-xl border border-slate-200 p-4 text-sm dark:border-slate-800"><legend class="px-1 text-sm font-semibold">Notifications</legend><label class="flex items-center gap-3"><input id="p-notify-email" type="checkbox" class="rounded accent-aegis-500"> Email notifications</label><label class="flex items-center gap-3"><input id="p-notify-push" type="checkbox" class="rounded accent-aegis-500"> In-app notifications</label><label class="flex items-center gap-3"><input id="p-notify-threats" type="checkbox" class="rounded accent-aegis-500"> Threat and high-risk alerts</label></fieldset>
+      <div class="flex justify-end"><button type="submit" class="rounded-lg bg-aegis-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-aegis-500">Save preferences</button></div>
     </form>
-  </div>
+  </section>
 
-  <div class="p-6 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30">
-    <h2 class="font-semibold text-red-700 dark:text-red-400 mb-2">Danger Zone</h2>
-    <p class="text-sm text-red-600/80 dark:text-red-400/70 mb-4">Permanently delete your account and all associated scan data. This cannot be undone.</p>
-    <button id="delete-account-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Delete My Account</button>
-  </div>
+  <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"><h2 class="font-semibold">Change password</h2><form id="password-form" class="mt-4 grid gap-4 sm:grid-cols-3"><div><label class="mb-1 block text-sm font-medium" for="p-current">Current</label><input type="password" id="p-current" autocomplete="current-password" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"></div><div><label class="mb-1 block text-sm font-medium" for="p-new">New</label><input type="password" id="p-new" autocomplete="new-password" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"></div><div><label class="mb-1 block text-sm font-medium" for="p-confirm">Confirm</label><input type="password" id="p-confirm" autocomplete="new-password" class="w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"></div><div class="sm:col-span-3 flex justify-end"><button type="submit" class="rounded-lg border border-slate-300 px-5 py-2 text-sm font-semibold transition hover:border-aegis-500 dark:border-slate-700">Update password</button></div></form></section>
+
+  <section class="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30"><h2 class="mb-2 font-semibold text-red-700 dark:text-red-400">Danger zone</h2><p class="mb-4 text-sm text-red-600/80 dark:text-red-400/70">Permanently delete your account and all associated stored scan data. This cannot be undone.</p><button id="delete-account-btn" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500">Delete my account</button></section>
 </div>
 {% endblock %}
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
-{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/profile.js') }}"></script>{% endblock %}

@@ -1,56 +1,69 @@
-/* Profile page */
+/* Profile and preference controls aligned with the current account API. */
 (function () {
   'use strict';
   const { api, toast } = window.Aegis;
+  const byId = (id) => document.getElementById(id);
+
+  function disable(form, value) {
+    const button = form.querySelector('button[type=submit]');
+    if (button) button.disabled = value;
+    return button;
+  }
+
+  async function loadPreferences() {
+    try {
+      const [profile, settings] = await Promise.all([api('GET', '/api/v1/users/me'), api('GET', '/api/v1/users/me/settings')]);
+      byId('p-full-name').value = profile.full_name || '';
+      byId('p-locale').value = profile.locale || 'en';
+      byId('p-theme').value = profile.theme || window.Aegis.getTheme();
+      byId('p-high-contrast').checked = Boolean(profile.high_contrast);
+      byId('p-save-history').checked = Boolean(settings?.save_history);
+      byId('p-notify-email').checked = Boolean(settings?.notify_email);
+      byId('p-notify-push').checked = Boolean(settings?.notify_push);
+      byId('p-notify-threats').checked = Boolean(settings?.notify_threats);
+    } catch (error) { toast(`Could not load preferences: ${error.message}`, 'error'); }
+  }
 
   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button[type=submit]');
-      btn.disabled = true;
+    loadPreferences();
+    byId('profile-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault(); const button = disable(event.currentTarget, true);
       try {
-        await api('PUT', '/api/v1/users/me', {
-          username: document.getElementById('p-username').value.trim(),
-          email: document.getElementById('p-email').value.trim(),
-          email_notifications: document.getElementById('p-prefs').checked,
-        });
-        toast('Profile updated', 'success');
-      } catch (err) {
-        toast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-      }
+        await api('PATCH', '/api/v1/users/me', { full_name: byId('p-full-name').value.trim() || null });
+        toast('Profile saved', 'success');
+      } catch (error) { toast(error.message, 'error'); }
+      finally { if (button) button.disabled = false; }
     });
 
-    document.getElementById('password-form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = e.target.querySelector('button[type=submit]');
-      const np = document.getElementById('p-new').value;
-      if (np !== document.getElementById('p-confirm').value) { toast('New passwords do not match', 'error'); return; }
-      btn.disabled = true;
+    byId('settings-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault(); const button = disable(event.currentTarget, true);
+      const profile = { locale: byId('p-locale').value, theme: byId('p-theme').value, high_contrast: byId('p-high-contrast').checked };
+      const settings = { save_history: byId('p-save-history').checked, notify_email: byId('p-notify-email').checked, notify_push: byId('p-notify-push').checked, notify_threats: byId('p-notify-threats').checked, language: profile.locale };
       try {
-        await api('PUT', '/api/v1/users/me/password', {
-          current_password: document.getElementById('p-current').value,
-          new_password: np,
-        });
-        toast('Password updated', 'success');
-        e.target.reset();
-      } catch (err) {
-        toast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-      }
+        await Promise.all([api('PATCH', '/api/v1/users/me', profile), api('PATCH', '/api/v1/users/me/settings', settings)]);
+        window.Aegis.setTheme(profile.theme);
+        document.documentElement.classList.toggle('high-contrast', profile.high_contrast);
+        toast('Preferences saved. Reload to apply a changed language direction.', 'success');
+      } catch (error) { toast(error.message, 'error'); }
+      finally { if (button) button.disabled = false; }
     });
 
-    document.getElementById('delete-account-btn')?.addEventListener('click', async () => {
-      if (!confirm('Delete your account permanently? This cannot be undone.')) return;
+    byId('password-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const next = byId('p-new').value;
+      if (next !== byId('p-confirm').value) { toast('New passwords do not match', 'error'); return; }
+      const button = disable(event.currentTarget, true);
       try {
-        await api('DELETE', '/api/v1/users/me');
-        toast('Account deleted', 'success');
-        window.Aegis.navigate('/');
-      } catch (err) {
-        toast(err.message, 'error');
-      }
+        await api('POST', '/api/v1/auth/change-password', { current_password: byId('p-current').value, new_password: next });
+        toast('Password updated', 'success'); event.currentTarget.reset();
+      } catch (error) { toast(error.message, 'error'); }
+      finally { if (button) button.disabled = false; }
+    });
+
+    byId('delete-account-btn')?.addEventListener('click', async () => {
+      if (!confirm('Delete your account and all stored scan data permanently? This cannot be undone.')) return;
+      try { await api('DELETE', '/api/v1/users/me'); toast('Account deleted', 'success'); window.Aegis.navigate('/'); }
+      catch (error) { toast(error.message, 'error'); }
     });
   });
 })();

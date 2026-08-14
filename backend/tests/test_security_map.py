@@ -76,3 +76,13 @@ def test_private_target_is_a_critical_full_pipeline_verdict(client):
     assert body["verdict"] == "threat"
     assert body["trust_score"] <= 25
     assert body["retention"] == "not_stored"
+
+
+def test_unresolvable_hostname_is_a_limited_assessment_not_a_threat(client):
+    response = client.post("/api/v1/scans/url", json={"url": "https://unresolvable-aegis-test.invalid/login"})
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["assessment_state"] == "limited"
+    assert body["verdict"] == "unverified"
+    assert body["retention"] == "not_stored"
+    assert body["findings"][0]["code"] == "destination_unresolved"

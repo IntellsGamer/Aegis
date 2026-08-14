@@ -36,7 +36,7 @@ from app.ai.url_analysis import (
     tracking_params,
 )
 from app.config import settings
-from app.security.safe_url import UnsafeDestination, fetch_public_url, validate_public_url
+from app.security.safe_url import UnresolvedDestination, UnsafeDestination, fetch_public_url, validate_public_url
 
 BRAND_FAVICONS = {
     "paypal": "https://www.paypal.com/favicon.ico",
@@ -306,15 +306,27 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
     # justify turning AEGIS into a private-network probe.
     try:
         initial_destination = validate_public_url(url)
-    except UnsafeDestination as exc:
-        add("unsafe_destination", "security", "Unsafe destination blocked",
-            "AEGIS refused to fetch a private, reserved, malformed, or non-web destination.",
-            "critical", str(exc), 0.99, {"source": "safe_fetch", "network_fetch": "blocked"})
+    except UnresolvedDestination as exc:
+        add("destination_unresolved", "availability", "Destination could not be resolved",
+            "AEGIS could not complete remote checks because the hostname did not resolve. This is a coverage limitation, not proof of a threat.",
+            "info", str(exc), 0.95, {"source": "safe_fetch", "network_fetch": "not_attempted", "assessment_state": "limited"})
         return {
             "findings": findings,
             "meta": {
                 "url": url, "host": host, "final_url": url, "status_code": 0,
-                "network_fetch": "blocked", "block_reason": str(exc)[:300],
+                "network_fetch": "not_attempted", "assessment_state": "limited",
+                "block_reason": str(exc)[:300], "redirect_chain": [],
+            },
+        }
+    except UnsafeDestination as exc:
+        add("unsafe_destination", "security", "Unsafe destination blocked",
+            "AEGIS refused to fetch a private, reserved, malformed, or non-web destination.",
+            "critical", str(exc), 0.99, {"source": "safe_fetch", "network_fetch": "blocked", "assessment_state": "blocked"})
+        return {
+            "findings": findings,
+            "meta": {
+                "url": url, "host": host, "final_url": url, "status_code": 0,
+                "network_fetch": "blocked", "assessment_state": "blocked", "block_reason": str(exc)[:300],
                 "redirect_chain": [],
             },
         }

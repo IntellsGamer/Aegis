@@ -349,6 +349,39 @@ def get_report(scan_id: int):
     })
 
 
+@bp.post("/<int:scan_id>/feedback")
+@login_required
+def submit_scan_feedback(scan_id: int):
+    """Record a user-confirmed outcome for a scan they own.
+
+    Outcomes are kept separate from the deterministic engine and are used for
+    measured review, not automatic model training or rule rewrites.
+    """
+    from app.dependencies import current_user
+    from app.repositories.governance_repo import GovernanceRepository
+
+    scan, _ = _get_scan_or_404(scan_id)
+    user = current_user()
+    if scan.user_id != user.id:
+        raise NotFoundError("Scan not found")
+    data = request.get_json(silent=True) or {}
+    try:
+        outcome = GovernanceRepository(db_session()).record_outcome(
+            scan=scan,
+            reviewer_user_id=user.id,
+            verdict=str(data.get("verdict") or ""),
+            rationale=(data.get("rationale") or "")[:2000] or None,
+            engine_version="evidence-fusion-v2",
+            evidence_snapshot={
+                "source": "user_feedback", "trust_score": scan.trust_score,
+                "risk_level": scan.risk_level, "confidence": scan.confidence,
+            },
+        )
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    return jsonify({"id": outcome.id, "verdict": outcome.verdict, "detail": "Feedback recorded"}), 201
+
+
 @bp.get("/<int:scan_id>/incident-packet")
 @optional_login
 def incident_packet(scan_id: int):

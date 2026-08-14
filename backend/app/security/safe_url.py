@@ -22,6 +22,10 @@ class UnsafeDestination(ValueError):
     """A scan target is not safe for server-side network acquisition."""
 
 
+class UnresolvedDestination(UnsafeDestination):
+    """A hostname could not be resolved, so acquisition cannot be completed."""
+
+
 @dataclass(frozen=True)
 class ValidatedURL:
     url: str
@@ -44,11 +48,11 @@ def _resolve_public_addresses(host: str, port: int) -> tuple[str, ...]:
     try:
         answers = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
     except socket.gaierror as exc:
-        raise UnsafeDestination(f"Destination hostname could not be resolved: {host}") from exc
+        raise UnresolvedDestination(f"Destination hostname could not be resolved: {host}") from exc
 
     addresses = tuple(sorted({item[4][0] for item in answers}))
     if not addresses:
-        raise UnsafeDestination(f"Destination hostname has no usable address: {host}")
+        raise UnresolvedDestination(f"Destination hostname has no usable address: {host}")
     blocked = [address for address in addresses if not _is_public_address(address)]
     if blocked:
         raise UnsafeDestination(

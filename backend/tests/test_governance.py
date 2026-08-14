@@ -74,3 +74,20 @@ def test_incident_packet_preserves_evidence_and_response_context(client):
     assert "not measured predictive accuracy" in body["classification"]["interpretation"]
     assert body["evidence"]
     assert body["containment_actions"]
+
+
+def test_scan_owner_can_record_outcome_feedback(client):
+    client.post("/api/v1/auth/register", json={
+        "username": "feedbackuser", "email": "feedback@example.com", "password": "Str0ngPass!"
+    })
+    assert client.post("/api/v1/auth/login", json={
+        "identifier": "feedback@example.com", "password": "Str0ngPass!"
+    }).status_code == 200
+    scan = client.post("/api/v1/scans/text", json={
+        "text": "Urgent: verify your account at http://paypa1-login.example now."
+    }).get_json()
+    assert scan["scan_id"]
+
+    feedback = client.post(f"/api/v1/scans/{scan['scan_id']}/feedback", json={"verdict": "confirmed_malicious"})
+    assert feedback.status_code == 201
+    assert feedback.get_json()["verdict"] == "confirmed_malicious"

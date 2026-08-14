@@ -256,6 +256,13 @@ def _verdict_for(risk_level: str) -> str:
 def scan_to_dict(scan: Scan) -> dict:
     """Serialize a completed Scan for the API and report pages."""
     target = scan.input_url or scan.input_text or scan.file_name or ""
+    finding_codes = {finding.code for finding in scan.findings}
+    if "destination_unresolved" in finding_codes:
+        assessment_state = "limited"
+    elif "unsafe_destination" in finding_codes:
+        assessment_state = "blocked"
+    else:
+        assessment_state = "complete"
     reasons = [{
         "reason": (f.title or f.code or "Signal"),
         "impact": f.impact or 0.0,
@@ -281,7 +288,8 @@ def scan_to_dict(scan: Scan) -> dict:
         "scan_type": scan.scan_type,
         "trust_score": scan.trust_score,
         "risk_level": scan.risk_level,
-        "verdict": _verdict_for(scan.risk_level),
+        "verdict": "unverified" if assessment_state == "limited" else _verdict_for(scan.risk_level),
+        "assessment_state": assessment_state,
         "confidence": scan.confidence,
         "summary": scan.summary,
         "status": scan.status,
