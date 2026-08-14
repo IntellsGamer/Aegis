@@ -67,3 +67,12 @@ def test_map_excludes_pending_and_returns_approved_country_aggregate(client):
 def test_map_rejects_unbounded_range(client):
     response = client.get("/api/v1/threats/map?range=365")
     assert response.status_code == 422
+
+
+def test_private_target_is_a_critical_full_pipeline_verdict(client):
+    response = client.post("/api/v1/scans/url", json={"url": "http://127.0.0.1/"})
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["verdict"] == "threat"
+    assert body["trust_score"] <= 25
+    assert body["retention"] == "not_stored"

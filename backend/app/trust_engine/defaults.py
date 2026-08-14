@@ -90,6 +90,9 @@ DEFAULT_RULES: list[dict] = [
      "impact": -10, "weight": 1.0, "severity": "high", "enabled": True,
      "explain": "The address contains words strongly associated with scams and "
                 "phishing (such as login, verify, secure)."},
+    {"code": "unsafe_destination", "name": "Unsafe destination blocked", "category": "security",
+     "impact": -45, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "AEGIS blocked network access to a private, reserved, malformed, or non-web destination."},
     {"code": "known_threat", "name": "Known threat match", "category": "reputation",
      "impact": -60, "weight": 1.0, "severity": "critical", "enabled": True,
      "explain": "This exact address is already known to be malicious and has "
