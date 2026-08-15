@@ -149,7 +149,16 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         outcome = latest_outcome.get(scan.id)
         assessment_state = "limited" if any(item.code in {"destination_unresolved", "tls_certificate_probe_limited"} for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
         community_report = reports_by_scan.get(scan.id)
-        if community_report and community_report.status == "pending" and not community_report.country:
+        if community_report and scan.scan_type == "url":
+            # Correct legacy reports that previously inherited reporter/demo
+            # geography. URL map placement is always recalculated from the
+            # website destination itself, including approved historical items.
+            origin = geo_service.website_origin(scan.input_url)
+            community_report.country = origin.get("country")
+            community_report.country_name = origin.get("country_name")
+            db.add(community_report)
+            db.flush()
+        elif community_report and community_report.status == "pending" and not community_report.country:
             demo_location = geo_service.development_country(scan.ip_address)
             if demo_location:
                 community_report.country = demo_location["country"]

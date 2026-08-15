@@ -4,9 +4,18 @@ from __future__ import annotations
 import pytest
 
 from app.database import SessionLocal
+from app.models import ThreatReport
 from app.repositories.admin_repo import ThreatReportRepository
 from app.security.safe_url import UnsafeDestination, validate_public_url
 from app.services.url_scanner import _scan_url_sync
+from app.services.geo_service import website_origin
+
+
+def test_known_website_origins_are_destination_evidence_not_reporter_geography():
+    assert website_origin("https://www.google.com/search?q=aegis")["country"] == "US"
+    assert website_origin("https://example.com/assessment")["country"] == "US"
+    # A lookalike never inherits the real operator’s country assertion.
+    assert website_origin("https://google-login.example/") == {}
 
 
 def test_safe_url_rejects_private_and_non_web_destinations():
@@ -27,6 +36,28 @@ def test_url_scanner_blocks_private_target_before_network_access():
     assert result["meta"]["status_code"] == 0
     assert result["findings"][0]["code"] == "unsafe_destination"
     assert result["findings"][0]["extra"]["source"] == "safe_fetch"
+
+
+def test_url_feedback_uses_destination_origin_over_development_reporter_country(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "environment", "development")
+    monkeypatch.setattr(settings, "development_report_country", "IR")
+    client.post("/api/v1/auth/register", json={
+        "username": "originmapuser", "email": "originmap@example.com", "password": "Str0ngPass!"
+    })
+    assert client.post("/api/v1/auth/login", json={
+        "identifier": "originmap@example.com", "password": "Str0ngPass!"
+    }).status_code == 200
+    scan = client.post("/api/v1/scans/url", json={"url": "https://example.com"}).get_json()
+    # Acquisition context still reflects the local development session.
+    assert scan["country"] == "IR"
+    feedback = client.post(
+        f"/api/v1/scans/{scan['scan_id']}/feedback",
+        json={"verdict": "confirmed_malicious"},
+    ).get_json()
+    assert feedback["triage_report"]["country"] == "US"
+    assert feedback["triage_report"]["development_demo_location"] is False
 
 
 def test_map_excludes_pending_and_returns_approved_country_aggregate(client):
@@ -60,7 +91,10 @@ def test_map_excludes_pending_and_returns_approved_country_aggregate(client):
         assert point["count"] == 1
         assert (point["lat"], point["lng"]) != (35.6892, 51.3890)
     finally:
-        db.rollback()
+        db.query(ThreatReport).filter(
+            ThreatReport.content.in_({"https://pending.example/", "https://approved.example/"})
+        ).delete(synchronize_session=False)
+        db.commit()
         db.close()
 
 

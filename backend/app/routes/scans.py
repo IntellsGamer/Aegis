@@ -55,13 +55,23 @@ def _geo_from_request() -> dict:
 
 
 def _report_location(scan) -> dict:
-    """Return persisted country data, or an explicit development demo fallback."""
+    """Resolve report location without ever using reporter geography for URLs."""
+    if scan.scan_type == "url":
+        origin = geo_service.website_origin(scan.input_url)
+        # Scan country is acquisition/reporter context. A URL report’s map
+        # country is exclusively destination-origin evidence, or deliberately
+        # absent when such evidence cannot be established.
+        scan.country = origin.get("country")
+        scan.country_name = origin.get("country_name")
+        db_session().add(scan)
+        db_session().flush()
+        return origin
     if scan.country:
         return {"country": scan.country, "country_name": scan.country_name}
     demo = geo_service.development_country(scan.ip_address)
     if demo:
-        # Preserve this explicit local-demo origin on the scan as well, so later
-        # feedback and casefile views consistently describe map eligibility.
+        # The development country exists only for non-URL local demo material;
+        # URL reports must never inherit the submitting client’s country.
         scan.country = demo["country"]
         scan.country_name = demo["country_name"]
         db_session().add(scan)

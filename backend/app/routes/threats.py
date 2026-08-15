@@ -8,6 +8,7 @@ from app.config import settings
 from app.dependencies import db_session, optional_login
 from app.exceptions import ValidationError
 from app.repositories.admin_repo import ThreatReportRepository, ThreatRepository
+from app.services import geo_service
 
 bp = Blueprint("threats_api", __name__, url_prefix="/api/v1/threats")
 
@@ -40,14 +41,24 @@ def submit_report():
     # Public map coordinates are never accepted from an untrusted client. A
     # report remains pending until moderation; approved reports are displayed
     # only as country-level aggregates.
-    country = (data.get("country") or "").strip().upper()
+    # URL reports must map to the reported destination, never the submitter or
+    # arbitrary client-supplied geography. Non-URL reports keep the existing
+    # optional country field for explicit, independently verified submissions.
+    destination_origin = geo_service.website_origin(content) if content_type == "url" else {}
+    country = (
+        destination_origin.get("country")
+        if content_type == "url" else (data.get("country") or "").strip().upper()
+    )
     payload = {
         "content_type": content_type,
         "content": content[:500],
         "category": data.get("category", "unknown"),
         "description": (data.get("description") or "")[:1000],
         "country": country[:4] or None,
-        "country_name": (data.get("country_name") or "").strip()[:128] or None,
+        "country_name": (
+            destination_origin.get("country_name")
+            if content_type == "url" else (data.get("country_name") or "").strip()[:128]
+        ) or None,
         "latitude": None,
         "longitude": None,
     }

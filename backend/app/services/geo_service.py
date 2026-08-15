@@ -106,6 +106,71 @@ def lookup(ip: str | None) -> dict:
         return {}
 
 
+# Exact registrable domains for major operators. This list is deliberately
+# conservative: suffix matching accepts a real subdomain but never a lookalike
+# such as `google-login.example`. It expresses operator origin, not CDN edge
+# location. Other sites fall back only to destination-network GeoIP evidence.
+_WEBSITE_OPERATOR_ORIGINS: dict[str, tuple[str, str]] = {
+    "google.com": ("US", "United States (Google operator origin)"),
+    "youtube.com": ("US", "United States (Google operator origin)"),
+    "microsoft.com": ("US", "United States (Microsoft operator origin)"),
+    "apple.com": ("US", "United States (Apple operator origin)"),
+    "amazon.com": ("US", "United States (Amazon operator origin)"),
+    "paypal.com": ("US", "United States (PayPal operator origin)"),
+    "meta.com": ("US", "United States (Meta operator origin)"),
+    "facebook.com": ("US", "United States (Meta operator origin)"),
+    "instagram.com": ("US", "United States (Meta operator origin)"),
+    "linkedin.com": ("US", "United States (LinkedIn operator origin)"),
+    "netflix.com": ("US", "United States (Netflix operator origin)"),
+    "example.com": ("US", "United States (IANA example-domain origin)"),
+}
+
+
+def website_origin(raw_url: str | None) -> dict:
+    """Return independently established website-country evidence for a URL.
+
+    A report URL is never assigned the submitting client's country. Known exact
+    operator domains use a conservative local registry. All other URLs require
+    a public, SSRF-safe destination resolution plus a configured local GeoIP
+    database; absent that evidence, the result is intentionally empty.
+    """
+    if not raw_url:
+        return {}
+    from urllib.parse import urlparse
+
+    parsed = urlparse(raw_url.strip())
+    if parsed.scheme.lower() not in {"http", "https"} or not parsed.hostname:
+        return {}
+    host = parsed.hostname.rstrip(".").lower()
+    for domain, (country, origin_name) in _WEBSITE_OPERATOR_ORIGINS.items():
+        if host == domain or host.endswith(f".{domain}"):
+            return {
+                "country": country,
+                "country_name": origin_name,
+                "location_source": "verified_website_operator_origin",
+                "location_precision": "operator_country",
+            }
+
+    # Resolve only through the existing SSRF-safe validation boundary. GeoIP
+    # identifies destination network geography, which is kept distinct from an
+    # operator-origin assertion in the returned display name and provenance.
+    try:
+        from app.security.safe_url import UnsafeDestination, validate_public_url
+        destination = validate_public_url(raw_url)
+    except (UnsafeDestination, ValueError):
+        return {}
+    for address in destination.addresses:
+        geo = lookup(address)
+        if geo.get("country"):
+            return {
+                "country": geo["country"],
+                "country_name": f"{geo.get('country_name') or geo['country']} (destination network)",
+                "location_source": "destination_network_geoip",
+                "location_precision": "destination_network_country",
+            }
+    return {}
+
+
 def country_name(code: str | None) -> str | None:
     if not code:
         return None
