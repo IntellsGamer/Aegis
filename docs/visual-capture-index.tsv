@@ -1,0 +1,38 @@
+label	path	notes
+persian-dark_post-scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-46-55_4335.webp	Completed guided-email assessment after dark post-scan action repair
+persian-dark_dashboard	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-51-20_9153.webp	Authenticated dashboard
+persian-dark_map	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-51-30_7903.webp	Verified threat map
+persian-dark_learn	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-51-51_4437.webp	Learning center
+persian-dark_profile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-52-00_2676.webp	Profile and preferences
+persian-dark_admin	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-52-19_1906.webp	Operator console
+persian-dark_casefile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-52-28_7653.webp	Assessment casefile for guided email scan
+persian-dark_scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-52-53_2488.webp	Scanner workspace
+# superseded public-home capture: /home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-53-09_7516.webp (captured before public-home Persian copy was bound)
+persian-dark_home	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-55-00_4474.webp	Public entry page after Persian copy correction
+persian-light_home	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-55-20_1624.webp	Public entry page
+persian-light_dashboard	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-55-30_3688.webp	Authenticated dashboard
+persian-light_map	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-55-49_5052.webp	Verified threat map
+persian-light_learn	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-55-59_3262.webp	Learning center
+persian-light_profile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-56-16_9355.webp	Profile and preferences
+persian-light_admin	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-56-25_1429.webp	Operator console
+persian-light_casefile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-56-43_8560.webp	Assessment casefile for guided email scan
+persian-light_scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-56-51_3598.webp	Scanner workspace
+persian-light_post-scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-57-22_3372.webp	Completed guided-email assessment
+english-light_dashboard	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-58-01_9703.webp	Authenticated dashboard
+english-light_map	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-58-33_2013.webp	Verified threat map
+english-light_learn	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-58-43_9113.webp	Learning center
+english-light_profile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-59-01_7773.webp	Profile and preferences
+english-light_admin	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-59-18_5500.webp	Operator console
+english-light_casefile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-59-44_8141.webp	Assessment casefile for guided email scan
+english-light_scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_12-59-54_5456.webp	Scanner workspace
+english-light_post-scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-00-28_4304.webp	Completed guided-email assessment
+english-light_home	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-00-49_4815.webp	Public entry page
+english-dark_home	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-01-08_2764.webp	Public entry page
+english-dark_dashboard	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-01-30_8097.webp	Operational dashboard
+english-dark_map	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-02_9332.webp	Approved-report threat map
+english-dark_learn	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-21_7532.webp	Learning Center
+english-dark_profile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-27_8207.webp	Profile and preferences
+english-dark_admin	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-38_3806.webp	Operator console
+english-dark_casefile	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-44_7736.webp	Assessment casefile for guided email scan
+english-dark_scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-03-55_5712.webp	Scanner workspace
+english-dark_post-scan	/home/ubuntu/screenshots/127_0_0_1_2026-08-15_13-04-12_5321.webp	Completed guided-email assessment

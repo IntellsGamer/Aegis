@@ -4,48 +4,48 @@
 <div class="public-home">
   <section class="public-hero">
     <div class="public-hero-main">
-      <p class="public-eyebrow">Evidence-first digital trust</p>
-      <h1>Check it before you act.</h1>
-      <p>AEGIS assesses URLs, emails, messages, images, QR codes, and files through deterministic evidence fusion—preserving observable reasons, collection limits, and the next safe action.</p>
+      <p class="public-eyebrow" data-i18n="home.eyebrow">Evidence-first digital trust</p>
+      <h1 data-i18n="home.title">Check it before you act.</h1>
+      <p data-i18n="home.description">AEGIS assesses URLs, emails, messages, images, QR codes, and files through deterministic evidence fusion—preserving observable reasons, collection limits, and the next safe action.</p>
       <div class="public-hero-actions">
         {% if user %}
-        <a href="{{ url_for('pages.scan') }}" class="public-primary-action">Open scanner</a>
-        <a href="{{ url_for('pages.dashboard') }}" class="public-secondary-action">View workspace</a>
+        <a href="{{ url_for('pages.scan') }}" class="public-primary-action" data-i18n="home.open_scanner">Open scanner</a>
+        <a href="{{ url_for('pages.dashboard') }}" class="public-secondary-action" data-i18n="home.view_workspace">View workspace</a>
         {% else %}
-        <a href="{{ url_for('pages.scan') }}" class="public-primary-action">Check something now</a>
-        <a href="{{ url_for('pages.register') }}" class="public-secondary-action">Create an account</a>
+        <a href="{{ url_for('pages.scan') }}" class="public-primary-action" data-i18n="home.check_now">Check something now</a>
+        <a href="{{ url_for('pages.register') }}" class="public-secondary-action" data-i18n="home.create_account">Create an account</a>
         {% endif %}
       </div>
-      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="public-demo-link">View a guided assessment →</a>
+      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="public-demo-link" data-i18n="home.guided_demo">View a guided assessment →</a>
     </div>
     <aside class="public-hero-proof">
-      <p>HOW AEGIS WORKS</p>
-      <div><span>01</span><strong>Collect</strong><small>Visible source, link, and content signals</small></div>
-      <div><span>02</span><strong>Correlate</strong><small>Independent evidence matters more than repetition</small></div>
-      <div><span>03</span><strong>Explain</strong><small>Reasons, coverage, and a safe next step</small></div>
+      <p data-i18n="home.how_works">How AEGIS works</p>
+      <div><span>01</span><strong data-i18n="home.collect">Collect</strong><small data-i18n="home.collect_detail">Visible source, link, and content signals</small></div>
+      <div><span>02</span><strong data-i18n="home.correlate">Correlate</strong><small data-i18n="home.correlate_detail">Independent evidence matters more than repetition</small></div>
+      <div><span>03</span><strong data-i18n="home.explain">Explain</strong><small data-i18n="home.explain_detail">Reasons, coverage, and a safe next step</small></div>
     </aside>
   </section>
 
   <section class="public-capabilities" aria-labelledby="capability-title">
-    <div class="public-section-heading"><p>ONE WORKFLOW · SIX INPUTS</p><h2 id="capability-title">Bring the suspicious thing you received.</h2><span>AEGIS keeps the assessment method consistent, whatever the format.</span></div>
+    <div class="public-section-heading"><p data-i18n="home.workflow">One workflow · six inputs</p><h2 id="capability-title" data-i18n="home.capability_title">Bring the suspicious thing you received.</h2><span data-i18n="home.capability_description">AEGIS keeps the assessment method consistent, whatever the format.</span></div>
     <div class="capability-list">
       {% set scanners = [
-        ('01', 'URL', 'Reputation, DNS, lookalike detection, typo-squatting, and safe structure analysis.'),
-        ('02', 'Email', 'Header forensics, authentication, phishing patterns, and attachment checks.'),
-        ('03', 'Message', 'Phishing, urgency, impersonation, and sensitive-request language.'),
-        ('04', 'Image', 'OCR extraction and visual phishing context.'),
-        ('05', 'QR Code', 'Decode the destination, then assess the link behind it.'),
-        ('06', 'File', 'Static document inspection, metadata, and embedded-link extraction.'),
+        ('01', 'URL', 'Reputation, DNS, lookalike detection, typo-squatting, and safe structure analysis.', 'home.url', 'home.url_detail'),
+        ('02', 'Email', 'Header forensics, authentication, phishing patterns, and attachment checks.', 'home.email', 'home.email_detail'),
+        ('03', 'Message', 'Phishing, urgency, impersonation, and sensitive-request language.', 'home.message', 'home.message_detail'),
+        ('04', 'Image', 'OCR extraction and visual phishing context.', 'home.image', 'home.image_detail'),
+        ('05', 'QR Code', 'Decode the destination, then assess the link behind it.', 'home.qr', 'home.qr_detail'),
+        ('06', 'File', 'Static document inspection, metadata, and embedded-link extraction.', 'home.file', 'home.file_detail'),
       ] %}
-      {% for number, name, desc in scanners %}
-      <article class="capability-item"><span>{{ number }}</span><div><h3>{{ name }}</h3><p>{{ desc }}</p></div></article>
+      {% for number, name, desc, label_key, translation_key in scanners %}
+      <article class="capability-item"><span>{{ number }}</span><div><h3 data-i18n="{{ label_key }}">{{ name }}</h3><p data-i18n="{{ translation_key }}">{{ desc }}</p></div></article>
       {% endfor %}
     </div>
   </section>
 
   <section class="public-evidence-band">
-    <div><p class="public-eyebrow">No black box</p><h2>An assessment you can inspect.</h2><p>AEGIS fuses transport, sender, content, reputation, and page-behaviour observations. It shows what it saw, what it could not verify, and what to do next—without pretending a score is proof.</p></div>
-    <div class="public-evidence-list"><div><span>Evidence chain</span><p>Each observation keeps its source, reliability, and contribution.</p></div><div><span>Assessment boundary</span><p>Limited and blocked paths are made explicit, not hidden.</p></div><div><span>Safe next step</span><p>Casefiles and governed reporting follow the assessment.</p></div></div>
+    <div><p class="public-eyebrow" data-i18n="home.no_black_box">No black box</p><h2 data-i18n="home.evidence_title">An assessment you can inspect.</h2><p data-i18n="home.evidence_description">AEGIS fuses transport, sender, content, reputation, and page-behaviour observations. It shows what it saw, what it could not verify, and what to do next—without pretending a score is proof.</p></div>
+    <div class="public-evidence-list"><div><span data-i18n="home.evidence_chain">Evidence chain</span><p data-i18n="home.evidence_chain_detail">Each observation keeps its source, reliability, and contribution.</p></div><div><span data-i18n="home.assessment_boundary">Assessment boundary</span><p data-i18n="home.boundary_detail">Limited and blocked paths are made explicit, not hidden.</p></div><div><span data-i18n="home.safe_next_step">Safe next step</span><p data-i18n="home.next_step_detail">Casefiles and governed reporting follow the assessment.</p></div></div>
   </section>
 </div>
 {% endblock %}
