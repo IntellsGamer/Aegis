@@ -6,38 +6,38 @@
     <div class="border-b border-slate-100 bg-gradient-to-br from-aegis-50 via-white to-slate-50 p-6 dark:border-slate-800 dark:from-aegis-950/30 dark:via-slate-900 dark:to-slate-900">
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Evidence-first assessment</p>
-          <h1 class="text-2xl font-bold tracking-tight">Scan Analyzer</h1>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">Inspect a link, email, message, image, QR code, or file. AEGIS combines observable evidence, controls for repeated signals, and explains the resulting assessment.</p>
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300" data-i18n="scan.eyebrow">Evidence-first assessment</p>
+          <h1 class="text-2xl font-bold tracking-tight" data-i18n="scan.title">Scan Analyzer</h1>
+          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300" data-i18n="scan.description">Inspect a link, email, message, image, QR code, or file. AEGIS combines observable evidence, controls for repeated signals, and explains the resulting assessment.</p>
         </div>
         <div class="rounded-xl border border-aegis-200 bg-white/80 px-4 py-3 text-right dark:border-aegis-900 dark:bg-slate-950/60">
-          <p class="text-xs font-medium text-slate-500">Prediction path</p>
-          <p class="mt-1 text-sm font-semibold text-aegis-700 dark:text-aegis-300">No model training</p>
-          <button id="load-demo-btn" class="mt-3 rounded-lg border border-aegis-300 px-3 py-1.5 text-xs font-semibold text-aegis-700 transition hover:bg-aegis-50 dark:border-aegis-800 dark:text-aegis-300 dark:hover:bg-aegis-950">Load guided demo</button>
+          <p class="text-xs font-medium text-slate-500" data-i18n="scan.prediction_path">Prediction path</p>
+          <p class="mt-1 text-sm font-semibold text-aegis-700 dark:text-aegis-300" data-i18n="scan.no_training">No model training</p>
+          <button id="load-demo-btn" class="mt-3 rounded-lg border border-aegis-300 px-3 py-1.5 text-xs font-semibold text-aegis-700 transition hover:bg-aegis-50 dark:border-aegis-800 dark:text-aegis-300 dark:hover:bg-aegis-950" data-i18n="scan.load_demo">Load guided demo</button>
         </div>
       </div>
     </div>
     <div class="grid gap-px bg-slate-100 text-sm dark:bg-slate-800 sm:grid-cols-3">
-      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">1. Collect</p><p class="mt-1 text-xs leading-5 text-slate-500">Extract links, sender signals, content cues, and technical observations.</p></div>
-      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">2. Correlate</p><p class="mt-1 text-xs leading-5 text-slate-500">Reduce repeated cues and elevate agreement across independent evidence families.</p></div>
-      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold">3. Explain</p><p class="mt-1 text-xs leading-5 text-slate-500">Show the calibrated reasons, confidence, and next actions rather than a black-box label.</p></div>
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold" data-i18n="scan.collect">1. Collect</p><p class="mt-1 text-xs leading-5 text-slate-500" data-i18n="scan.collect_desc">Extract links, sender signals, content cues, and technical observations.</p></div>
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold" data-i18n="scan.correlate">2. Correlate</p><p class="mt-1 text-xs leading-5 text-slate-500" data-i18n="scan.correlate_desc">Reduce repeated cues and elevate agreement across independent evidence families.</p></div>
+      <div class="bg-white px-5 py-4 dark:bg-slate-900"><p class="font-semibold" data-i18n="scan.explain">3. Explain</p><p class="mt-1 text-xs leading-5 text-slate-500" data-i18n="scan.explain_desc">Show the calibrated reasons, confidence, and next actions rather than a black-box label.</p></div>
     </div>
   </section>
 
   <div class="grid sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="scan-tabs" role="tablist">
     {% set kinds = [
-      ('url', '🔗', 'URL'),
-      ('email', '📧', 'Email'),
-      ('text', '💬', 'Message'),
-      ('image', '🖼️', 'Image'),
-      ('qr', '📱', 'QR Code'),
-      ('file', '📄', 'File'),
+      ('url', '🔗', 'URL', 'scan.url'),
+      ('email', '📧', 'Email', 'scan.email'),
+      ('text', '💬', 'Message', 'scan.message'),
+      ('image', '🖼️', 'Image', 'scan.image'),
+      ('qr', '📱', 'QR Code', 'scan.qr'),
+      ('file', '📄', 'File', 'scan.file'),
     ] %}
-    {% for key, icon, label in kinds %}
+    {% for key, icon, label, translation_key in kinds %}
     <button class="scan-tab px-3 py-2.5 rounded-xl border text-sm font-medium transition
                    {% if loop.first %}border-aegis-500 bg-aegis-50 dark:bg-aegis-950 text-aegis-700 dark:text-aegis-300{% else %}border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:border-aegis-400{% endif %}"
             data-tab="{{ key }}" role="tab">
-      <span class="mr-1">{{ icon }}</span>{{ label }}
+      <span class="mr-1">{{ icon }}</span><span data-i18n="{{ translation_key }}">{{ label }}</span>
     </button>
     {% endfor %}
   </div>
@@ -45,81 +45,81 @@
   <div id="scan-box" class="p-6 rounded-2xl border border-slate-200 shadow-sm dark:border-slate-800 bg-white dark:bg-slate-900">
     <!-- URL -->
     <div class="scan-panel" data-panel="url">
-      <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><label class="block text-sm font-medium" for="url-input">Enter a URL to analyze</label><span class="text-xs text-slate-500">Private, reserved, and non-web destinations are never fetched.</span></div>
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2"><label class="block text-sm font-medium" for="url-input" data-i18n="scan.enter_url">Enter a URL to analyze</label><span class="text-xs text-slate-500" data-i18n="scan.unsafe_destinations">Private, reserved, and non-web destinations are never fetched.</span></div>
       <div class="flex gap-2">
         <input type="url" id="url-input" placeholder="https://example.com" class="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-        <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="url">Analyze</button>
+        <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="url" data-i18n="scan.analyze">Analyze</button>
       </div>
     </div>
     <!-- Email -->
     <div class="scan-panel hidden" data-panel="email">
-      <label class="block text-sm font-medium mb-2" for="email-subject">Subject</label>
-      <input type="text" id="email-subject" placeholder="Message subject" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      <label class="block text-sm font-medium mb-2" for="email-sender">Sender address</label>
+      <label class="block text-sm font-medium mb-2" for="email-subject" data-i18n="scan.subject">Subject</label>
+      <input type="text" id="email-subject" placeholder="Message subject" data-i18n-placeholder="scan.subject" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      <label class="block text-sm font-medium mb-2" for="email-sender" data-i18n="scan.sender">Sender address</label>
       <input type="text" id="email-sender" placeholder="sender@example.com" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      <label class="block text-sm font-medium mb-2" for="email-body">Message body</label>
-      <textarea id="email-body" rows="6" placeholder="Paste the email content here…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
-      <label class="block text-sm font-medium mb-2" for="email-headers">Raw headers (optional)</label>
+      <label class="block text-sm font-medium mb-2" for="email-body" data-i18n="scan.message_body">Message body</label>
+      <textarea id="email-body" rows="6" placeholder="Paste the email content here…" data-i18n-placeholder="scan.message_body" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
+      <label class="block text-sm font-medium mb-2" for="email-headers" data-i18n="scan.raw_headers">Raw headers (optional)</label>
       <textarea id="email-headers" rows="4" placeholder="Received: from…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-aegis-500 font-mono"></textarea>
-      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="email">Analyze</button>
+      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="email" data-i18n="scan.analyze">Analyze</button>
     </div>
     <!-- Text -->
     <div class="scan-panel hidden" data-panel="text">
       <div class="mb-2 flex items-center justify-between gap-3">
-        <label class="block text-sm font-medium" for="text-input">Paste a message to analyze</label>
-        <span class="text-xs text-slate-400">Text and embedded links stay local to the assessment path</span>
+        <label class="block text-sm font-medium" for="text-input" data-i18n="scan.paste_message">Paste a message to analyze</label>
+        <span class="text-xs text-slate-400" data-i18n="scan.local_text">Text and embedded links stay local to the assessment path</span>
       </div>
-      <textarea id="text-input" rows="7" placeholder="Paste SMS, DM or chat message here…" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
-      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="text">Analyze</button>
+      <textarea id="text-input" rows="7" placeholder="Paste SMS, DM or chat message here…" data-i18n-placeholder="scan.paste_message" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-aegis-500"></textarea>
+      <button class="scan-run px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="text" data-i18n="scan.analyze">Analyze</button>
     </div>
     <!-- Image -->
     <div class="scan-panel hidden" data-panel="image">
-      <label class="block text-sm font-medium mb-2" for="image-input">Upload an image</label>
+      <label class="block text-sm font-medium mb-2" for="image-input" data-i18n="scan.upload_image">Upload an image</label>
       <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="image-zone">
         <p class="text-3xl mb-2">🖼️</p>
-        <p class="text-sm text-slate-500">Drop an image here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
+        <p class="text-sm text-slate-500" data-i18n="scan.drop_image">Drop an image here or browse</p>
         <input type="file" id="image-input" accept="image/*" class="hidden">
       </div>
       <div id="image-preview" class="hidden mt-3"><img class="max-h-48 rounded-lg mx-auto" alt="preview"></div>
-      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="image" disabled>Analyze</button>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="image" disabled data-i18n="scan.analyze">Analyze</button>
     </div>
     <!-- QR -->
     <div class="scan-panel hidden" data-panel="qr">
-      <label class="block text-sm font-medium mb-2" for="qr-input">Upload a QR code image</label>
+      <label class="block text-sm font-medium mb-2" for="qr-input" data-i18n="scan.upload_qr">Upload a QR code image</label>
       <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="qr-zone">
         <p class="text-3xl mb-2">📱</p>
-        <p class="text-sm text-slate-500">Drop a QR code here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
+        <p class="text-sm text-slate-500" data-i18n="scan.drop_qr">Drop a QR code here or browse</p>
         <input type="file" id="qr-input" accept="image/*" class="hidden">
       </div>
       <div id="qr-preview" class="hidden mt-3"><img class="max-h-48 rounded-lg mx-auto" alt="preview"></div>
-      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="qr" disabled>Analyze</button>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="qr" disabled data-i18n="scan.analyze">Analyze</button>
     </div>
     <!-- File -->
     <div class="scan-panel hidden" data-panel="file">
-      <label class="block text-sm font-medium mb-2" for="file-input">Upload a document</label>
+      <label class="block text-sm font-medium mb-2" for="file-input" data-i18n="scan.upload_file">Upload a document</label>
       <div class="dropzone w-full rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center cursor-pointer hover:border-aegis-500 transition" id="file-zone">
         <p class="text-3xl mb-2">📄</p>
-        <p class="text-sm text-slate-500">Drop a PDF, TXT, EML, or MSG file here or <span class="text-aegis-600 dark:text-aegis-400">browse</span></p>
-        <p class="mt-2 text-xs text-slate-400">Files are statically validated before analysis. Documents are never executed.</p>
+        <p class="text-sm text-slate-500" data-i18n="scan.drop_file">Drop a PDF, TXT, EML, or MSG file here or browse</p>
+        <p class="mt-2 text-xs text-slate-400" data-i18n="scan.static_validation">Files are statically validated before analysis. Documents are never executed.</p>
         <input type="file" id="file-input" accept=".pdf,.txt,.eml,.msg" class="hidden">
       </div>
       <div id="file-preview" class="hidden mt-3 text-sm text-slate-500"></div>
-      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="file" disabled>Analyze</button>
+      <button class="scan-run mt-4 px-5 py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition" data-kind="file" disabled data-i18n="scan.analyze">Analyze</button>
     </div>
   </div>
 
   <div id="result-box" class="mt-6 hidden">
     <div id="result-content"></div>
     <div class="mt-4 flex flex-wrap gap-3">
-      <button id="copy-evidence-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Copy Evidence Summary</button>
-      <button id="casefile-btn" class="hidden px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition">Open Casefile</button>
-      <button id="report-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition">Submit for Threat Review</button>
-      <button id="download-pdf-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">Download Report (PDF)</button>
-      <button id="new-scan-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500">New Scan</button>
+      <button id="copy-evidence-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500" data-i18n="scan.copy_evidence">Copy Evidence Summary</button>
+      <button id="casefile-btn" class="hidden px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition" data-i18n="scan.open_casefile">Open Casefile</button>
+      <button id="report-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition" data-i18n="scan.submit_review">Submit for Threat Review</button>
+      <button id="download-pdf-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500" data-i18n="scan.download_pdf">Download Report (PDF)</button>
+      <button id="new-scan-btn" class="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm font-semibold transition hover:border-aegis-500" data-i18n="scan.new_scan">New Scan</button>
     </div>
-    <p class="mt-3 text-xs text-slate-500">Threat submissions are queued for moderation; they do not become public map data or threat intelligence automatically.</p>
+    <p class="mt-3 text-xs text-slate-500" data-i18n="scan.moderation_note">Threat submissions are queued for moderation; they do not become public map data or threat intelligence automatically.</p>
     <section id="feedback-panel" class="mt-4 hidden rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-      <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">Did this assessment match what you verified?</h2><p class="mt-1 text-xs text-slate-500">Your outcome is recorded separately from the engine and supports measured quality review; it does not retrain AEGIS automatically.</p></div><div class="flex flex-wrap gap-2"><button data-feedback="confirmed_malicious" class="feedback-btn rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500">Confirmed malicious</button><button data-feedback="confirmed_benign" class="feedback-btn rounded-lg border border-emerald-500 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300">Confirmed benign</button><button data-feedback="inconclusive" class="feedback-btn rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:border-aegis-500 dark:border-slate-700">Not sure</button></div></div>
+      <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-sm font-semibold" data-i18n="scan.feedback_title">Did this assessment match what you verified?</h2><p class="mt-1 text-xs text-slate-500" data-i18n="scan.feedback_desc">Your outcome is recorded separately from the engine and supports measured quality review; it does not retrain AEGIS automatically.</p></div><div class="flex flex-wrap gap-2"><button data-feedback="confirmed_malicious" class="feedback-btn rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-500" data-i18n="scan.confirmed_malicious">Confirmed malicious</button><button data-feedback="confirmed_benign" class="feedback-btn rounded-lg border border-emerald-500 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300" data-i18n="scan.confirmed_benign">Confirmed benign</button><button data-feedback="inconclusive" class="feedback-btn rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold hover:border-aegis-500 dark:border-slate-700" data-i18n="scan.not_sure">Not sure</button></div></div>
     </section>
   </div>
 </div>

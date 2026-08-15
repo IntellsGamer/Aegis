@@ -79,12 +79,16 @@
         catch (e) { return 'dark'; }
     }
 
+    function translate(key, fallback) {
+        return window.AegisI18n?.t ? window.AegisI18n.t(key, fallback) : fallback;
+    }
+
     function badgeFor(level) {
         const map = {
-            safe: ['bg-emerald-500', 'Safe'],
-            suspicious: ['bg-amber-500', 'Suspicious'],
-            threat: ['bg-red-500', 'Threat'],
-            unverified: ['bg-slate-500', 'Unverified'],
+            safe: ['bg-emerald-500', translate('verdict.safe', 'Safe')],
+            suspicious: ['bg-amber-500', translate('verdict.suspicious', 'Suspicious')],
+            threat: ['bg-red-500', translate('verdict.threat', 'Threat')],
+            unverified: ['bg-slate-500', translate('verdict.unverified', 'Unverified')],
         };
         const [cls, label] = map[level] || ['bg-slate-500', level];
         return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white ${cls}">${label}</span>`;
@@ -195,8 +199,27 @@
             });
         }
 
+        const languageSelect = document.getElementById('language-select');
+        if (languageSelect) {
+            languageSelect.addEventListener('change', async () => {
+                const locale = languageSelect.value;
+                languageSelect.disabled = true;
+                try {
+                    await api('PATCH', '/api/v1/users/me', { locale });
+                    // The following reload lets Flask render lang/dir before the
+                    // page becomes visible, rather than flipping direction mid-form.
+                    window.location.reload();
+                } catch (error) {
+                    toast(error.message || 'Could not update language', 'error');
+                    languageSelect.value = document.documentElement.lang || 'en';
+                } finally {
+                    languageSelect.disabled = false;
+                }
+            });
+        }
+
         connectSSE();
     });
 
-    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, setTheme, getTheme, csrfToken };
+    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, setTheme, getTheme, csrfToken, t: translate };
 })();

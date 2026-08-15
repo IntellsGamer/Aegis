@@ -23,6 +23,18 @@ def update_profile(db: Session, user: User, data: dict) -> User:
         value = data.get(key)
         if value is not None and hasattr(user, key):
             setattr(user, key, value)
+
+    # ``User.locale`` is the rendering authority for html lang/dir. Keep the
+    # legacy settings language in sync for API consumers that still read it.
+    if data.get("locale") is not None:
+        settings_row = user.settings
+        if settings_row is None:
+            from app.models import UserSetting
+
+            settings_row = UserSetting(user_id=user.id)
+            db.add(settings_row)
+        settings_row.language = user.locale
+        db.add(settings_row)
     users.save(user)
     return user
 
@@ -39,6 +51,9 @@ def update_settings(db: Session, user: User, data: dict) -> User:
         value = data.get(key)
         if value is not None and hasattr(settings_row, key):
             setattr(settings_row, key, value)
+    if data.get("language") is not None:
+        user.locale = settings_row.language
+        db.add(user)
     db.add(settings_row)
     db.flush()
     return user

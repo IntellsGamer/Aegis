@@ -81,8 +81,15 @@ def test_persian_account_uses_rtl_document_direction(client):
         "identifier": "rtl@example.com", "password": "Str0ngPass!"
     }).status_code == 200
     assert client.patch("/api/v1/users/me", json={"locale": "fa"}).status_code == 200
+    profile = client.get("/api/v1/users/me").get_json()
+    settings = client.get("/api/v1/users/me/settings").get_json()
+    assert profile["locale"] == "fa"
+    assert settings["language"] == "fa"
 
     page = client.get("/dashboard")
     assert page.status_code == 200
     assert b'lang="fa"' in page.data
     assert b'dir="rtl"' in page.data
+    assert b'data-i18n-ready="false"' in page.data
+    assert b'id="language-select"' in page.data
+    assert 'فارسی'.encode() in page.data

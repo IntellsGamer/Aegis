@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ user.locale if user and user.locale else 'en' }}" dir="{{ 'rtl' if user and user.locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="dark">
+<html lang="{{ user.locale if user and user.locale else 'en' }}" dir="{{ 'rtl' if user and user.locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="dark" data-i18n-ready="{{ 'false' if user and user.locale == 'fa' else 'true' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen antialiased transition-colors"
-      data-page="{{ active }}">
+      data-page="{{ active }}" data-locale="{{ user.locale if user and user.locale else 'en' }}">
   <div class="flex min-h-screen">
     {% if user %}
     <!-- Sidebar -->
@@ -34,22 +34,22 @@
       </div>
       <nav class="flex-1 py-4 px-3 space-y-1 text-sm">
         {% set items = [
-          ('dashboard', 'pages.dashboard', 'Dashboard'),
-          ('scan', 'pages.scan', 'Scan Analyzer'),
-          ('map', 'pages.map_page', 'Threat Map'),
-          ('learn', 'pages.learn', 'Learning Center'),
-          ('profile', 'pages.profile', 'My Profile'),
+          ('dashboard', 'pages.dashboard', 'Dashboard', 'nav.dashboard'),
+          ('scan', 'pages.scan', 'Scan Analyzer', 'nav.scan'),
+          ('map', 'pages.map_page', 'Threat Map', 'nav.map'),
+          ('learn', 'pages.learn', 'Learning Center', 'nav.learn'),
+          ('profile', 'pages.profile', 'My Profile', 'nav.profile'),
         ] %}
         {% if user.is_admin %}
-          {% set items = items + [('admin', 'pages.admin', 'Admin Panel')] %}
+          {% set items = items + [('admin', 'pages.admin', 'Admin Panel', 'nav.admin')] %}
         {% endif %}
-        {% for key, endpoint, label in items %}
+        {% for key, endpoint, label, translation_key in items %}
         <a href="{{ url_for(endpoint) }}"
            class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
                   {% if active == key %}bg-aegis-600 text-white shadow-sm{% else %}text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white{% endif %}"
            data-nav="{{ key }}">
           <span class="nav-icon" data-icon="{{ key }}"></span>
-          {{ label }}
+          <span data-i18n="{{ translation_key }}">{{ label }}</span>
         </a>
         {% endfor %}
       </nav>
@@ -62,7 +62,7 @@
             <p class="text-sm text-slate-900 dark:text-white truncate">{{ user.username }}</p>
             <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ user.email }}</p>
           </div>
-          <button data-action="logout" class="text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400" title="Logout" aria-label="Logout">
+          <button data-action="logout" class="text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400" title="Logout" aria-label="Logout" data-i18n-title="header.logout" data-i18n-aria-label="header.logout">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           </button>
         </div>
@@ -79,17 +79,25 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <form class="relative flex-1 max-w-md" data-action="search" role="search">
-          <input type="search" id="global-search" placeholder="Search scans, threats…"
+          <input type="search" id="global-search" placeholder="Search scans, threats…" data-i18n-placeholder="header.search"
                  class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
           <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </form>
         <div class="flex-1"></div>
-        <button data-action="toggle-theme" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Toggle theme">
+        <div class="header-language-control flex items-center gap-2">
+          <label for="language-select" class="hidden text-xs font-medium text-slate-500 sm:block" data-i18n="header.language">Language</label>
+          <select id="language-select" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium text-slate-700 outline-none transition focus:border-aegis-500 focus:ring-2 focus:ring-aegis-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Language" data-i18n-aria-label="header.language">
+            <option value="en" {% if not user.locale or user.locale == 'en' %}selected{% endif %}>English</option>
+            <option value="fa" {% if user.locale == 'fa' %}selected{% endif %}>فارسی</option>
+            <option value="ar" {% if user.locale == 'ar' %}selected{% endif %}>العربية</option>
+          </select>
+        </div>
+        <button data-action="toggle-theme" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Toggle theme" data-i18n-aria-label="header.theme">
           <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
           <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
         </button>
         <div class="relative" id="notif-wrap">
-          <button data-action="notifications" class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Notifications">
+          <button data-action="notifications" class="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Notifications" data-i18n-aria-label="header.notifications">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
             <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 w-4 h-4 text-[10px] bg-red-500 text-white rounded-full flex items-center justify-center">0</span>
           </button>
@@ -113,10 +121,10 @@
 
       <footer class="border-t border-slate-200 dark:border-slate-800 px-6 py-4 text-xs text-slate-400">
         <div class="flex items-center justify-between flex-wrap gap-2">
-          <span>AEGIS Digital Trust &amp; Scam Analysis Platform · v{{ app_version }}</span>
+          <span><span data-i18n="footer.product">AEGIS Digital Trust &amp; Scam Analysis Platform</span> · v{{ app_version }}</span>
           <span class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Deterministic evidence fusion · no model training
+            <span data-i18n="footer.engine">Deterministic evidence fusion · no model training</span>
           </span>
         </div>
       </footer>
@@ -124,6 +132,7 @@
   </div>
 
   <div id="toast-root" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+  <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
