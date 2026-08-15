@@ -6,7 +6,7 @@ from datetime import timedelta
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Scan, ScanOutcome, Threat
+from app.models import Scan, ScanOutcome, Threat, ThreatReport
 from app.repositories.admin_repo import AuditLogRepository, ThreatReportRepository, ThreatRepository
 from app.repositories.scan_repo import ScanRepository
 from app.repositories.user_repo import UserRepository
@@ -128,6 +128,16 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         for outcome in outcomes:
             latest_outcome.setdefault(outcome.scan_id, outcome)
 
+    reports_by_scan: dict[int, ThreatReport] = {}
+    if scan_ids:
+        reports = db.scalars(
+            select(ThreatReport)
+            .where(ThreatReport.scan_id.in_(scan_ids))
+            .order_by(ThreatReport.scan_id.asc(), ThreatReport.id.desc())
+        ).all()
+        for report in reports:
+            reports_by_scan.setdefault(report.scan_id, report)
+
     severity_priority = {"critical": 100, "high": 70, "medium": 45, "low": 35}
     items = []
     for scan in scans:
@@ -137,6 +147,7 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
             families[finding.category or "analysis"] = families.get(finding.category or "analysis", 0) + 1
         outcome = latest_outcome.get(scan.id)
         assessment_state = "limited" if any(item.code in {"destination_unresolved", "tls_certificate_probe_limited"} for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
+        community_report = reports_by_scan.get(scan.id)
         items.append({
             "scan_id": scan.id,
             "target": (scan.input_url or scan.input_text or scan.file_name or "")[:500],
@@ -157,6 +168,13 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
                 "recorded_at": outcome.created_at.isoformat() if outcome and outcome.created_at else None,
                 "rationale": outcome.rationale if outcome else None,
             },
+            "community_report": {
+                "id": community_report.id,
+                "status": community_report.status,
+                "country": community_report.country,
+                "country_name": community_report.country_name,
+                "map_eligible": bool(community_report.country),
+            } if community_report else None,
         })
     return {
         "items": items, "total": len(items), "limit": limit,
