@@ -151,6 +151,7 @@
         }
     }
 
+    if (window.Turbo?.config?.drive) window.Turbo.config.drive.progressBarDelay = 80;
     const pageReadyEvent = window.Turbo ? 'turbo:load' : 'DOMContentLoaded';
     const pageModules = window.__aegisPageModules || new Map();
     const completedPageModules = window.__aegisCompletedPageModules || new Set();

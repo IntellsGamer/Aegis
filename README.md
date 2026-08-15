@@ -25,16 +25,16 @@ The evidence families reflect common anti-phishing red flags: independent verifi
 | Layer | Technology |
 |---|---|
 | Backend | Python 3.12, Flask 3, SQLAlchemy 2, Pydantic 2 |
-| Frontend | Server-rendered Jinja2, vanilla JavaScript, PWA-ready; no build step |
+| Frontend | Server-rendered Jinja2, vanilla JavaScript, locally compiled Tailwind, Turbo Drive, PWA-ready |
 | Prediction | Deterministic evidence fusion, URL/page evidence, email authentication, and curated multilingual patterns |
-| Infrastructure | SQLite for development; PostgreSQL/Redis/Celery/Gunicorn for Linux containers; Waitress for native Windows production |
+| Infrastructure | SQLite for development; PostgreSQL/Redis/Celery/Gunicorn for Linux containers; Waitress for native Windows, Linux, and macOS launches |
 
 ## Quick Start
 
 | Platform | Native local startup |
 |---|---|
 | **Windows 10/11** | Run `powershell -ExecutionPolicy Bypass -File .\\scripts\\setup-windows.ps1`, then ` .\\scripts\\run-windows.ps1` |
-| **Linux / macOS** | Create a virtual environment in `backend`, install `requirements.txt`, then run `python run.py` |
+| **Linux / macOS** | Create a virtual environment in `backend`, install `requirements.txt`, then run `python run.py` (Waitress WSGI) |
 | **Linux container / Windows Docker Desktop** | Run `AEGIS_SECRET_KEY=<long-random-secret> docker compose up --build` |
 
 For a complete native Windows installation, optional Tesseract OCR configuration, production mode, and troubleshooting, see [the Windows guide](docs/windows.md). The core local application works without Redis, Celery, PostgreSQL, Docker, or OCR; image text extraction requires a Tesseract installation or configuration.
@@ -46,7 +46,7 @@ cd backend
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -r requirements.txt
-python run.py                            # http://localhost:8000
+python run.py                            # Waitress WSGI at http://localhost:8000
 ```
 
 Set a unique `AEGIS_SECRET_KEY` and production database configuration before any deployment. The development seed account is intentionally limited to local development and must not be exposed publicly.

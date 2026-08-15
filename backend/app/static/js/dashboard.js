@@ -60,9 +60,15 @@
     const labels = days.map((date) => date.slice(5));
     const common = { animation: false, plugins: { legend: { labels: { boxWidth: 10 } } } };
     const activity = document.getElementById('activity-canvas');
-    if (activity) new Chart(activity, { type: 'line', data: { labels, datasets: [{ label: t('dashboard.scans', 'Scans'), data: days.map((date) => counts[date] || 0), borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,.15)', fill: true, tension: 0.3, pointRadius: 2 }] }, options: { ...common, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+    if (activity) {
+      Chart.getChart(activity)?.destroy();
+      new Chart(activity, { type: 'line', data: { labels, datasets: [{ label: t('dashboard.scans', 'Scans'), data: days.map((date) => counts[date] || 0), borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,.15)', fill: true, tension: 0.3, pointRadius: 2 }] }, options: { ...common, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } } });
+    }
     const score = document.getElementById('score-canvas');
-    if (score) new Chart(score, { type: 'line', data: { labels, datasets: [{ label: t('scan.trust_score', 'Trust'), data: days.map((date) => scores[date] ?? null), borderColor: '#10b981', pointRadius: 3, tension: 0.3, spanGaps: true }] }, options: { ...common, scales: { y: { min: 0, max: 100 } } } });
+    if (score) {
+      Chart.getChart(score)?.destroy();
+      new Chart(score, { type: 'line', data: { labels, datasets: [{ label: t('scan.trust_score', 'Trust'), data: days.map((date) => scores[date] ?? null), borderColor: '#10b981', pointRadius: 3, tension: 0.3, spanGaps: true }] }, options: { ...common, scales: { y: { min: 0, max: 100 } } } });
+    }
   }
 
   window.Aegis.onPageLoad('dashboard', async () => {

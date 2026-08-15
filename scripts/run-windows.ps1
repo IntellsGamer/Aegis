@@ -7,7 +7,8 @@
 #>
 [CmdletBinding()]
 param(
-    [switch]$Production
+    [switch]$Production,
+    [switch]$DevelopmentServer
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +20,9 @@ if (-not (Test-Path $Python)) {
     throw "Windows environment is not initialized. Run .\scripts\setup-windows.ps1 first."
 }
 
+if ($Production -and $DevelopmentServer) {
+    throw "Use either -Production or -DevelopmentServer, not both."
+}
 if ($Production) {
     $env:AEGIS_ENVIRONMENT = "production"
     if (-not $env:AEGIS_SECRET_KEY -or $env:AEGIS_SECRET_KEY -eq "change-me-in-production-please-use-a-long-random-string") {
@@ -28,6 +32,10 @@ if ($Production) {
 else {
     $env:AEGIS_ENVIRONMENT = "development"
 }
+
+# Waitress is the default on every native platform. Flask is available only
+# when explicitly requested for local framework debugging.
+$env:AEGIS_SERVER = if ($DevelopmentServer) { "flask" } else { "waitress" }
 
 Push-Location $Backend
 try {

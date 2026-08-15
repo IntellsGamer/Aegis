@@ -51,9 +51,17 @@ def test_frontend_uses_compiled_local_tailwind_and_turbo_assets():
     assert not (STATIC_ROOT / "js" / "3.4.17.js").exists()
 
 
-def test_sidebar_offset_is_authenticated_only_and_scanner_uses_page_registry():
+def test_sidebar_offset_and_turbo_lifecycle_guards():
     app_css = (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+    app_script = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
     scan_script = (STATIC_ROOT / "js" / "scan.js").read_text(encoding="utf-8")
+    profile_script = (STATIC_ROOT / "js" / "profile.js").read_text(encoding="utf-8")
+    dashboard_script = (STATIC_ROOT / "js" / "dashboard.js").read_text(encoding="utf-8")
 
     assert 'body[data-authenticated="true"] .app-main' in app_css
+    assert ".turbo-progress-bar" in app_css
+    assert "window.Turbo.config.drive.progressBarDelay = 80" in app_script
     assert "window.Aegis.onPageLoad('scan'" in scan_script
+    assert "if (!profileForm.isConnected) return" in profile_script
+    assert "Chart.getChart(activity)?.destroy()" in dashboard_script
+    assert "Chart.getChart(score)?.destroy()" in dashboard_script

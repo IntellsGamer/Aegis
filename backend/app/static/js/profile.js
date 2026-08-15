@@ -10,22 +10,34 @@
     return button;
   }
 
-  async function loadPreferences() {
+  async function loadPreferences(profileForm) {
+    if (!profileForm?.isConnected) return;
     try {
       const [profile, settings] = await Promise.all([api('GET', '/api/v1/users/me'), api('GET', '/api/v1/users/me/settings')]);
-      byId('p-full-name').value = profile.full_name || '';
-      byId('p-locale').value = profile.locale || 'en';
-      byId('p-theme').value = profile.theme || window.Aegis.getTheme();
-      byId('p-high-contrast').checked = Boolean(profile.high_contrast);
-      byId('p-save-history').checked = Boolean(settings?.save_history);
-      byId('p-notify-email').checked = Boolean(settings?.notify_email);
-      byId('p-notify-push').checked = Boolean(settings?.notify_push);
-      byId('p-notify-threats').checked = Boolean(settings?.notify_threats);
-    } catch (error) { toast(`${t('profile.load_failed', 'Could not load preferences')}: ${error.message}`, 'error'); }
+      if (!profileForm.isConnected) return;
+      const fields = {
+        fullName: byId('p-full-name'), locale: byId('p-locale'), theme: byId('p-theme'),
+        highContrast: byId('p-high-contrast'), saveHistory: byId('p-save-history'),
+        notifyEmail: byId('p-notify-email'), notifyPush: byId('p-notify-push'), notifyThreats: byId('p-notify-threats'),
+      };
+      if (Object.values(fields).some((field) => !field)) return;
+      fields.fullName.value = profile.full_name || '';
+      fields.locale.value = profile.locale || 'en';
+      fields.theme.value = profile.theme || window.Aegis.getTheme();
+      fields.highContrast.checked = Boolean(profile.high_contrast);
+      fields.saveHistory.checked = Boolean(settings?.save_history);
+      fields.notifyEmail.checked = Boolean(settings?.notify_email);
+      fields.notifyPush.checked = Boolean(settings?.notify_push);
+      fields.notifyThreats.checked = Boolean(settings?.notify_threats);
+    } catch (error) {
+      if (profileForm.isConnected) toast(`${t('profile.load_failed', 'Could not load preferences')}: ${error.message}`, 'error');
+    }
   }
 
   window.Aegis.onPageLoad('profile', () => {
-    loadPreferences();
+    const profileForm = byId('profile-form');
+    if (!profileForm) return;
+    loadPreferences(profileForm);
     byId('profile-form')?.addEventListener('submit', async (event) => {
       event.preventDefault(); const button = disable(event.currentTarget, true);
       try {

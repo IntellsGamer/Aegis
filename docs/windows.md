@@ -8,6 +8,7 @@
 |---|---:|---|
 | Python 3.12 with the Python Launcher (`py`) | Yes | Creates and runs the project virtual environment |
 | PowerShell 5.1 or newer | Yes | Runs the supplied setup and start scripts |
+| Node.js 20+ with Corepack | Yes | Installs pinned frontend dependencies and builds local Tailwind, Turbo, and Chart.js assets |
 | Tesseract OCR | Optional | Extracts text from uploaded images; core text, URL, email, QR, file, and reporting workflows still run without it |
 | Redis, Celery, PostgreSQL, Docker Desktop | Optional | Production-scale or background-service infrastructure, not required for native local use |
 
@@ -21,7 +22,7 @@ Open PowerShell in the repository root and run:
 powershell -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1
 ```
 
-The script creates `backend\.venv`, upgrades `pip`, and installs the dependencies appropriate for Windows. In particular, it installs Waitress instead of Gunicorn for native Windows serving.
+The script creates `backend\.venv`, upgrades `pip`, installs the dependencies appropriate for Windows, installs the pinned frontend dependencies through Corepack, and builds the local Tailwind, Turbo, and Chart.js assets. It installs Waitress for native WSGI serving.
 
 If you do not intend to use image OCR immediately, pass `-SkipOcr`:
 
@@ -45,8 +46,9 @@ Then open [http://localhost:8000](http://localhost:8000). The first development 
 
 | Mode | Command | Server behavior |
 |---|---|---|
-| Development | `.\scripts\run-windows.ps1` | Starts the Flask development server with reload support |
-| Native Windows production | `$env:AEGIS_SECRET_KEY = "<long-random-secret>"; .\scripts\run-windows.ps1 -Production` | Starts Waitress, a Windows-compatible WSGI server |
+| Native default | `.\scripts\run-windows.ps1` | Starts Waitress, the cross-platform production WSGI server |
+| Native production | `$env:AEGIS_SECRET_KEY = "<long-random-secret>"; .\scripts\run-windows.ps1 -Production` | Starts Waitress with production configuration validation |
+| Flask framework debugging only | `.\scripts\run-windows.ps1 -DevelopmentServer` | Explicitly starts Flask's development server; do not use for normal local runs |
 | Linux/container production | `docker compose up --build` | Keeps the existing Gunicorn, Redis, Celery, and PostgreSQL deployment path |
 
 ## Optional Image OCR

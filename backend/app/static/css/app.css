@@ -1266,3 +1266,14 @@ html.dark .auth-primary-action { border-color: #f4f4f5; color: #18181b; backgrou
   .auth-principles > div { grid-template-columns: 1fr; gap: .28rem; }
   .auth-card { padding: 1.1rem; }
 }
+
+/* Turbo Drive navigation feedback: a restrained, GitHub-style top progress line. */
+.turbo-progress-bar {
+  height: 2px;
+  background: #0891b2;
+  box-shadow: 0 0 8px rgba(8, 145, 178, .48);
+}
+html.dark .turbo-progress-bar {
+  background: #a5f3fc;
+  box-shadow: 0 0 8px rgba(165, 243, 252, .42);
+}

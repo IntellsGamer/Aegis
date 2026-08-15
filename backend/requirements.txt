@@ -1,9 +1,9 @@
 # --- Web framework (WSGI) ---
 Flask==3.0.3
-# Gunicorn is used by the Linux container image; Waitress provides the native
-# Windows production server used by run.py.
+# Gunicorn serves the Linux container image; Waitress is the cross-platform
+# native WSGI server used by `python run.py` on Windows, Linux, and macOS.
 gunicorn==22.0.0; platform_system != "Windows"
-waitress==3.0.2; platform_system == "Windows"
+waitress==3.0.2
 
 # --- Database ---
 SQLAlchemy==2.0.35
