@@ -122,3 +122,16 @@ def test_unresolvable_hostname_is_a_limited_assessment_not_a_threat(client):
     codes = {finding["code"] for finding in body["findings"]}
     assert "destination_unresolved" in codes
     assert "suspicious_keywords_url" in codes
+
+
+def test_direct_unmappable_url_report_is_created_without_country(client):
+    response = client.post("/api/v1/threats/report", json={
+        "content_type": "url",
+        "content": "http://127.0.0.1/internal-only",
+        "category": "phishing",
+    })
+
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["status"] == "pending"
+    assert body["content"] == "http://127.0.0.1/internal-only"

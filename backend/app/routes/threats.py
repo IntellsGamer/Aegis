@@ -54,7 +54,7 @@ def submit_report():
         "content": content[:500],
         "category": data.get("category", "unknown"),
         "description": (data.get("description") or "")[:1000],
-        "country": country[:4] or None,
+        "country": (country or "")[:4] or None,
         "country_name": (
             destination_origin.get("country_name")
             if content_type == "url" else (data.get("country_name") or "").strip()[:128]
