@@ -11,6 +11,7 @@ import secrets
 from pathlib import Path
 
 from flask import Flask, g, jsonify, request
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 from app.config import settings
 from app.database import SessionLocal, init_db
@@ -66,12 +67,29 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     configure_logging(settings.environment)
 
+    # Serve local frontend assets before Flask's request lifecycle. This keeps
+    # JavaScript, stylesheets, fonts and images out of SQLite/session/CSRF work
+    # and lets Waitress use WSGI's file-wrapper path rather than tying up an
+    # application worker for each static request.
+    static_url = app.static_url_path or "/static"
+    app.wsgi_app = SharedDataMiddleware(
+        app.wsgi_app,
+        {static_url: str(app.static_folder)},
+        cache=True,
+    )
+
+    def is_static_request() -> bool:
+        return request.path == static_url or request.path.startswith(f"{static_url}/")
+
     # --- database lifecycle -------------------------------------------------
     @app.before_request
     def open_db():
+        if is_static_request():
+            return None
         g.db = SessionLocal()
         set_context(trace_id=request.headers.get("X-Trace-Id") or secrets.token_hex(8),
                     path=request.path, method=request.method)
+        return None
 
     @app.teardown_request
     def close_db(_exc=None):
@@ -95,7 +113,7 @@ def create_app(config_override: dict | None = None) -> Flask:
     # --- CSRF protection ----------------------------------------------------
     @app.before_request
     def csrf_protection():
-        if request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
+        if is_static_request() or request.method in ("GET", "HEAD", "OPTIONS", "TRACE"):
             return None
         if app.config.get("TESTING"):
             return None
@@ -112,6 +130,8 @@ def create_app(config_override: dict | None = None) -> Flask:
     @app.before_request
     def csrf_token_cookie():
         """Make the current token available to templates on the first safe request."""
+        if is_static_request():
+            return None
         current = request.cookies.get("aegis_csrf")
         if current:
             g.csrf_token = current
@@ -167,12 +187,15 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     @app.before_request
     def rate_limit_hook():
-        if app.config.get("TESTING"):
+        if app.config.get("TESTING") or is_static_request():
             return None
-        if request.path.startswith("/api/v1/scans"):
+        # Only mutation/analysis requests consume the protected buckets. Turbo
+        # navigation, dashboard reads and scan-history refreshes are normal UI
+        # traffic and must never exhaust a scan or authentication allowance.
+        if request.path.startswith("/api/v1/scans") and request.method not in {"GET", "HEAD", "OPTIONS"}:
             scope = "scan"
             limit = settings.rate_limit_scan
-        elif request.path.startswith("/api/v1/auth"):
+        elif request.path.startswith("/api/v1/auth") and request.method not in {"GET", "HEAD", "OPTIONS"}:
             scope = "auth"
             limit = settings.rate_limit_auth
         elif request.path.startswith("/api/v1/admin"):

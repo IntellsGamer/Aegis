@@ -242,6 +242,19 @@ DEFAULT_RULES: list[dict] = [
      "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
      "explain": "A public-benefit claim is paired with a pressured request for money or sensitive credentials."},
 
+    {"code": "persian_legal_case_pressure", "name": "Persian legal-case pressure lure", "category": "manipulation",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "A purported case filed against the recipient is paired with a final-warning pressure cue."},
+    {"code": "persian_legal_attachment_lure", "name": "Persian legal attachment lure", "category": "fraud",
+     "impact": -28, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "A purported legal case directs the recipient to tracking or an attachment, a common delivery lure."},
+    {"code": "persian_familiar_transfer_lure", "name": "Persian familiar-person transfer lure", "category": "fraud",
+     "impact": -28, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "An alleged card-limit problem is used to ask the recipient to move money for another person."},
+    {"code": "persian_deferred_repayment_lure", "name": "Persian deferred-repayment pressure", "category": "manipulation",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "A money-transfer request is paired with a promise to repay later, a common impersonation pretext."},
+
     # --- Positive signals ---
     {"code": "brand_confirmed", "name": "Legitimate domain match", "category": "reputation",
      "impact": 10, "weight": 1.0, "severity": "safe", "enabled": True,

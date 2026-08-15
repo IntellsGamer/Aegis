@@ -3,13 +3,13 @@
 {% block content %}
 <section class="auth-page" aria-labelledby="auth-title">
   <div class="auth-intro">
-    <p class="auth-eyebrow">Start with evidence</p>
-    <h1 id="auth-title">Build a safer decision habit.</h1>
-    <p>Create a private AEGIS workspace for assessments you choose to retain, evidence-led casefiles, and security preferences you control.</p>
-    <div class="auth-principles" aria-label="Account benefits">
-      <div><strong>One assessment flow</strong><span>Check URLs, emails, messages, QR codes, images, and files consistently.</span></div>
-      <div><strong>Reviewable records</strong><span>Open a casefile whenever an assessment needs a closer look.</span></div>
-      <div><strong>Privacy by choice</strong><span>Private scan retention is optional; public reports are always reviewed.</span></div>
+    <p class="auth-eyebrow" data-i18n="auth.register_eyebrow">Start with evidence</p>
+    <h1 id="auth-title" data-i18n="auth.register_title">Build a safer decision habit.</h1>
+    <p data-i18n="auth.register_intro">Create a private AEGIS workspace for assessments you choose to retain, evidence-led casefiles, and security preferences you control.</p>
+    <div class="auth-principles" aria-label="Account benefits" data-i18n-aria-label="auth.register_benefits_label">
+      <div><strong data-i18n="auth.one_flow">One assessment flow</strong><span data-i18n="auth.one_flow_detail">Check URLs, emails, messages, QR codes, images, and files consistently.</span></div>
+      <div><strong data-i18n="auth.reviewable_records">Reviewable records</strong><span data-i18n="auth.reviewable_records_detail">Open a casefile whenever an assessment needs a closer look.</span></div>
+      <div><strong data-i18n="auth.privacy_by_choice">Privacy by choice</strong><span data-i18n="auth.privacy_by_choice_detail">Private scan retention is optional; public reports are always reviewed.</span></div>
     </div>
   </div>
 
@@ -17,31 +17,31 @@
     <div class="auth-card-header">
       <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="" class="auth-mark">
       <div>
-        <p class="auth-kicker">Create workspace</p>
-        <h2>Create your account</h2>
-        <p>It takes less than a minute to start assessing suspicious content.</p>
+        <p class="auth-kicker" data-i18n="auth.create_workspace">Create workspace</p>
+        <h2 data-i18n="auth.create_title">Create your account</h2>
+        <p data-i18n="auth.create_subtitle">It takes less than a minute to start assessing suspicious content.</p>
       </div>
     </div>
     <form id="register-form" class="auth-form" novalidate>
       <div class="auth-field">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Choose a username">
+        <label for="username" data-i18n="auth.username">Username</label>
+        <input type="text" id="username" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Choose a username" data-i18n-placeholder="auth.username_placeholder">
       </div>
       <div class="auth-field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
+        <label for="email" data-i18n="auth.email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com" data-i18n-placeholder="auth.email_placeholder">
       </div>
       <div class="auth-field">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Create a password">
-        <p class="auth-field-note">Use at least 8 characters, including upper and lower case letters and a number.</p>
+        <label for="password" data-i18n="auth.password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Create a password" data-i18n-placeholder="auth.password_create_placeholder">
+        <p class="auth-field-note" data-i18n="auth.password_note">Use at least 8 characters, including upper and lower case letters and a number.</p>
       </div>
       <div class="auth-field">
-        <label for="confirm">Confirm password</label>
-        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password" placeholder="Repeat your password">
+        <label for="confirm" data-i18n="auth.confirm_password">Confirm password</label>
+        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password" placeholder="Repeat your password" data-i18n-placeholder="auth.password_repeat_placeholder">
       </div>
-      <button type="submit" class="auth-primary-action" id="register-btn">Create account</button>
-      <p class="auth-switch">Already have an account? <a href="{{ url_for('pages.login') }}">Sign in</a></p>
+      <button type="submit" class="auth-primary-action" id="register-btn" data-i18n="auth.create_account">Create account</button>
+      <p class="auth-switch"><span data-i18n="auth.already_have_account">Already have an account?</span> <a href="{{ url_for('pages.login') }}" data-i18n="auth.sign_in">Sign in</a></p>
     </form>
   </div>
 </section>

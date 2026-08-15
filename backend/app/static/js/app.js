@@ -43,17 +43,28 @@
         setTimeout(() => el.remove(), 4000);
     }
 
-    function setTheme(theme) {
+    function themeStorageKey() {
+        return document.documentElement.dataset.themeStorageKey || 'aegis-theme';
+    }
+
+    function setTheme(theme, { persist = true } = {}) {
         const resolvedTheme = theme === 'dark' ? 'dark' : 'light';
         document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
         document.documentElement.dataset.themePreference = resolvedTheme;
-        try { localStorage.setItem('aegis-theme', resolvedTheme); } catch (e) { }
+        try { localStorage.setItem(themeStorageKey(), resolvedTheme); } catch (e) { }
+        if (persist && document.body.dataset.authenticated === 'true') {
+            api('PATCH', '/api/v1/users/me', { theme: resolvedTheme }).catch(() => {
+                // The browser-local value still prevents a theme flip on refresh.
+            });
+        }
     }
 
     function getTheme() {
         try {
+            const savedTheme = localStorage.getItem(themeStorageKey());
+            if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
             const serverTheme = document.documentElement.dataset.themePreference;
-            return serverTheme || localStorage.getItem('aegis-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            return serverTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         } catch (e) { return document.documentElement.classList.contains('dark') ? 'dark' : 'light'; }
     }
 

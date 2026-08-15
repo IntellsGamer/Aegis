@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ locale }}" dir="{{ 'rtl' if locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="{{ 'dark' if user and user.theme == 'dark' else '' }}" data-theme-preference="{{ user.theme if user else '' }}" data-i18n-ready="{{ 'false' if locale == 'fa' else 'true' }}">
+<html lang="{{ locale }}" dir="{{ 'rtl' if locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="{{ 'dark' if user and user.theme == 'dark' else '' }}" data-theme-preference="{{ user.theme if user else '' }}" data-theme-storage-key="{{ 'aegis-theme-' ~ user.id if user else 'aegis-theme' }}" data-i18n-ready="{{ 'false' if locale == 'fa' else 'true' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,10 +15,13 @@
   <script>
     (function () {
       try {
-        const serverTheme = document.documentElement.dataset.themePreference;
-        const savedTheme = localStorage.getItem('aegis-theme');
+        const root = document.documentElement;
+        const serverTheme = root.dataset.themePreference;
+        const storageKey = root.dataset.themeStorageKey || 'aegis-theme';
+        const savedTheme = localStorage.getItem(storageKey);
         const systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.classList.toggle('dark', (serverTheme || savedTheme || systemTheme) === 'dark');
+        const effectiveTheme = ['dark', 'light'].includes(savedTheme) ? savedTheme : (serverTheme || systemTheme);
+        root.classList.toggle('dark', effectiveTheme === 'dark');
       } catch (_) { /* Preserve server-rendered theme if storage is unavailable. */ }
     })();
   </script>

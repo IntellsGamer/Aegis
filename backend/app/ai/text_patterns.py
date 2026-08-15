@@ -378,7 +378,34 @@ _PERSIAN_DELIVERY_RE = re.compile(r"(?:مرسوله|بسته(?:\s+شما)?|کد\
 _PERSIAN_WELFARE_RE = re.compile(r"(?:یارانه|سهام\s+عدالت|کالابرگ)")
 _PERSIAN_PAYMENT_RE = re.compile(r"(?:کارت\s+به\s+کارت|شماره\s+کارت|کارمزد|هزینه(?:\s+فعالسازی|\s+فعال‌سازی)?|پرداخت|واریز\s+وجه)")
 _PERSIAN_CREDENTIAL_RE = re.compile(r"(?:رمز\s*(?:عبور|ورود|یک\s*بار\s*مصرف|تایید|تأیید)|کد\s*(?:تایید|تأیید|پویا|امنیتی|پیامکی)|کارت\s+ملی)")
-_PERSIAN_PRESSURE_RE = re.compile(r"(?:فوری|بلافاصله|همین\s+حالا|اخطار\s+نهایی|تا\s*24\s*ساعت|تا\s*۲۴\s*ساعت)")
+_PERSIAN_PRESSURE_RE = re.compile(r"(?:فوری|بلافاصله|همین\s+حالا|اخطار\s+نهایی|آخرین\s+هشدار|هشدار\s+نهایی|تا\s*24\s*ساعت|تا\s*۲۴\s*ساعت)")
+# Legal-themed scam texts frequently omit a named authority but combine a case
+# against the recipient with a fabricated attachment or tracking instruction.
+# Requiring all of these cues avoids treating ordinary legal discussion as fraud.
+_PERSIAN_LEGAL_CASE_RE = re.compile(
+    r"(?:پرونده(?:\s+الکترونیک(?:ی)?)?.{0,42}?(?:بر\s+)?علیه\s+شما.{0,36}?ثبت\s+شد|"
+    r"(?:بر\s+)?علیه\s+شما.{0,24}?پرونده(?:\s+الکترونیک(?:ی)?)?.{0,30}?ثبت\s+شد)"
+)
+_PERSIAN_LEGAL_WARNING_RE = re.compile(r"(?:آخرین\s+هشدار|هشدار\s+نهایی|ابلاغ(?:یه)?\s+فوری)")
+_PERSIAN_ATTACHMENT_TRACKING_RE = re.compile(
+    r"(?:رهگیری(?:\s+\S+){0,3}\s+(?:در|به)\s+پیوست|"
+    r"پیوست(?:\s+را)?\s*(?:باز|مشاهده|بررسی)\s*(?:کن(?:ید)?|نمایید)?|فایل\s+پیوست)"
+)
+# A common account-takeover/social-engineering pretext in Persian is a familiar
+# person whose card limit is allegedly full, asking the recipient to transfer
+# funds to another party and promising repayment later.
+_PERSIAN_CARD_LIMIT_RE = re.compile(
+    r"(?:کارت(?:م|ت|ش)?\s+سقف(?:ش)?\s+پر\s+(?:شده|شد|ه)|"
+    r"سقف(?:\s+کارت(?:م|ت|ش)?)?\s+پر\s+(?:شده|شد|ه))"
+)
+_PERSIAN_TRANSFER_DELEGATION_RE = re.compile(
+    r"(?:برا|برای)\s+(?:\S+\s+){0,3}(?:جابه\s*جا|کارت\s*به\s*کارت|انتقال|واریز)\s*"
+    r"(?:کن(?:ی|ید)?|بدی|بدهید|میدی|می\s*دی)"
+)
+_PERSIAN_DEFERRED_REPAYMENT_RE = re.compile(
+    r"(?:\d{1,2})\s+به\s+بعد\s+(?:بر(?:می)?گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)|"
+    r"(?:بعداً|بعدا)\s+(?:بر(?:می)?گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)"
+)
 
 
 def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
@@ -398,11 +425,17 @@ def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
     has_payment = bool(_PERSIAN_PAYMENT_RE.search(text))
     has_credential = bool(_PERSIAN_CREDENTIAL_RE.search(text))
     has_pressure = bool(_PERSIAN_PRESSURE_RE.search(text))
+    has_legal_case = bool(_PERSIAN_LEGAL_CASE_RE.search(text))
+    has_legal_warning = bool(_PERSIAN_LEGAL_WARNING_RE.search(text))
+    has_attachment_tracking = bool(_PERSIAN_ATTACHMENT_TRACKING_RE.search(text))
+    has_card_limit = bool(_PERSIAN_CARD_LIMIT_RE.search(text))
+    has_transfer_delegation = bool(_PERSIAN_TRANSFER_DELEGATION_RE.search(text))
+    has_deferred_repayment = bool(_PERSIAN_DEFERRED_REPAYMENT_RE.search(text))
     motifs: list[dict] = []
 
-    def add(code: str, title: str, description: str, evidence: list[str]) -> None:
+    def add(code: str, title: str, description: str, evidence: list[str], category: str = "fraud") -> None:
         motifs.append({
-            "category": "fraud",
+            "category": category,
             "code": code,
             "title": title,
             "description": description,
@@ -433,6 +466,36 @@ def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
             "Persian benefit-claim lure",
             "A public-benefit claim is paired with a pressured request for money or credentials.",
             ["ادعای مزایای عمومی", "درخواست اقدام", "درخواست پرداخت یا اطلاعات حساس"],
+        )
+    if has_legal_case and has_legal_warning:
+        add(
+            "persian_legal_case_pressure",
+            "Persian legal-case pressure lure",
+            "A purported case filed against the recipient is paired with a final-warning pressure cue.",
+            ["پروندهٔ ادعایی علیه مخاطب", "هشدار نهایی یا فوری"],
+            category="manipulation",
+        )
+    if has_legal_case and has_attachment_tracking:
+        add(
+            "persian_legal_attachment_lure",
+            "Persian legal attachment lure",
+            "A purported legal case directs the recipient to tracking or an attachment, a common delivery lure.",
+            ["پروندهٔ ادعایی علیه مخاطب", "رهگیری یا پیوست"],
+        )
+    if has_card_limit and has_transfer_delegation:
+        add(
+            "persian_familiar_transfer_lure",
+            "Persian familiar-person transfer lure",
+            "An alleged card-limit problem is used to ask the recipient to move money for another person.",
+            ["بهانهٔ سقف کارت", "درخواست جابه‌جایی پول برای شخص دیگر"],
+        )
+    if has_transfer_delegation and has_deferred_repayment:
+        add(
+            "persian_deferred_repayment_lure",
+            "Persian deferred-repayment pressure",
+            "A money-transfer request is paired with a promise to repay later, a common impersonation pretext.",
+            ["درخواست جابه‌جایی پول", "وعدهٔ بازپرداخت بعدی"],
+            category="manipulation",
         )
     return motifs
 
@@ -800,6 +863,10 @@ def _severity_for_code(code: str) -> str:
         "persian_authority_lure": "critical",
         "persian_delivery_fee_lure": "high",
         "persian_benefit_lure": "high",
+        "persian_legal_case_pressure": "high",
+        "persian_legal_attachment_lure": "critical",
+        "persian_familiar_transfer_lure": "critical",
+        "persian_deferred_repayment_lure": "high",
         "romance_scam": "high",
         "verification_request": "high",
         "urgency_words": "high",

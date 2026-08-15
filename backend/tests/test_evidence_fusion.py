@@ -153,3 +153,36 @@ def test_persian_and_arabic_glyph_variants_normalize_before_matching():
     codes = {item["code"] for item in raw["findings"]}
     assert {"urgency_words", "fear_tactics", "requests_otp", "verification_request"} <= codes
     assert result.risk_level in {"high", "critical"}
+
+
+def test_persian_legal_attachment_lure_reaches_high_risk():
+    result, raw = _assess(
+        "آخرین هشدار\nپرونده الکترونیکی بر علیه شما ثبت شد.\nرهگیری در پیوست"
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert {"persian_legal_case_pressure", "persian_legal_attachment_lure"} <= codes
+    assert result.risk_level in {"high", "critical"}
+    assert result.risk_probability >= 0.65
+
+
+def test_persian_familiar_transfer_and_deferred_repayment_lure_reaches_high_risk():
+    result, raw = _assess(
+        "سلام چطوری خوبی\n\nشرمنده کارتم سقفش پر شده میتونی 5 یا 10 برا کسی جابه جا کنی 12 به بعد برگردونم؟"
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert {"persian_familiar_transfer_lure", "persian_deferred_repayment_lure"} <= codes
+    assert result.risk_level in {"high", "critical"}
+    assert result.risk_probability >= 0.65
+
+
+def test_benign_persian_legal_guidance_does_not_trigger_attachment_lure():
+    result, raw = _assess(
+        "راهنمای عمومی پیگیری پرونده الکترونیکی: برای مشاهده وضعیت، فقط از درگاه رسمی قوه قضائیه استفاده کنید و پیوست‌های ناشناس را باز نکنید."
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert "persian_legal_case_pressure" not in codes
+    assert "persian_legal_attachment_lure" not in codes
+    assert result.risk_level == "low"
