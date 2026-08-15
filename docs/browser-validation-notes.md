@@ -102,3 +102,45 @@ The Persian dashboard was rechecked with Persian messages, English email content
 ## Dark sidebar icon contrast — 2026-08-15
 
 The dark Persian dashboard was rechecked after converting sidebar SVG backgrounds to `currentColor` CSS masks. The live sidebar visibly renders every navigation icon in the appropriate light foreground. Computed-style inspection confirmed a white active icon (`rgb(255, 255, 255)`) and slate inactive icons (`rgb(148, 163, 184)`), with a usable mask on all six navigation entries.
+
+## Modern UI rewrite — primary journeys, 2026-08-15
+
+The rewritten Persian dashboard and scanner were inspected live in dark mode. The dashboard now presents a clear trust-status hero, concise metric cards, calmer scan rows, and a visually separate evidence-monitoring workspace. The scanner now uses an assessment-focused hero, numbered mode selection, an input surface, and a restrained explanation rail. The new layouts preserve the RTL sidebar hierarchy and keep the UI fully code-driven, without generated image assets.
+
+## UI rewrite theme matrix — English dark, 2026-08-15
+
+The rewritten scanner was inspected in English dark mode. The task-first hierarchy, slim monochrome sidebar, compact top utility bar, muted segmented mode selector, and single high-contrast action all rendered correctly. No LTR ordering or dark-mode contrast defects were visible in the primary scanner path.
+
+## UI rewrite theme matrix — English light, 2026-08-15
+
+The rewritten scanner and dashboard were inspected in English light mode. The light substrate maintains readable charcoal text, distinct but non-intrusive hairline separators, and a clear black primary action. The dashboard metric strip, scan rows, evidence charts, and sidebar remain legible without washed-out panels or excessive shadows. English source-content rows retain stable LTR score and verdict alignment.
+
+## UI rewrite theme matrix — Persian light, 2026-08-15
+
+The completed Persian light dashboard rendered with a correct right-side sidebar, icon-before-label order, right-aligned dashboard hierarchy, readable Vazirmatn typography, and stable mixed-direction scan rows. The neutral light surfaces retain sufficient separation through hairlines and controlled whitespace; score/date islands remain readable beside Persian content and English URLs.
+
+## UI rewrite theme matrix — Persian dark, 2026-08-15
+
+The Persian dark dashboard and scanner were inspected after the design reset. The scanner’s new native headline, right-to-left content hierarchy, compact segmented mode selection, explanatory rail, and primary action all remained readable and correctly ordered. The dark substrate uses muted panels and hairline separation without the former bright cyan card treatment. The four primary combinations—English light/dark and Persian light/dark—have now been checked on both dashboard and scanner.
+
+## Secondary-page UI audit — Persian dark, 2026-08-15
+
+The threat map and assessment casefile were checked with the new shared surface system. The map’s controls, range selector, legend, empty state, and summary metrics retain clear contrast against the neutral dark substrate. The casefile now reads as a dense evidence brief rather than a stack of glossy cards, with compact actions, strong score emphasis, and thin-line evidence sections.
+
+One controlled localization gap remains visible in the Persian casefile: several deterministic engine observation titles and descriptions (for example, `Requests verification code`) are still English. They are generated AEGIS labels rather than user-submitted evidence, and should be localized in the casefile renderer before the localization pass is considered complete.
+
+## Focused scanner dark-mode repair, 2026-08-15
+
+The Persian dark scanner was checked in URL and message modes. URL and message-entry surfaces correctly use dark neutral backgrounds. The remaining visually disruptive light element is the intentionally white `Analyze` action introduced by the previous black/white product treatment. It is being replaced with a subdued AEGIS cyan action so the scanner no longer contains a stark white control in dark mode.
+
+## Scanner dark-mode repair verified, 2026-08-15
+
+The dark scanner was rechecked in URL and message modes after replacing the white Analyze action. The URL input and message textarea remain dark neutral surfaces; the action is now a contained AEGIS-cyan control with readable light-cyan text. No stark white data-entry or action surface remains in these scanner modes.
+
+## Post-scan dark-mode defect identified, 2026-08-15
+
+A guided email assessment was run through the normal scanner workflow in Persian dark mode. The result surface itself is mostly dark, but several post-scan action controls remain stark white: copy evidence, open casefile, download PDF, and feedback-outcome controls. These are not input surfaces; they are result-action styles bypassing the newer scanner-run rule. The action bar and feedback controls require a dark-mode component override.
+
+## Post-scan dark-mode repair verified, 2026-08-15
+
+The completed Persian email assessment was rechecked after refreshing the live result stylesheet. Copy evidence, open casefile, submit for review, download PDF, new scan, and all three feedback choices now use dark neutral, cyan, green, or red states as appropriate. The post-scan action bar no longer exposes white light-theme controls.

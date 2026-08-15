@@ -3,10 +3,10 @@
   'use strict';
   const { api, esc, badgeFor, fmtTime, t } = window.Aegis;
   const statCards = [
-    { key: 'scans', label: () => t('dashboard.scans', 'Stored scans') },
-    { key: 'threats', label: () => t('dashboard.threats', 'Threats detected') },
-    { key: 'avg_score', label: () => t('dashboard.average_score', 'Average trust score') },
-    { key: 'needs_attention', label: () => t('dashboard.needs_attention', 'Needs attention') },
+    { key: 'scans', label: () => t('dashboard.scans', 'Checks saved'), index: '01' },
+    { key: 'threats', label: () => t('dashboard.threats', 'High-risk findings'), index: '02' },
+    { key: 'avg_score', label: () => t('dashboard.average_score', 'Average trust score'), index: '03' },
+    { key: 'needs_attention', label: () => t('dashboard.needs_attention', 'Needs review'), index: '04' },
   ];
   const scanTypeLabel = (type) => t(`dashboard.scan_type_${type}`, type);
 
@@ -16,11 +16,11 @@
     grid.innerHTML = statCards.map((card) => {
       const value = stats[card.key] ?? '—';
       const note = card.key === 'threats'
-        ? `<span class="rounded-full px-2 py-0.5 text-xs font-semibold text-white ${value > 0 ? 'bg-red-500' : 'bg-emerald-500'}">${value > 0 ? 'review findings' : 'none detected'}</span>`
+        ? `<span class="metric-note ${value > 0 ? 'metric-note-risk' : 'metric-note-safe'}">${value > 0 ? t('dashboard.review_findings', 'Review findings') : t('dashboard.none_detected', 'None detected')}</span>`
         : card.key === 'needs_attention' && value > 0
-          ? '<span class="text-xs text-amber-600 dark:text-amber-400">Review suspicious or threat scans</span>'
-          : '';
-      return `<div class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"><p class="mb-1 text-xs font-medium uppercase text-slate-500">${card.label()}</p><p class="font-mono text-2xl font-bold">${esc(value)}</p>${note}</div>`;
+          ? `<span class="metric-note metric-note-review">${t('dashboard.review_risk_scans', 'Review suspicious or high-risk checks')}</span>`
+          : `<span class="metric-note">${t('dashboard.current_snapshot', 'Current snapshot')}</span>`;
+      return `<div class="metric-card metric-${card.key}"><div class="metric-card-top"><p>${card.label()}</p><span>${card.index}</span></div><p class="metric-value">${esc(value)}</p>${note}</div>`;
     }).join('');
   }
 
@@ -37,13 +37,13 @@
       box.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 p-5 text-center dark:border-slate-700"><p class="font-medium">No stored scans yet</p><p class="mt-1 text-sm text-slate-500">Run a scan and choose to retain it when you need a history or report.</p><a class="mt-3 inline-flex text-sm font-semibold text-aegis-600 hover:underline dark:text-aegis-400" href="/scan">Start a scan →</a></div>';
       return;
     }
-    box.innerHTML = scans.slice(0, 5).map((scan) => `<a href="/report/${scan.id}" class="scan-card flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-aegis-500/50 dark:border-slate-800 dark:bg-slate-900/50"><div class="min-w-0 flex-1"><p class="scan-card-target truncate text-sm font-medium" dir="auto"><bdi>${esc(scan.target)}</bdi></p><div class="scan-card-meta mt-1 text-xs text-slate-500"><span class="scan-card-type">${esc(scanTypeLabel(scan.scan_type))}</span><span aria-hidden="true">·</span><time class="scan-card-time" dir="ltr">${esc(fmtTime(scan.created_at))}</time></div></div><div class="scan-card-outcome shrink-0" dir="ltr"><data class="scan-card-score font-mono text-sm" value="${scan.trust_score ?? ''}">${scanScore(scan.trust_score)}</data>${badgeFor(scan.verdict)}</div></a>`).join('');
+    box.innerHTML = scans.slice(0, 5).map((scan) => `<a href="/report/${scan.id}" class="dashboard-scan-row scan-card"><span class="scan-risk-marker scan-risk-${esc(scan.verdict || 'unverified')}" aria-hidden="true"></span><div class="min-w-0 flex-1"><p class="scan-card-target" dir="auto"><bdi>${esc(scan.target)}</bdi></p><div class="scan-card-meta"><span class="scan-card-type">${esc(scanTypeLabel(scan.scan_type))}</span><span aria-hidden="true">·</span><time class="scan-card-time" dir="ltr">${esc(fmtTime(scan.created_at))}</time></div></div><div class="scan-card-outcome" dir="ltr"><data class="scan-card-score" value="${scan.trust_score ?? ''}">${scanScore(scan.trust_score)}</data>${badgeFor(scan.verdict)}</div></a>`).join('');
   }
 
   function renderThreats(threats) {
     const box = document.getElementById('recent-threats');
     if (!box) return;
-    box.innerHTML = threats.length ? threats.slice(0, 5).map((threat) => `<div class="flex items-center justify-between gap-2 py-1.5"><span class="truncate text-slate-600 dark:text-slate-300">${esc(threat.domain || threat.target || 'Unknown')}</span><span class="shrink-0 text-xs text-slate-400">${esc(threat.vector || '')}</span></div>`).join('') : '<p class="text-sm text-slate-500">No stored scans need attention.</p>';
+    box.innerHTML = threats.length ? threats.slice(0, 5).map((threat) => `<div class="dashboard-threat-row"><span class="threat-dot" aria-hidden="true"></span><span class="truncate" dir="auto"><bdi>${esc(threat.domain || threat.target || t('dashboard.unknown', 'Unknown'))}</bdi></span><span class="threat-vector">${esc(threat.vector || '')}</span></div>`).join('') : `<p class="dashboard-empty-copy">${t('dashboard.no_attention', 'No saved checks need attention right now.')}</p>`;
   }
 
   function setFirstRun(active) {
@@ -70,6 +70,6 @@
       const [stats, scanResult] = await Promise.all([api('GET', '/api/v1/analytics/summary'), api('GET', '/api/v1/scans?page=1&page_size=10')]);
       const scans = scanResult.items || [];
       fillStats(stats); renderScans(scans); renderThreats(stats.recent_threats || []); setFirstRun(scans.length === 0); drawCharts(scans);
-    } catch (error) { window.Aegis.toast(`Failed to load dashboard: ${error.message}`, 'error'); }
+    } catch (error) { window.Aegis.toast(t('dashboard.load_failed', 'Could not load dashboard: ') + error.message, 'error'); }
   });
 })();

@@ -1,68 +1,51 @@
 {% extends 'base.html' %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<section class="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-aegis-900 via-slate-900 to-slate-950 text-white">
-  <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 20%, #22d3ee 0, transparent 40%), radial-gradient(circle at 80% 60%, #06b6d4 0, transparent 45%);"></div>
-  <div class="relative px-8 py-16 lg:py-24 max-w-3xl">
-    <p class="inline-flex items-center gap-2 text-sm font-mono text-aegis-300 border border-aegis-500/30 rounded-full px-3 py-1 mb-6">
-      <span class="w-2 h-2 rounded-full bg-aegis-400 animate-pulse"></span> Digital Trust Shield
-    </p>
-    <h1 class="text-4xl lg:text-6xl font-bold leading-tight mb-4">
-      Know who to trust.<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-aegis-400 to-aegis-200">Before they know you.</span>
-    </h1>
-    <p class="text-lg text-slate-300 mb-8 max-w-xl">
-      AEGIS assesses URLs, emails, messages, images, QR codes and files through deterministic evidence fusion — preserving observable reasons, coverage limits and next actions instead of returning a black-box label.
-    </p>
-    <div class="flex flex-wrap gap-3">
-      {% if user %}
-      <a href="{{ url_for('pages.scan') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Launch Scanner</a>
-      <a href="{{ url_for('pages.dashboard') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Go to Dashboard</a>
-      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="px-6 py-3 rounded-xl border border-aegis-500/70 hover:bg-aegis-950/50 text-aegis-200 transition">View guided demo</a>
-      {% else %}
-      <a href="{{ url_for('pages.register') }}" class="px-6 py-3 rounded-xl bg-aegis-500 hover:bg-aegis-400 text-slate-950 font-semibold transition">Get Started Free</a>
-      <a href="{{ url_for('pages.login') }}" class="px-6 py-3 rounded-xl border border-slate-600 hover:border-aegis-400 text-slate-200 transition">Sign In</a>
-      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="px-6 py-3 rounded-xl border border-aegis-500/70 hover:bg-aegis-950/50 text-aegis-200 transition">View guided demo</a>
-      {% endif %}
+<div class="public-home">
+  <section class="public-hero">
+    <div class="public-hero-main">
+      <p class="public-eyebrow">Evidence-first digital trust</p>
+      <h1>Check it before you act.</h1>
+      <p>AEGIS assesses URLs, emails, messages, images, QR codes, and files through deterministic evidence fusion—preserving observable reasons, collection limits, and the next safe action.</p>
+      <div class="public-hero-actions">
+        {% if user %}
+        <a href="{{ url_for('pages.scan') }}" class="public-primary-action">Open scanner</a>
+        <a href="{{ url_for('pages.dashboard') }}" class="public-secondary-action">View workspace</a>
+        {% else %}
+        <a href="{{ url_for('pages.scan') }}" class="public-primary-action">Check something now</a>
+        <a href="{{ url_for('pages.register') }}" class="public-secondary-action">Create an account</a>
+        {% endif %}
+      </div>
+      <a href="{{ url_for('pages.scan') }}?demo=credential-lure" class="public-demo-link">View a guided assessment →</a>
     </div>
-  </div>
-</section>
+    <aside class="public-hero-proof">
+      <p>HOW AEGIS WORKS</p>
+      <div><span>01</span><strong>Collect</strong><small>Visible source, link, and content signals</small></div>
+      <div><span>02</span><strong>Correlate</strong><small>Independent evidence matters more than repetition</small></div>
+      <div><span>03</span><strong>Explain</strong><small>Reasons, coverage, and a safe next step</small></div>
+    </aside>
+  </section>
 
-<section class="mt-10">
-  <h2 class="text-2xl font-bold mb-6">Six input paths, one evidence model</h2>
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% set scanners = [
-      ('URL', 'Reputation, WHOIS, DNS, domain age, lookalike detection, typo-squatting and URL structure analysis.'),
-      ('Email', 'Header forensics, SPF/DKIM/DMARC, phishing patterns and attachment checks.'),
-      ('Message', 'Text-pattern detection for phishing, urgency, greed and impersonation language.'),
-      ('Image', 'OCR text extraction and visual-phishing pattern recognition.'),
-      ('QR Code', 'Decode and resolve the destination, then scan the URL behind it.'),
-      ('File', 'Document metadata, macros and embedded URL extraction (pypdf-based).'),
-    ] %}
-    {% for name, desc in scanners %}
-    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-aegis-500/50 transition">
-      <div class="text-2xl mb-2">{{ '🔗' if loop.index == 1 else '📧' if loop.index == 2 else '💬' if loop.index == 3 else '🖼️' if loop.index == 4 else '📱' if loop.index == 5 else '📄' }}</div>
-      <h3 class="font-semibold mb-1">{{ name }} Scanner</h3>
-      <p class="text-sm text-slate-500 dark:text-slate-400">{{ desc }}</p>
+  <section class="public-capabilities" aria-labelledby="capability-title">
+    <div class="public-section-heading"><p>ONE WORKFLOW · SIX INPUTS</p><h2 id="capability-title">Bring the suspicious thing you received.</h2><span>AEGIS keeps the assessment method consistent, whatever the format.</span></div>
+    <div class="capability-list">
+      {% set scanners = [
+        ('01', 'URL', 'Reputation, DNS, lookalike detection, typo-squatting, and safe structure analysis.'),
+        ('02', 'Email', 'Header forensics, authentication, phishing patterns, and attachment checks.'),
+        ('03', 'Message', 'Phishing, urgency, impersonation, and sensitive-request language.'),
+        ('04', 'Image', 'OCR extraction and visual phishing context.'),
+        ('05', 'QR Code', 'Decode the destination, then assess the link behind it.'),
+        ('06', 'File', 'Static document inspection, metadata, and embedded-link extraction.'),
+      ] %}
+      {% for number, name, desc in scanners %}
+      <article class="capability-item"><span>{{ number }}</span><div><h3>{{ name }}</h3><p>{{ desc }}</p></div></article>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
-</section>
+  </section>
 
-<section class="mt-10 grid lg:grid-cols-2 gap-8 items-center">
-  <div>
-    <h2 class="text-2xl font-bold mb-4">An explainable assessment, not a black box</h2>
-    <p class="text-slate-600 dark:text-slate-300 mb-4">
-      AEGIS fuses evidence across transport, sender, content, reputation and page-behaviour families. It displays the observed reasons, their contribution, the collection limits, and the next safe action—without claiming that a score is proof.
-    </p>
-    <ul class="space-y-2 text-sm">
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Clear states: completed · limited · safety boundary applied</li>
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Per-signal contribution, source and evidence confidence</li>
-      <li class="flex items-center gap-2"><span class="text-aegis-500">✓</span> Reviewable casefile and governed community intelligence</li>
-    </ul>
-  </div>
-  <div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">What every assessment preserves</p>
-    <div class="mt-4 space-y-3 text-sm"><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Evidence chain</p><p class="mt-1 text-xs text-slate-500">Each observation keeps its source, reliability and evidence-family contribution.</p></div><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Assessment boundary</p><p class="mt-1 text-xs text-slate-500">Limited and blocked paths are disclosed rather than silently treated as normal results.</p></div><div class="rounded-xl bg-slate-50 p-3 dark:bg-slate-950"><p class="font-semibold">Safe next step</p><p class="mt-1 text-xs text-slate-500">Containment guidance, a portable casefile and governed reporting follow the assessment.</p></div></div>
-  </div>
-</section>
+  <section class="public-evidence-band">
+    <div><p class="public-eyebrow">No black box</p><h2>An assessment you can inspect.</h2><p>AEGIS fuses transport, sender, content, reputation, and page-behaviour observations. It shows what it saw, what it could not verify, and what to do next—without pretending a score is proof.</p></div>
+    <div class="public-evidence-list"><div><span>Evidence chain</span><p>Each observation keeps its source, reliability, and contribution.</p></div><div><span>Assessment boundary</span><p>Limited and blocked paths are made explicit, not hidden.</p></div><div><span>Safe next step</span><p>Casefiles and governed reporting follow the assessment.</p></div></div>
+  </section>
+</div>
 {% endblock %}

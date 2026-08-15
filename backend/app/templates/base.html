@@ -19,11 +19,11 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen antialiased transition-colors"
       data-page="{{ active }}" data-locale="{{ locale }}" data-authenticated="{{ 'true' if user else 'false' }}">
-  <div class="flex min-h-screen">
+  <div class="app-shell flex min-h-screen">
     {% if user %}
     <!-- Sidebar -->
     <aside id="sidebar"
-      class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transform transition-transform duration-200
+      class="app-sidebar fixed inset-y-0 left-0 z-40 w-64 -translate-x-full lg:translate-x-0 transform transition-transform duration-200
              bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col"
       aria-label="Main navigation">
       <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-200 dark:border-slate-800">
@@ -32,7 +32,7 @@
           <span class="text-xl font-bold tracking-wide text-slate-900 dark:text-white">AEGIS</span>
         </a>
       </div>
-      <nav class="flex-1 py-4 px-3 space-y-1 text-sm">
+      <nav class="app-nav flex-1 py-4 px-3 space-y-1 text-sm">
         {% set items = [
           ('dashboard', 'pages.dashboard', 'Dashboard', 'nav.dashboard'),
           ('scan', 'pages.scan', 'Scan Analyzer', 'nav.scan'),
@@ -53,7 +53,7 @@
         </a>
         {% endfor %}
       </nav>
-      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+      <div class="sidebar-account p-4 border-t border-slate-200 dark:border-slate-800">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-full bg-aegis-600 dark:bg-aegis-700 flex items-center justify-center text-white font-bold">
             {{ (user.username or 'U')[0]|upper }}
@@ -72,9 +72,9 @@
     {% endif %}
 
     <!-- Main -->
-    <div class="flex-1 flex flex-col {% if user %}lg:ml-64{% endif %} min-w-0">
+    <div class="app-main flex-1 flex flex-col {% if user %}lg:ml-64{% endif %} min-w-0">
       {% if user %}
-      <header class="sticky top-0 z-20 h-16 flex items-center gap-4 px-4 lg:px-8 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur">
+      <header class="app-header sticky top-0 z-20 h-16 flex items-center gap-4 px-4 lg:px-8 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur">
         <button id="sidebar-toggle" class="lg:hidden text-slate-500" aria-label="Open menu">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
@@ -106,13 +106,13 @@
       </header>
       {% endif %}
       {% if not user %}
-      <header class="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+      <header class="public-header flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
         <a href="{{ url_for('pages.home') }}" class="public-brand flex items-center gap-2 text-sm font-bold"><img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="h-7 w-7">AEGIS</a>
         <div class="header-language-control flex items-center gap-2"><label for="language-select" class="text-xs font-medium text-slate-500" data-i18n="header.language">Language</label><select id="language-select" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium text-slate-700 outline-none transition focus:border-aegis-500 focus:ring-2 focus:ring-aegis-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Language" data-i18n-aria-label="header.language"><option value="en" {% if locale == 'en' %}selected{% endif %}>English</option><option value="fa" {% if locale == 'fa' %}selected{% endif %}>فارسی</option><option value="ar" {% if locale == 'ar' %}selected{% endif %}>العربية</option></select></div>
       </header>
       {% endif %}
 
-      <main class="flex-1 px-4 lg:px-8 py-6 lg:py-8" data-i18n-auto>
+      <main class="app-content flex-1 px-4 lg:px-8 py-6 lg:py-8" data-i18n-auto>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -125,7 +125,7 @@
         {% block content %}{% endblock %}
       </main>
 
-      <footer class="border-t border-slate-200 dark:border-slate-800 px-6 py-4 text-xs text-slate-400">
+      <footer class="app-footer border-t border-slate-200 dark:border-slate-800 px-6 py-4 text-xs text-slate-400">
         <div class="flex items-center justify-between flex-wrap gap-2">
           <span><span data-i18n="footer.product">AEGIS Digital Trust &amp; Scam Analysis Platform</span> · v{{ app_version }}</span>
           <span class="flex items-center gap-2">

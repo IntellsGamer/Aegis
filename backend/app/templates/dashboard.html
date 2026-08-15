@@ -1,58 +1,72 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-  <div>
-    <h1 class="text-2xl font-bold">Dashboard</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400">Welcome back, {{ user.username }}. Here's your security posture.</p>
-  </div>
-  <a href="{{ url_for('pages.scan') }}" class="px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition">+ New Scan</a>
-</div>
-
-<section id="first-run" class="mb-6 hidden overflow-hidden rounded-2xl border border-aegis-200 bg-gradient-to-r from-aegis-50 to-white p-6 dark:border-aegis-900 dark:from-aegis-950/40 dark:to-slate-900">
-  <p class="text-xs font-semibold uppercase tracking-[0.18em] text-aegis-700 dark:text-aegis-300">Start with evidence</p>
-  <h2 class="mt-1 text-xl font-bold">Analyze the message or link that made you pause.</h2>
-  <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">AEGIS will show the evidence it collected, clearly state coverage limitations, and suggest the next safe action. It does not treat a lack of evidence as proof that something is safe.</p>
-  <div class="mt-4 flex flex-wrap gap-3"><a href="{{ url_for('pages.scan') }}" class="rounded-lg bg-aegis-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-aegis-500">Analyze a link or message</a><a href="{{ url_for('pages.learn') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold transition hover:border-aegis-500 dark:border-slate-700">Learn common warning signs</a></div>
-</section>
-
-<div id="stats-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-  <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
-  <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
-  <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
-  <div class="stat-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse h-24"></div>
-</div>
-
-<div class="grid lg:grid-cols-3 gap-6">
-  <div class="lg:col-span-2 space-y-6">
-    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold">Recent Scans</h2>
-        <a href="{{ url_for('pages.scan') }}" class="text-sm text-aegis-600 dark:text-aegis-400 hover:underline">View all</a>
-      </div>
-      <div id="recent-scans" class="space-y-3">
-        <div class="animate-pulse h-12 rounded-lg bg-slate-100 dark:bg-slate-800"></div>
-        <div class="animate-pulse h-12 rounded-lg bg-slate-100 dark:bg-slate-800"></div>
-        <div class="animate-pulse h-12 rounded-lg bg-slate-100 dark:bg-slate-800"></div>
+<div class="dashboard-page">
+  <section class="dashboard-hero">
+    <div class="dashboard-hero-copy">
+      <p class="page-eyebrow" data-i18n="dashboard.eyebrow">Digital trust workspace</p>
+      <h1 data-i18n="dashboard.title">Know what deserves your attention.</h1>
+      <p class="dashboard-hero-description" data-i18n="dashboard.description">Review your recent assessments, understand what changed, and investigate suspicious content before it causes harm.</p>
+      <div class="dashboard-hero-actions">
+        <a href="{{ url_for('pages.scan') }}" class="dashboard-primary-action"><span aria-hidden="true">+</span><span data-i18n="dashboard.primary_cta">Check a link or message</span></a>
+        <a href="{{ url_for('pages.learn') }}" class="dashboard-secondary-action" data-i18n="dashboard.learn_cta">Learn the warning signs</a>
       </div>
     </div>
-    <div id="activity-card" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <h2 class="font-semibold mb-4">Scan Activity (14 days)</h2>
-      <div id="activity-chart" class="h-56"><canvas id="activity-canvas"></canvas></div>
+    <aside class="dashboard-hero-status" aria-label="Assessment approach">
+      <div class="hero-status-head"><span class="hero-status-orb" aria-hidden="true"></span><span data-i18n="dashboard.status_label">Assessment ready</span></div>
+      <p data-i18n="dashboard.status_title">Evidence before verdicts.</p>
+      <span data-i18n="dashboard.status_detail">Deterministic analysis · no model training</span>
+    </aside>
+  </section>
+
+  <section id="first-run" class="first-run-panel hidden" aria-labelledby="first-run-title">
+    <div class="first-run-icon" aria-hidden="true">01</div>
+    <div>
+      <p class="page-eyebrow" data-i18n="dashboard.first_run_eyebrow">Start here</p>
+      <h2 id="first-run-title" data-i18n="dashboard.first_run_title">Check the message or link that made you pause.</h2>
+      <p data-i18n="dashboard.first_run_description">AEGIS shows the evidence it collected, states what it could not verify, and gives you a safe next action.</p>
     </div>
-  </div>
-  <div class="space-y-6">
-    <div id="score-card" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <h2 class="font-semibold mb-4">Trust Score Trend</h2>
-      <div id="score-chart" class="h-40"><canvas id="score-canvas"></canvas></div>
+    <a href="{{ url_for('pages.scan') }}" class="first-run-action" data-i18n="dashboard.first_run_cta">Start a check</a>
+  </section>
+
+  <section id="stats-grid" class="dashboard-metrics" aria-label="Assessment metrics">
+    <div class="metric-card metric-skeleton"></div>
+    <div class="metric-card metric-skeleton"></div>
+    <div class="metric-card metric-skeleton"></div>
+    <div class="metric-card metric-skeleton"></div>
+  </section>
+
+  <section class="dashboard-workspace">
+    <div class="dashboard-main-column">
+      <article class="workspace-panel recent-scans-panel">
+        <div class="panel-heading">
+          <div><p class="panel-kicker" data-i18n="dashboard.recent_kicker">Assessment activity</p><h2 data-i18n="dashboard.recent_title">Recent checks</h2></div>
+          <a href="{{ url_for('pages.scan') }}" class="panel-link" data-i18n="dashboard.view_all">View all</a>
+        </div>
+        <div id="recent-scans" class="recent-scan-list">
+          <div class="scan-row-skeleton"></div>
+          <div class="scan-row-skeleton"></div>
+          <div class="scan-row-skeleton"></div>
+        </div>
+      </article>
+      <article id="activity-card" class="workspace-panel chart-panel">
+        <div class="panel-heading"><div><p class="panel-kicker" data-i18n="dashboard.activity_kicker">Pattern watch</p><h2 data-i18n="dashboard.activity_title">Assessment activity</h2></div><span class="panel-period" data-i18n="dashboard.last_14_days">Last 14 days</span></div>
+        <div id="activity-chart" class="chart-frame"><canvas id="activity-canvas"></canvas></div>
+      </article>
     </div>
-    <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <h2 class="font-semibold mb-4">Recent Threats</h2>
-      <div id="recent-threats" class="space-y-2 text-sm">
-        <div class="animate-pulse h-8 rounded bg-slate-100 dark:bg-slate-800"></div>
-      </div>
-    </div>
-  </div>
+    <aside class="dashboard-side-column">
+      <article id="score-card" class="workspace-panel chart-panel compact-chart-panel">
+        <div class="panel-heading"><div><p class="panel-kicker" data-i18n="dashboard.trust_kicker">Signal quality</p><h2 data-i18n="dashboard.trust_title">Trust trend</h2></div></div>
+        <div id="score-chart" class="chart-frame chart-frame-compact"><canvas id="score-canvas"></canvas></div>
+      </article>
+      <article class="workspace-panel threat-panel">
+        <div class="panel-heading"><div><p class="panel-kicker" data-i18n="dashboard.threat_kicker">Needs review</p><h2 data-i18n="dashboard.threat_title">Recent threats</h2></div></div>
+        <div id="recent-threats" class="recent-threat-list">
+          <div class="threat-row-skeleton"></div>
+        </div>
+      </article>
+    </aside>
+  </section>
 </div>
 {% endblock %}
 {% block scripts %}

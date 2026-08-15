@@ -78,7 +78,7 @@
     currentKind = kind;
     tabs.forEach((tab) => {
       const active = tab.dataset.tab === kind;
-      tab.className = `scan-tab min-h-12 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-aegis-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 ${active ? 'border-aegis-400 bg-gradient-to-br from-aegis-50 to-cyan-100 text-aegis-800 shadow-sm ring-1 ring-aegis-200 dark:border-aegis-400 dark:from-aegis-900 dark:to-slate-900 dark:text-aegis-100 dark:ring-aegis-500/30 dark:shadow-[0_0_0_1px_rgba(34,211,238,0.18),0_12px_28px_rgba(8,145,178,0.18)]' : 'border-slate-200 bg-white text-slate-600 hover:border-aegis-400 hover:bg-aegis-50 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-aegis-500/70 dark:hover:bg-slate-800 dark:hover:text-slate-100'}`;
+      tab.className = `scan-tab scanner-tab${active ? ' is-active' : ''}`;
       tab.setAttribute('aria-selected', String(active));
     });
     Object.entries(panels).forEach(([panelKind, panel]) => panel.classList.toggle('hidden', panelKind !== kind));
@@ -202,12 +202,9 @@
       const impact = Number(reason.impact || 0);
       const hostile = impact < 0;
       const neutral = impact === 0;
-      const dot = neutral ? 'bg-slate-400' : hostile ? 'bg-red-500' : 'bg-emerald-500';
+      const tone = neutral ? 'is-neutral' : hostile ? 'is-risk' : 'is-protective';
       const contribution = neutral ? t('scan.coverage_note', 'Coverage note · no score effect') : `${Math.abs(impact).toFixed(1)} ${hostile ? t('scan.risk_weight', 'risk weight') : t('scan.protective_weight', 'protective weight')}`;
-      return `<div class="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
-        <span class="mt-1.5 h-2 w-2 rounded-full shrink-0 ${dot}"></span>
-        <div class="flex-1"><p class="text-sm font-medium">${esc(localizeEngineCopy(reason.reason))}</p>
-        <p class="mt-0.5 text-xs text-slate-500">${t('scan.reliability', 'Evidence reliability')} ${reason.confidence !== null ? (Number(reason.confidence) * 100).toFixed(0) + '%' : '—'} · ${contribution}</p></div></div>`;
+      return `<div class="result-reason ${tone}"><span class="result-reason-dot" aria-hidden="true"></span><div><p>${esc(localizeEngineCopy(reason.reason))}</p><small>${t('scan.reliability', 'Evidence reliability')} ${reason.confidence !== null ? (Number(reason.confidence) * 100).toFixed(0) + '%' : '—'} · ${contribution}</small></div></div>`;
     }).join('');
   }
 
@@ -220,23 +217,22 @@
     const scoreClass = limited ? 'text-slate-500' : score >= 85 ? 'text-emerald-500' : score >= 60 ? 'text-amber-500' : 'text-red-500';
     const barClass = limited ? 'bg-slate-400' : score >= 85 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
     const confidence = data.confidence !== null && data.confidence !== undefined ? `${(Number(data.confidence) * 100).toFixed(0)}%` : '—';
-    const highlights = (data.highlights || []).map((item) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(localizeEngineCopy(item))}</span>`).join('');
+    const highlights = (data.highlights || []).map((item) => `<span class="result-highlight">${esc(localizeEngineCopy(item))}</span>`).join('');
     const stored = data.retention === 'not_stored' ? t('scan.not_stored', 'Result was not stored') : data.scan_id ? t('scan.saved_history', 'Saved in scan history') : t('scan.storage_unknown', 'Storage status unavailable');
     const resultTitle = limited ? t('scan.coverage_limited', 'Coverage limited') : t('scan.trust_score', 'Trust score');
     const resultValue = limited ? '—' : `${data.trust_score ?? '—'}`;
 
-    content.innerHTML = `<article class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div class="mb-5 rounded-xl border p-4 ${state.cls}"><p class="font-semibold">${state.title}</p><p class="mt-1 text-sm leading-5">${state.body}</p></div>
-      <div class="flex flex-wrap items-start justify-between gap-5 mb-5">
-        <div class="min-w-0 flex-1"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">${t('scan.target', 'Target')}</p><p class="mt-1 break-all font-mono text-sm">${esc(data.target || '')}</p></div>
-        <div class="text-right"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">${resultTitle}</p><p class="mt-1 font-mono text-4xl font-bold ${scoreClass}">${resultValue}${limited ? '' : '<span class="text-lg">/100</span>'}</p><p class="mt-1 text-xs text-slate-500">${t('scan.evidence_confidence', 'Evidence confidence')} ${confidence}</p></div>
-        <div>${window.Aegis.badgeFor(data.verdict)}</div>
+    content.innerHTML = `<article class="assessment-result result-${data.verdict || 'unverified'}">
+      <div class="result-state result-state-${state.state || data.assessment_state || 'complete'}"><div><p>${state.title}</p><span>${state.body}</span></div><span class="result-verdict">${window.Aegis.badgeFor(data.verdict)}</span></div>
+      <div class="result-overview">
+        <div class="result-target"><p>${t('scan.target', 'Target')}</p><strong dir="auto"><bdi>${esc(data.target || '')}</bdi></strong></div>
+        <div class="result-score"><p>${resultTitle}</p><strong class="${scoreClass}">${resultValue}${limited ? '' : '<small>/100</small>'}</strong><span>${t('scan.evidence_confidence', 'Evidence confidence')} <bdi dir="ltr">${confidence}</bdi></span></div>
       </div>
-      <div class="mb-6 h-2.5 rounded-full bg-slate-200 dark:bg-slate-800"><div class="h-2.5 rounded-full ${barClass}" style="width: ${limited ? Math.max(8, Number(data.confidence || 0) * 100) : score}%"></div></div>
-      <div class="grid gap-6 lg:grid-cols-2"><section><h2 class="font-semibold">${t('scan.evidence_reviewed', 'Evidence reviewed')}</h2><div class="mt-2">${reasonRows(data) || `<p class="text-sm text-slate-500">${t('scan.no_evidence', 'No specific evidence was available.')}</p>`}</div></section>
-      <section><h2 class="font-semibold">${t('scan.recommendations', 'Recommended next steps')}</h2><ul class="mt-3 space-y-2">${(data.recommendations || []).map((item) => `<li class="flex gap-2 text-sm"><span class="text-aegis-500">→</span><span>${esc(localizeRecommendation(item))}</span></li>`).join('') || `<li class="text-sm text-slate-500">${t('scan.no_action', 'No additional action is suggested.')}</li>`}</ul>
-      <h3 class="mt-6 font-semibold">${t('scan.highlights', 'Evidence highlights')}</h3><div class="mt-2 flex flex-wrap gap-2">${highlights || '<span class="text-sm text-slate-500">—</span>'}</div></section></div>
-      <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500"><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${esc(stored)}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${t('report.assessment', 'assessment')}: ${t(`dashboard.scan_type_${data.scan_type || currentScanType}`, data.scan_type || currentScanType || '')}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${t('report.engine', 'engine')}: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
+      <div class="result-score-rail"><span class="${barClass}" style="width: ${limited ? Math.max(8, Number(data.confidence || 0) * 100) : score}%"></span></div>
+      <div class="result-detail-grid"><section class="result-detail-panel"><div class="result-panel-heading"><p class="panel-kicker">${t('scan.evidence_reviewed', 'Evidence reviewed')}</p><span>${(data.reasons || []).length}</span></div><div class="result-reason-list">${reasonRows(data) || `<p class="result-empty">${t('scan.no_evidence', 'No specific evidence was available.')}</p>`}</div></section>
+      <section class="result-detail-panel"><div class="result-panel-heading"><p class="panel-kicker">${t('scan.recommendations', 'Recommended next steps')}</p></div><ul class="result-recommendation-list">${(data.recommendations || []).map((item) => `<li><span aria-hidden="true">→</span><span>${esc(localizeRecommendation(item))}</span></li>`).join('') || `<li class="result-empty">${t('scan.no_action', 'No additional action is suggested.')}</li>`}</ul>
+      <h3>${t('scan.highlights', 'Evidence highlights')}</h3><div class="result-highlights">${highlights || '<span class="result-empty">—</span>'}</div></section></div>
+      <div class="result-meta"><span>${esc(stored)}</span><span>${t('report.assessment', 'assessment')}: ${t(`dashboard.scan_type_${data.scan_type || currentScanType}`, data.scan_type || currentScanType || '')}</span><span dir="ltr">${t('report.engine', 'engine')}: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
     </article>`;
     document.getElementById('download-pdf-btn')?.classList.toggle('hidden', !currentScanId);
     document.getElementById('casefile-btn')?.classList.toggle('hidden', !currentScanId);

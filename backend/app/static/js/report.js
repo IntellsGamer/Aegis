@@ -12,6 +12,30 @@
   });
 
   function isPersian() { return window.AegisI18n?.locale?.() === 'fa'; }
+  function localizeObservation(value) {
+    const text = String(value || '');
+    if (!isPersian()) return text;
+    const translations = {
+      'Requests verification code': 'درخواست کد تأیید',
+      'Identity theft attempt': 'تلاش برای سرقت هویت',
+      'Poor grammar / broken language': 'نگارش نامتعارف یا ناقص',
+      'Account verification request': 'درخواست تأیید حساب',
+      'Requests password': 'درخواست گذرواژه',
+      'Fear tactics detected': 'تاکتیک‌های ترساننده شناسایی شد',
+      'Government impersonation': 'جعل هویت نهاد دولتی',
+      'Bank impersonation': 'جعل هویت بانک',
+      'Money transfer request': 'درخواست انتقال پول',
+      'Remote access request': 'درخواست دسترسی از راه دور',
+      'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
+      'Persian delivery-fee lure': 'فریب هزینهٔ تحویل فارسی',
+      'Persian benefit-claim lure': 'فریب مطالبهٔ مزایای عمومی فارسی',
+      'The message asks for a verification or one-time code.': 'این پیام کد تأیید یا رمز یک‌بارمصرف درخواست می‌کند.',
+      'The message asks for personal documents or data that can be used to steal your identity.': 'این پیام مدارک یا اطلاعات شخصیِ قابل‌استفاده برای سرقت هویت درخواست می‌کند.',
+      'The message has language problems typical of bulk scam messages.': 'متن پیام نشانه‌هایی از نگارش نامتعارفِ رایج در پیام‌های انبوه کلاهبرداری دارد.',
+      'pattern': 'الگو',
+    };
+    return translations[text] || text;
+  }
   function localizeSummary(value) {
     if (!isPersian()) return value;
     const match = String(value || '').match(/^The (.+?) (shows strong signs of a scam\.|is very likely a scam\.) Trust score ([\d.]+)\/100, estimated risk (\d+)%, evidence confidence (\d+)%\.$/);
@@ -42,6 +66,9 @@
           'Urgency language detected': 'زبان فوریت‌ساز شناسایی شد',
           'Sensitive-action words in link': 'واژه‌های حساس در پیوند',
           'Unknown sender': 'فرستندهٔ ناشناس',
+          'Requests verification code': 'درخواست کد تأیید',
+          'Identity theft attempt': 'تلاش برای سرقت هویت',
+          'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
         };
         const title = Object.keys(titles).find((candidate) => evidence.startsWith(candidate));
         return `${t('report.evidence_to_verify', 'Evidence to verify:')} ${title ? `${titles[title]}${evidence.slice(title.length)}` : evidence}`;
@@ -79,7 +106,7 @@
   }
   function renderEvidence(items) {
     if (!items.length) return `<p class="text-sm text-slate-500">${t('report.no_evidence', 'No granular evidence was retained for this assessment.')}</p>`;
-    return items.map((item) => `<article class="border-b border-slate-100 py-4 last:border-0 dark:border-slate-800"><div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><p class="font-medium">${esc(item.title || item.code)}</p><span class="rounded px-2 py-0.5 text-[11px] font-semibold ${severityClass(item.severity)}">${esc(item.severity || 'info')}</span></div><p class="mt-1 text-sm text-slate-600 dark:text-slate-300">${esc(item.description || 'Recorded scanner observation.')}</p>${item.evidence ? `<p class="mt-2 break-all rounded bg-slate-50 px-2 py-1 font-mono text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">${esc(item.evidence)}</p>` : ''}</div><div class="min-w-28 text-right text-xs text-slate-500"><p>${t('report.reliability', 'Reliability')} ${item.confidence !== null && item.confidence !== undefined ? `${Math.round(Number(item.confidence) * 100)}%` : '—'}</p><p class="mt-1 ${impactClass(Number(item.engine_impact || 0))}">${Number(item.engine_impact || 0) === 0 ? t('report.coverage_note', 'coverage note') : `${Number(item.engine_impact).toFixed(1)} ${Number(item.engine_impact) < 0 ? t('report.risk', 'risk') : t('report.protective', 'protective')}`}</p><p class="mt-1">${esc(item.source || t('report.scanner_observation', 'scanner observation'))}</p></div></div></article>`).join('');
+    return items.map((item) => `<article class="border-b border-slate-100 py-4 last:border-0 dark:border-slate-800"><div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0 flex-1"><div class="flex flex-wrap items-center gap-2"><p class="font-medium">${esc(localizeObservation(item.title || item.code))}</p><span class="rounded px-2 py-0.5 text-[11px] font-semibold ${severityClass(item.severity)}">${esc(item.severity || 'info')}</span></div><p class="mt-1 text-sm text-slate-600 dark:text-slate-300">${esc(localizeObservation(item.description || 'Recorded scanner observation.'))}</p>${item.evidence ? `<p class="mt-2 break-all rounded bg-slate-50 px-2 py-1 font-mono text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">${esc(item.evidence)}</p>` : ''}</div><div class="min-w-28 text-right text-xs text-slate-500"><p>${t('report.reliability', 'Reliability')} ${item.confidence !== null && item.confidence !== undefined ? `${Math.round(Number(item.confidence) * 100)}%` : '—'}</p><p class="mt-1 ${impactClass(Number(item.engine_impact || 0))}">${Number(item.engine_impact || 0) === 0 ? t('report.coverage_note', 'coverage note') : `${Number(item.engine_impact).toFixed(1)} ${Number(item.engine_impact) < 0 ? t('report.risk', 'risk') : t('report.protective', 'protective')}`}</p><p class="mt-1">${esc(localizeObservation(item.source || t('report.scanner_observation', 'scanner observation')))}</p></div></div></article>`).join('');
   }
   function renderFamilies(items) {
     return items.map((item) => `<div class="rounded-xl border border-slate-200 p-4 dark:border-slate-800"><p class="text-xs font-semibold uppercase tracking-wide text-slate-500">${esc(item.family)}</p><p class="mt-2 text-xl font-bold ${impactClass(Number(item.net_impact))}">${Number(item.net_impact) === 0 ? t('report.neutral', 'Neutral') : `${Number(item.net_impact).toFixed(1)}`}</p><p class="mt-1 text-xs text-slate-500">${item.signals} ${t('report.signals', 'signals')} · ${t('report.net_contribution', 'net evidence contribution')}</p></div>`).join('') || `<p class="text-sm text-slate-500">${t('report.no_families', 'No evidence families were recorded.')}</p>`;
