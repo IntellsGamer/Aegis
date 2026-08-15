@@ -134,3 +134,41 @@ def test_authenticated_theme_preference_survives_a_server_render(client):
     dashboard = client.get("/dashboard")
     assert dashboard.status_code == 200
     assert 'data-theme-preference="light"' in dashboard.get_data(as_text=True)
+
+
+def test_templates_emit_versioned_local_static_assets(client):
+    response = client.get("/login")
+    body = response.get_data(as_text=True)
+
+    assert "/static/js/turbo.js?v=" in body
+    assert "/static/css/tailwind.css?v=" in body
+    assert "/static/js/app.js?v=" in body
+
+
+def test_report_evidence_has_an_explicit_graphite_dark_surface():
+    report_script = (STATIC_ROOT / "js" / "report.js").read_text(encoding="utf-8")
+    app_css = (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+
+    assert "aegis-evidence-value" in report_script
+    assert "html.dark .aegis-evidence-value" in app_css
+    assert "background: #2b2b28" in app_css
+
+
+def test_learning_choices_shuffle_display_order_without_losing_original_answer_indexes():
+    learn_script = (STATIC_ROOT / "js" / "learn.js").read_text(encoding="utf-8")
+
+    assert "function shuffledChoices(options)" in learn_script
+    assert "window.crypto.getRandomValues(value)" in learn_script
+    assert learn_script.count("data-i=\"${choice.originalIndex}\"") == 2
+    assert "romance-oil-rig" not in learn_script
+
+
+def test_retired_guided_demo_is_not_exposed_from_scan_or_home():
+    scan_script = (STATIC_ROOT / "js" / "scan.js").read_text(encoding="utf-8")
+    scan_template = (TEMPLATE_ROOT / "scan.html").read_text(encoding="utf-8")
+    home_template = (TEMPLATE_ROOT / "home.html").read_text(encoding="utf-8")
+
+    assert "GUIDED_DEMO" not in scan_script
+    assert "credential-lure" not in scan_script
+    assert "load-demo-btn" not in scan_template
+    assert "credential-lure" not in home_template

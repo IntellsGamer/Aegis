@@ -24,3 +24,13 @@ def test_learning_center_exposes_quizzes_with_questions(client):
     assert payload["title"] == "Phishing 101"
     assert len(payload["questions"]) == 4
     assert all(question["options"] for question in payload["questions"])
+
+
+def test_retired_widow_scenario_is_absent_while_other_simulator_tests_remain(client):
+    response = client.get("/api/v1/learning/simulator")
+    assert response.status_code == 200
+    scenarios = response.get_json()
+    slugs = {scenario["slug"] for scenario in scenarios}
+
+    assert "romance-oil-rig" not in slugs
+    assert {"sms-delivery-fee", "friend-help", "gov-warrant"}.issubset(slugs)

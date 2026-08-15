@@ -58,7 +58,7 @@
           { text: 'پیامکی دریافت می‌کنید: «کارت بانکی شما مسدود می‌شود؛ همین حالا تأیید کنید: http://bit.ly/xyz». چه می‌کنید؟', options: ['برای تأیید سریع روی پیوند می‌زنم', 'پیام را نادیده می‌گیرم و از مسیر رسمی با بانک تماس می‌گیرم', 'رمز یک‌بارمصرف را پاسخ می‌دهم', 'پیام را برای دوستانم می‌فرستم'], explanation: 'بانک‌ها تأیید حساب را از طریق پیوند کوتاه درخواست نمی‌کنند. با شماره یا برنامهٔ رسمی بانک تماس بگیرید.' },
           { text: 'کدام دامنه احتمال بیشتری دارد که فیشینگ باشد؟', options: ['https://www.paypal.com', 'https://paypal-secure-verify.tk', 'https://www.amazon.com/gp/buy', 'https://github.com'], explanation: 'ترکیب عبارت‌هایی مانند secure-verify با دامنهٔ رایگان و نامرتبط، نشانهٔ رایج فیشینگ است.' },
           { text: 'آیا اشتراک‌گذاشتن رمز یک‌بارمصرف پیامکی با تماس‌گیرنده‌ای از «امنیت بانک» ایمن است؟', options: ['بله، برای محافظت از من به آن نیاز دارند', 'فقط اگر نام مرا بدانند', 'خیر، رمز را با هیچ‌کس به اشتراک نمی‌گذارم', 'بله، اگر شماره رسمی به نظر برسد'], explanation: 'رمز تأیید از حساب شما محافظت می‌کند. هیچ سرویس معتبر برای کار خود به گفتن رمز توسط شما نیاز ندارد.' },
-          { text: 'قرعه‌کشی می‌گوید یک میلیون دلار برنده شده‌اید اما باید ابتدا «هزینهٔ پردازش» بپردازید. این چیست؟', options: ['روند عادی دریافت جایزه', 'کلاه‌برداری قرعه‌کشی', 'قانون مالیاتی معتبر', 'برنامهٔ دولتی'], explanation: 'جایزهٔ واقعی هزینهٔ اولیه نمی‌خواهد. پرداخت پول پیش از دریافت پاداش، الگوی شناخته‌شدهٔ کلاه‌برداری است.' },
+          { text: 'قرعه‌کشی می‌گوید ۵ میلیارد تومان برنده شده‌اید اما باید ابتدا «هزینهٔ پردازش» بپردازید. این چیست؟', options: ['روند عادی دریافت جایزه', 'کلاه‌برداری قرعه‌کشی', 'قانون مالیاتی معتبر', 'برنامهٔ دولتی'], explanation: 'جایزهٔ واقعی هزینهٔ اولیه نمی‌خواهد. پرداخت پول پیش از دریافت پاداش، الگوی شناخته‌شدهٔ کلاه‌برداری است.' },
         ],
       },
       'url-security': {
@@ -73,7 +73,6 @@
     scenarios: {
       'sms-delivery-fee': { title: 'دام هزینهٔ تحویل', category: 'تحویل', content: 'پیامک از یک شمارهٔ ناشناس:\n\n«مرسولهٔ شما در گمرک نگه داشته شده است. برای آزادسازی، همین حالا ۳٫۵۰ پوند از این پیوند بپردازید: http://cutt.ly/parcel-fee»', options: ['روی پیوند می‌زنم و هزینه را می‌پردازم', 'ابتدا رهگیری را در وب‌سایت رسمی شرکت حمل‌ونقل بررسی می‌کنم', 'نشانی خود را پاسخ می‌دهم', 'تصویر برنامهٔ پرداخت را می‌فرستم'], explanation: 'شرکت حمل‌ونقل هزینهٔ گمرکی را با پیوند کوتاه جمع‌آوری نمی‌کند. هزینهٔ واقعی از صفحهٔ رسمی رهگیری پرداخت می‌شود.', redFlags: ['پیوند کوتاه', 'هزینهٔ فوری', 'شمارهٔ ناشناس', 'درخواست پول با پیامک'] },
       'friend-help': { title: 'دوست گرفتار', category: 'مهندسی اجتماعی', content: 'پیام از «مدیر» شما:\n\n«در جلسه‌ام و تلفنم خراب شده. فوری باید ۵ کارت هدیه بخری و کدها را برایم بفرستی. برای یک مشتری است؛ بین خودمان بماند.»', options: ['فوراً کارت هدیه می‌خرم', 'با شمارهٔ رسمی مدیر تماس می‌گیرم و تأیید می‌کنم', 'کدها را می‌فرستم و بعد سؤال می‌کنم', 'به‌جای کارت هدیه پول انتقال می‌دهم'], explanation: 'درخواست کارت هدیه از طرف یک فرد دارای اختیار، الگوی رایج کلاه‌برداری است. همیشه از کانال دوم تأیید کنید.', redFlags: ['درخواست کارت هدیه', 'فوریت', 'درخواست پنهان‌کاری', 'شمارهٔ تازه'] },
-      'romance-oil-rig': { title: 'عاشقانهٔ سکوی نفتی', category: 'رابطهٔ عاطفی', content: 'یک دوست اینترنتی تازه می‌گوید:\n\n«مهندس بیوه‌ای روی سکوی نفتی خلیج‌فارس هستم و به حساب بانکی‌ام دسترسی ندارم. می‌خواهم ۲۰ هزار دلار هدیه بدهم؛ فقط اول ۳۰۰ دلار هزینهٔ انتقال را پرداخت کن.»', options: ['۳۰۰ دلار را می‌پردازم', 'حساب را مسدود و گزارش می‌کنم', 'اطلاعات بانکی‌ام را می‌فرستم', 'می‌خواهم ابتدا نیمی را بفرستد'], explanation: 'ترکیب وابستگی عاطفی و درخواست هزینهٔ پیش از هدیه، الگوی کلاسیک کلاه‌برداری است.', redFlags: ['عبارت‌های عاطفی', 'داستان کار در راه دور', 'هزینهٔ اولیه', 'انتقال رمزارز یا بانکی'] },
       'gov-warrant': { title: 'حکم بازداشت', category: 'دولتی', content: 'تماس از «افسر پلیس»:\n\n«پروندهٔ مالیاتی شما در حال بررسی است. اگر تا دو ساعت ۱۲۰۰ دلار جریمه نپردازید، حکم بازداشت صادر می‌شود.»', options: ['برای جلوگیری از بازداشت فوراً می‌پردازم', 'تماس را قطع و از کانال رسمی دولتی بررسی می‌کنم', 'شمارهٔ ملی‌ام را می‌گویم', 'می‌پرسم با کارت هدیه پرداخت کنم'], explanation: 'پلیس واقعی با تهدید بازداشت فوری از طریق تماس تلفنی پول درخواست نمی‌کند.', redFlags: ['تهدید بازداشت فوری', 'درخواست پرداخت', 'جعل هویت پلیس', 'فشار زمانی'] },
     },
   };
@@ -153,12 +152,31 @@
     try { currentQuiz = localizeQuiz(await api('GET', `/api/v1/learning/quizzes/${slug}`)); if (isActive(view)) renderQuizQuestion(0, [], view); } catch (error) { if (isActive(view)) toast(error.message, 'error'); }
   }
 
+  function randomUnit() {
+    if (window.crypto?.getRandomValues) {
+      const value = new Uint32Array(1);
+      window.crypto.getRandomValues(value);
+      return value[0] / 0x100000000;
+    }
+    return Math.random();
+  }
+
+  function shuffledChoices(options) {
+    const choices = (options || []).map((text, originalIndex) => ({ text, originalIndex }));
+    for (let index = choices.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(randomUnit() * (index + 1));
+      [choices[index], choices[swapIndex]] = [choices[swapIndex], choices[index]];
+    }
+    return choices;
+  }
+
   function renderQuizQuestion(index, answers, view) {
     if (!isActive(view) || !currentQuiz) return;
     const questions = currentQuiz.questions || [];
     if (index >= questions.length) { submitQuiz(answers.map((answer) => Number(answer)), view); return; }
     const question = questions[index];
-    view.detail.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-zinc-900/95"><div class="flex items-center justify-between mb-4"><h2 class="text-lg font-bold" dir="auto">${esc(currentQuiz.title)}</h2><span class="text-sm text-slate-400">${ui('question', 'Question')} ${index + 1} / ${questions.length}</span></div><p class="font-medium mb-4" dir="auto">${esc(question.text || question.question || '')}</p><div class="space-y-2 mb-6" id="quiz-options">${(question.options || []).map((option, optionIndex) => `<button class="quiz-option w-full text-start px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-aegis-500 transition" data-i="${optionIndex}" dir="auto">${esc(option)}</button>`).join('')}</div><button class="quiz-next px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition hidden">${ui('next', 'Next')}</button></div>`;
+    const choices = shuffledChoices(question.options);
+    view.detail.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-zinc-900/95"><div class="flex items-center justify-between mb-4"><h2 class="text-lg font-bold" dir="auto">${esc(currentQuiz.title)}</h2><span class="text-sm text-slate-400">${ui('question', 'Question')} ${index + 1} / ${questions.length}</span></div><p class="font-medium mb-4" dir="auto">${esc(question.text || question.question || '')}</p><div class="space-y-2 mb-6" id="quiz-options">${choices.map((choice) => `<button class="quiz-option w-full text-start px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-aegis-500 transition" data-i="${choice.originalIndex}" dir="auto">${esc(choice.text)}</button>`).join('')}</div><button class="quiz-next px-4 py-2 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white text-sm font-semibold transition hidden">${ui('next', 'Next')}</button></div>`;
     view.detail.querySelectorAll('.quiz-option').forEach((button) => button.addEventListener('click', () => { view.detail.querySelectorAll('.quiz-option').forEach((node) => node.classList.remove('border-aegis-500', 'bg-aegis-50', 'dark:bg-aegis-950')); button.classList.add('border-aegis-500', 'bg-aegis-50', 'dark:bg-aegis-950'); answers[index] = Number(button.dataset.i); const next = view.detail.querySelector('.quiz-next'); next.classList.remove('hidden'); next.onclick = () => renderQuizQuestion(index + 1, answers, view); }));
   }
 
@@ -182,7 +200,8 @@
   function showScenario(raw, view) {
     if (!view.simulator?.isConnected) return;
     const scenario = localizeScenario(raw);
-    view.simulator.innerHTML = `<p class="font-medium mb-3 whitespace-pre-wrap text-sm" dir="auto">${esc(scenario.content || '')}</p><p class="text-xs text-slate-500 mb-3">${ui('whatWouldYouDo', 'What would you do?')}</p><div class="space-y-2">${(scenario.options || []).map((choice, index) => `<button class="sim-choice w-full text-start px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-aegis-500 text-sm transition" data-i="${index}" dir="auto">${esc(choice)}</button>`).join('')}</div><div class="sim-result mt-4"></div>`;
+    const choices = shuffledChoices(scenario.options);
+    view.simulator.innerHTML = `<p class="font-medium mb-3 whitespace-pre-wrap text-sm" dir="auto">${esc(scenario.content || '')}</p><p class="text-xs text-slate-500 mb-3">${ui('whatWouldYouDo', 'What would you do?')}</p><div class="space-y-2">${choices.map((choice) => `<button class="sim-choice w-full text-start px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-aegis-500 text-sm transition" data-i="${choice.originalIndex}" dir="auto">${esc(choice.text)}</button>`).join('')}</div><div class="sim-result mt-4"></div>`;
     view.simulator.querySelectorAll('.sim-choice').forEach((button) => button.addEventListener('click', async () => {
       try {
         const result = await api('POST', '/api/v1/learning/simulator/answer', { scenario_id: scenario.id, chosen_index: Number(button.dataset.i) });

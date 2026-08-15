@@ -1,6 +1,8 @@
 """Regression tests for the deterministic Evidence Fusion predictor."""
 from __future__ import annotations
 
+import pytest
+
 from app.services.text_scanner import _scan_text_sync
 from app.trust_engine.engine import compute_trust_score
 
@@ -175,6 +177,29 @@ def test_persian_familiar_transfer_and_deferred_repayment_lure_reaches_high_risk
     assert {"persian_familiar_transfer_lure", "persian_deferred_repayment_lure"} <= codes
     assert result.risk_level in {"high", "critical"}
     assert result.risk_probability >= 0.65
+
+
+@pytest.mark.parametrize(
+    ("text", "expected_code"),
+    [
+        ("صورت‌حساب شما به مبلغ ۱۲,۴۵۰,۰۰۰ تومان معوق شده است. تا ۲۴ ساعت آینده پرداخت کنید، در غیر این صورت اقدام حقوقی خواهد شد.", "persian_invoice_pressure_lure"),
+        ("از طرف مدیرعامل: نیاز به انتقال مبلغ ۵۰,۰۰۰,۰۰۰ تومان به شریک جدید داریم. لطفاً بدون مشورت با دیگران انجام دهید.", "persian_executive_transfer_lure"),
+        ("هشدار پشتیبانی مایکروسافت: فعالیت مشکوک روی دستگاه شما دیده شده است. برای تأیید با شماره ۰۲۱-۵۵۵۵-۰۱۹۹ تماس بگیرید.", "persian_support_callback_lure"),
+        ("ربات معاملاتی ارز دیجیتال با بازده روزانه ۲.۳٪؛ حداقل سرمایه ۵۰,۰۰۰,۰۰۰ تومان و برداشت آنی.", "persian_investment_return_lure"),
+        ("تبریک، در قرعه‌کشی برنده شده‌اید. برای دریافت جایزه، هزینه پردازش را به کارشناس واریز کنید.", "persian_reward_fee_lure"),
+        ("پروفایل لینکدین شما را دیدیم؛ حقوق ماهیانه عالی است. لطفاً مدارک شناسایی و اطلاعات بانکی را ارسال کنید.", "persian_job_document_lure"),
+        ("شرکت مخابرات: بسته اینترنتی شما به علت پرداخت نشده قطع می‌شود. برای پرداخت روی https://example.com/pay کلیک کنید.", "persian_service_cutoff_lure"),
+        ("بانک ملت: حساب شما به دلیل فعالیت غیرمجاز مسدود شده است. برای احراز هویت روی https://example.com/verify کلیک کنید.", "persian_bank_lockout_lure"),
+        ("سلام، خارج از کشور گیر کردم و کیفم را گم کردم. می‌توانی ۵۰۰,۰۰۰ تومان به حساب دوستم واریز کنی؟ بعداً برمی‌گردونم.", "persian_stranded_friend_lure"),
+        ("شما برای تست بتای دستیار هوش مصنوعی جدید ما انتخاب شده‌اید؛ فرم را با اطلاعات پرداخت تکمیل کنید.", "persian_beta_payment_lure"),
+    ],
+)
+def test_common_persian_scam_families_emit_high_specificity_motifs(text, expected_code):
+    result, raw = _assess(text)
+    codes = {item["code"] for item in raw["findings"]}
+
+    assert expected_code in codes
+    assert result.risk_level in {"high", "critical"}
 
 
 def test_benign_persian_legal_guidance_does_not_trigger_attachment_lure():

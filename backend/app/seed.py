@@ -239,7 +239,7 @@ SEED_QUIZZES = [
                 "explanation": "Verification codes protect your account. Any real service generates and reads the code on its own system.",
             },
             {
-                "text": "A lottery says you won $1,000,000 but must pay a 'processing fee' first. This is:",
+                "text": "A lottery says you won 5,000,000,000 toman but must pay a 20,000,000 toman processing fee first. This is:",
                 "options": ["A standard prize procedure", "A lottery scam",
                             "A legitimate tax rule", "A government program"],
                 "correct_index": 1,
@@ -320,27 +320,6 @@ SEED_SCENARIOS = [
         "red_flags": ["Gift cards requested", "Urgency", "Keep it secret", "New number"],
     },
     {
-        "slug": "romance-oil-rig",
-        "title": "The Oil Rig Romance",
-        "category": "Romance",
-        "difficulty": "medium",
-        "content": (
-            "A new online friend says:\n\n"
-            "'I am a widowed engineer on an oil rig in the Gulf. I can't access my "
-            "bank account. I want to send you a gift of $20,000 - just pay the "
-            "$300 transfer fee first, my love.'"
-        ),
-        "options": [
-            "Pay the $300 to receive the $20,000",
-            "Block them and report the account",
-            "Send my bank details so they can transfer directly",
-            "Ask them to send half first as proof",
-        ],
-        "correct_index": 1,
-        "explanation": "The classic romance + advance-fee scam: love bomb first, then a fee before a 'gift'.",
-        "red_flags": ["Emotional terms", "Remote worker story", "Upfront fee", "Crypto/wire transfer"],
-    },
-    {
         "slug": "gov-warrant",
         "title": "The Arrest Warrant",
         "category": "Government",
@@ -348,7 +327,7 @@ SEED_SCENARIOS = [
         "content": (
             "Phone call from 'Officer Miller':\n\n"
             "'This is the federal police. Your tax file is under investigation. If "
-            "you don't pay $1,200 in fines within 2 hours, a warrant will be issued "
+            "you don't pay 12,000,000 toman in fines within 2 hours, a warrant will be issued "
             "and you will be arrested.'"
         ),
         "options": [
@@ -395,6 +374,7 @@ def run_seed() -> None:
             if not learning.get_quiz(quiz_data["slug"], with_questions=False):
                 learning.add_quiz(quiz_data, quiz_data["questions"])
         _seed_scenarios(learning)
+        _purge_removed_examples(db)
 
         # --- admin user -----------------------------------------------------------
         users = UserRepository(db)
@@ -435,6 +415,28 @@ def _seed_scenarios(learning: LearningRepository) -> None:
     for scenario in SEED_SCENARIOS:
         if scenario["slug"] not in existing:
             learning.add_scenario(scenario)
+
+
+def _purge_removed_examples(db) -> None:
+    """Permanently remove retired visible examples without touching real user scans."""
+    from sqlalchemy import or_, select
+    from app.models import Scan, SimulatorScenario
+
+    retired_scenario = db.scalar(
+        select(SimulatorScenario).where(SimulatorScenario.slug == "romance-oil-rig")
+    )
+    if retired_scenario is not None:
+        db.delete(retired_scenario)
+
+    fixture_markers = (
+        "This is a fictional AEGIS demonstration scenario.",
+        "این یک سناریوی آزمایشی AEGIS است.",
+    )
+    fixture_scans = db.scalars(
+        select(Scan).where(or_(*(Scan.input_text.contains(marker) for marker in fixture_markers)))
+    ).all()
+    for scan in fixture_scans:
+        db.delete(scan)
 
 
 def _purge_legacy_demo_reports(db) -> None:

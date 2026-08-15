@@ -1354,3 +1354,16 @@ html.dark .app-nav .nav-item.bg-aegis-600::after {
   background: #88dfe1;
   box-shadow: 0 0 10px rgba(136,223,225,.30);
 }
+
+/* Casefile evidence values must retain a neutral graphite surface in dark mode.
+   This explicit component treatment avoids a light fallback from generic report markup. */
+.aegis-evidence-value {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+html.dark .aegis-evidence-value {
+  background: #2b2b28;
+  border-color: rgba(205, 205, 196, .22);
+  color: #e7e6df;
+}

@@ -10,7 +10,7 @@ import logging
 import secrets
 from pathlib import Path
 
-from flask import Flask, g, jsonify, request
+from flask import Flask, g, jsonify, request, url_for
 from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 from app.config import settings
@@ -80,6 +80,17 @@ def create_app(config_override: dict | None = None) -> Flask:
 
     def is_static_request() -> bool:
         return request.path == static_url or request.path.startswith(f"{static_url}/")
+
+    @app.context_processor
+    def cache_busted_static_urls():
+        """Version local assets by mtime so cacheable files update immediately after deploy."""
+        def asset_aware_url_for(endpoint: str, **values):
+            if endpoint == "static" and values.get("filename") and "v" not in values:
+                asset_path = Path(app.static_folder) / values["filename"]
+                if asset_path.is_file():
+                    values["v"] = str(asset_path.stat().st_mtime_ns)
+            return url_for(endpoint, **values)
+        return {"url_for": asset_aware_url_for}
 
     # --- database lifecycle -------------------------------------------------
     @app.before_request

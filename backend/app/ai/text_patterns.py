@@ -376,7 +376,7 @@ _PERSIAN_AUTHORITY_RE = re.compile(
 )
 _PERSIAN_DELIVERY_RE = re.compile(r"(?:مرسوله|بسته(?:\s+شما)?|کد\s+رهگیری|پست(?:\s+پیشتاز)?)")
 _PERSIAN_WELFARE_RE = re.compile(r"(?:یارانه|سهام\s+عدالت|کالابرگ)")
-_PERSIAN_PAYMENT_RE = re.compile(r"(?:کارت\s+به\s+کارت|شماره\s+کارت|کارمزد|هزینه(?:\s+فعالسازی|\s+فعال‌سازی)?|پرداخت|واریز\s+وجه)")
+_PERSIAN_PAYMENT_RE = re.compile(r"(?:کارت\s+به\s+کارت|شماره\s+کارت|کارمزد|هزینه(?:\s+فعالسازی|\s+فعال‌سازی)?|پرداخت|واریز(?:\s+وجه)?|انتقال(?:\s+(?:وجه|مبلغ))?)")
 _PERSIAN_CREDENTIAL_RE = re.compile(r"(?:رمز\s*(?:عبور|ورود|یک\s*بار\s*مصرف|تایید|تأیید)|کد\s*(?:تایید|تأیید|پویا|امنیتی|پیامکی)|کارت\s+ملی)")
 _PERSIAN_PRESSURE_RE = re.compile(r"(?:فوری|بلافاصله|همین\s+حالا|اخطار\s+نهایی|آخرین\s+هشدار|هشدار\s+نهایی|تا\s*24\s*ساعت|تا\s*۲۴\s*ساعت)")
 # Legal-themed scam texts frequently omit a named authority but combine a case
@@ -403,9 +403,30 @@ _PERSIAN_TRANSFER_DELEGATION_RE = re.compile(
     r"(?:کن(?:ی|ید)?|بدی|بدهید|میدی|می\s*دی)"
 )
 _PERSIAN_DEFERRED_REPAYMENT_RE = re.compile(
-    r"(?:\d{1,2})\s+به\s+بعد\s+(?:بر(?:می)?گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)|"
-    r"(?:بعداً|بعدا)\s+(?:بر(?:می)?گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)"
+    r"(?:\d{1,2})\s+به\s+بعد\s+(?:بر(?:می)?[‌\s]*گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)|"
+    r"(?:بعداً|بعدا)\s+(?:بر(?:می)?[‌\s]*گردون(?:م|یم)|پس\s*(?:می)?دم|واریز\s*(?:می)?کنم|می\s*دم)"
 )
+
+# Additional real-world Persian scam families require tightly coupled cues rather
+# than a single topical word. This keeps a real invoice, job posting, or bank
+# notification from being labelled fraudulent without the coercive action.
+_PERSIAN_INVOICE_RE = re.compile(r"(?:صورت\s*[\-‌]?حساب|فاکتور|بدهی\s+معوق|مبلغ\s+معوق)")
+_PERSIAN_LEGAL_THREAT_RE = re.compile(r"(?:اقدام\s+(?:حقوقی|قانونی)|ارجاع\s+به\s+(?:بخش|واحد)\s+حقوقی)")
+_PERSIAN_EXECUTIVE_RE = re.compile(r"(?:مدیرعامل|مدیر\s+(?:شرکت|مجموعه))")
+_PERSIAN_SECRECY_RE = re.compile(r"(?:بدون\s+مشورت|به\s+کسی\s+نگو(?:یید)?|محرمانه|بین\s+خودمان)")
+_PERSIAN_SUPPORT_RE = re.compile(r"(?:پشتیبانی\s+(?:مایکروسافت|فنی)|مایکروسافت|آنتی[\-‌]?ویروس)")
+_PERSIAN_COMPROMISE_RE = re.compile(r"(?:فعالیت\s+مشکوک|ویروس|تغییر\s+رمز|خرید\s+غیرمجاز|ورود\s+مشکوک)")
+_PERSIAN_CALLBACK_RE = re.compile(r"(?:با\s+شماره\s+[^\n]{0,28}\s+تماس\s+بگیر(?:ید)?|تماس\s+بگیر(?:ید)?\s*(?:تا|برای))")
+_PERSIAN_INVESTMENT_RETURN_RE = re.compile(r"(?:ربات\s+معاملاتی|بازده\s+(?:روزانه|تضمینی)|سود\s+(?:روزانه|تضمینی)|سیگنال[‌\s]*های?\s+روزانه)")
+_PERSIAN_REWARD_RE = re.compile(r"(?:قرعه[‌\s]*کشی|برنده(?:\s+شد(?:ه|ید))?|کارت\s+هدیه|جایزه)")
+_PERSIAN_ADVANCE_FEE_RE = re.compile(r"(?:هزینه\s*(?:پردازش|اداری|ترخیص|ارسال\s+مجدد)|پیش[‌\s]*پرداخت|بیعانه|ودیعه|کارمزد)")
+_PERSIAN_JOB_RE = re.compile(r"(?:پروفایل\s+لینکدین|حقوق\s+(?:ماهیانه|ماهانه)|فرصت\s+همکاری|نماینده\s+در\s+ایران|نقش\s+(?:مدیر|کارشناس))")
+_PERSIAN_DOCUMENT_RE = re.compile(r"(?:مدارک(?:\s+شناسایی)?|اطلاعات\s+بانکی|کد\s+ملی)")
+_PERSIAN_SERVICE_RE = re.compile(r"(?:مخابرات|شرکت\s+(?:گاز|برق)|بیمه(?:\s+خودرو)?)")
+_PERSIAN_CUTOFF_RE = re.compile(r"(?:قطع\s+می[‌\s]*شود|پرداخت\s+نشده|معوق\s+است|منقضی\s+شده)")
+_PERSIAN_BANK_LOCKOUT_RE = re.compile(r"(?:حساب\s+شما.{0,32}?(?:مسدود|فعالیت\s+غیرمجاز)|رفع\s+مسدودی|احراز\s+هویت)")
+_PERSIAN_STRANDED_RE = re.compile(r"(?:خارج\s+از\s+کشور.{0,36}?(?:گیر\s+کرد|کیف(?:م|م\s+را)?\s+گم)|کیف(?:م|م\s+را)?\s+گم\s+کرد)")
+_PERSIAN_BETA_PAYMENT_RE = re.compile(r"(?:تست\s+بتا|بتای\s+(?:دستیار|هوش\s+مصنوعی)).{0,96}?(?:اطلاعات\s+پرداخت|کارت\s+بانکی)")
 
 
 def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
@@ -431,6 +452,23 @@ def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
     has_card_limit = bool(_PERSIAN_CARD_LIMIT_RE.search(text))
     has_transfer_delegation = bool(_PERSIAN_TRANSFER_DELEGATION_RE.search(text))
     has_deferred_repayment = bool(_PERSIAN_DEFERRED_REPAYMENT_RE.search(text))
+    has_invoice = bool(_PERSIAN_INVOICE_RE.search(text))
+    has_legal_threat = bool(_PERSIAN_LEGAL_THREAT_RE.search(text))
+    has_executive = bool(_PERSIAN_EXECUTIVE_RE.search(text))
+    has_secrecy = bool(_PERSIAN_SECRECY_RE.search(text))
+    has_support = bool(_PERSIAN_SUPPORT_RE.search(text))
+    has_compromise = bool(_PERSIAN_COMPROMISE_RE.search(text))
+    has_callback = bool(_PERSIAN_CALLBACK_RE.search(text))
+    has_investment_return = bool(_PERSIAN_INVESTMENT_RETURN_RE.search(text))
+    has_reward = bool(_PERSIAN_REWARD_RE.search(text))
+    has_advance_fee = bool(_PERSIAN_ADVANCE_FEE_RE.search(text))
+    has_job = bool(_PERSIAN_JOB_RE.search(text))
+    has_document = bool(_PERSIAN_DOCUMENT_RE.search(text))
+    has_service = bool(_PERSIAN_SERVICE_RE.search(text))
+    has_cutoff = bool(_PERSIAN_CUTOFF_RE.search(text))
+    has_bank_lockout = bool(_PERSIAN_BANK_LOCKOUT_RE.search(text))
+    has_stranded = bool(_PERSIAN_STRANDED_RE.search(text))
+    has_beta_payment = bool(_PERSIAN_BETA_PAYMENT_RE.search(text))
     motifs: list[dict] = []
 
     def add(code: str, title: str, description: str, evidence: list[str], category: str = "fraud") -> None:
@@ -497,6 +535,46 @@ def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
             ["درخواست جابه‌جایی پول", "وعدهٔ بازپرداخت بعدی"],
             category="manipulation",
         )
+    if has_invoice and has_payment and (has_pressure or has_legal_threat):
+        add("persian_invoice_pressure_lure", "Persian invoice-pressure lure",
+            "An overdue invoice claim is paired with an immediate payment or legal-pressure demand.",
+            ["صورت‌حساب یا بدهی ادعایی", "درخواست پرداخت", "فشار حقوقی یا زمانی"])
+    if has_executive and has_payment and has_secrecy:
+        add("persian_executive_transfer_lure", "Persian executive-transfer lure",
+            "A claimed executive requests a confidential money transfer without independent confirmation.",
+            ["ادعای مدیرعامل", "درخواست انتقال پول", "فشار برای پنهان‌کاری"])
+    if has_support and has_compromise and has_callback:
+        add("persian_support_callback_lure", "Persian support-callback lure",
+            "A technical-security warning directs the recipient to call an unverified support number.",
+            ["هشدار فنی یا امنیتی", "ادعای پشتیبانی", "درخواست تماس با شمارهٔ پیام"])
+    if has_investment_return and (has_payment or "سرمایه" in text or "برداشت" in text):
+        add("persian_investment_return_lure", "Persian investment-return lure",
+            "An investment pitch claims recurring or guaranteed returns while soliciting capital.",
+            ["ادعای بازده یا سود غیرعادی", "درخواست سرمایه یا واریز"])
+    if has_reward and has_advance_fee and has_payment:
+        add("persian_reward_fee_lure", "Persian reward-fee lure",
+            "A prize or reward claim requires an advance processing or administrative fee.",
+            ["ادعای برنده‌شدن", "هزینهٔ پیش‌پرداخت", "درخواست واریز"])
+    if has_job and has_document and request_context:
+        add("persian_job_document_lure", "Persian job-document lure",
+            "A job approach requests identity or banking documents before a verified hiring process.",
+            ["پیشنهاد شغلی", "درخواست مدارک یا اطلاعات بانکی", "درخواست اقدام"])
+    if has_service and has_cutoff and request_context and (has_payment or URL_RE.search(text)):
+        add("persian_service_cutoff_lure", "Persian service-cutoff lure",
+            "A utility, telecom, or insurance cutoff notice directs an immediate payment or link action.",
+            ["ادعای قطع سرویس", "درخواست اقدام", "پرداخت یا پیوند"])
+    if has_authority and has_bank_lockout and request_context and (URL_RE.search(text) or has_credential):
+        add("persian_bank_lockout_lure", "Persian bank-lockout lure",
+            "A claimed bank account lockout requests identity verification through message-provided details or a link.",
+            ["ادعای مسدودی حساب", "درخواست احراز هویت", "پیوند یا دادهٔ حساس"])
+    if has_stranded and has_payment and has_deferred_repayment:
+        add("persian_stranded_friend_lure", "Persian stranded-friend transfer lure",
+            "A familiar-person emergency abroad is paired with a money transfer and repayment promise.",
+            ["بهانهٔ گیر افتادن یا گم‌شدن کیف", "درخواست انتقال پول", "وعدهٔ بازپرداخت"])
+    if has_beta_payment:
+        add("persian_beta_payment_lure", "Persian beta-access payment lure",
+            "A beta-access invitation requests payment details before providing access.",
+            ["دعوت به تست بتا", "درخواست اطلاعات پرداخت"])
     return motifs
 
 
