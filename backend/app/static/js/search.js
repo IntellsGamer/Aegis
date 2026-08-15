@@ -39,7 +39,7 @@
     box.innerHTML = html;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.Aegis.onPageLoad('search', () => {
     const form = document.getElementById('search-form');
     const input = document.getElementById('search-input');
     const scope = document.getElementById('search-scope');

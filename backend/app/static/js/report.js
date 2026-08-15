@@ -136,7 +136,7 @@
     const blob = new Blob([JSON.stringify(casefile, null, 2)], { type: 'application/json' });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${casefile.case_id || 'aegis-casefile'}.json`; link.click(); URL.revokeObjectURL(link.href);
   }
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.Aegis.onPageLoad('report', async () => {
     if (!scanId) return;
     try {
       const data = await api('GET', `/api/v1/scans/${scanId}/casefile`);

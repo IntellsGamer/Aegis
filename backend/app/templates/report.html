@@ -19,5 +19,5 @@
 {% endblock %}
 {% block scripts %}
 <script>window.__REPORT_SCAN_ID__ = {{ scan.id }};</script>
-<script src="{{ url_for('static', filename='js/report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/report.js') }}" data-turbo-eval="always"></script>
 {% endblock %}

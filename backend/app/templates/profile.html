@@ -33,4 +33,4 @@
   <section class="rounded-2xl border border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/30"><h2 class="mb-2 font-semibold text-red-700 dark:text-red-400" data-i18n="profile.danger_zone">Danger zone</h2><p class="mb-4 text-sm text-red-600/80 dark:text-red-400/70" data-i18n="profile.delete_description">Permanently delete your account and all associated stored scan data. This cannot be undone.</p><button id="delete-account-btn" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-500" data-i18n="profile.delete_account">Delete my account</button></section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/profile.js') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/profile.js') }}" data-turbo-eval="always"></script>{% endblock %}

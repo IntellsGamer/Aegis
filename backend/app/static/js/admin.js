@@ -245,7 +245,7 @@
     </div>`;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.Aegis.onPageLoad('admin', () => {
     loadStats();
     document.querySelectorAll('.admin-tab').forEach((t) => t.addEventListener('click', () => {
       document.querySelectorAll('.admin-tab').forEach((x) => {

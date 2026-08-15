@@ -12,3 +12,6 @@ uploads/
 
 # Windows alternate-data-stream sidecars
 *Zone.Identifier
+
+# Local frontend dependencies; package.json and pnpm-lock.yaml define reproducible installs.
+node_modules/

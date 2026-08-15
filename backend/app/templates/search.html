@@ -26,5 +26,5 @@
 <script>
   window.__SEARCH_QUERY__ = {{ query|tojson or None }};
 </script>
-<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/search.js') }}" data-turbo-eval="always"></script>
 {% endblock %}

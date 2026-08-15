@@ -3,10 +3,11 @@
     Prepare a native Windows development environment for AEGIS.
 
 .DESCRIPTION
-    Requires the Python launcher with Python 3.12 installed. The script creates
-    backend\.venv, upgrades pip, and installs the platform-appropriate package
-    set. OCR remains optional: URL, text, email, QR, file, and report workflows
-    operate without a Tesseract system installation.
+    Requires the Python launcher with Python 3.12 and Node.js 20+ installed.
+    The script creates backend\.venv, installs the platform-appropriate Python
+    package set, installs pinned local frontend dependencies, and builds the
+    static Tailwind and Turbo assets. OCR remains optional: URL, text, email,
+    QR, file, and report workflows operate without a Tesseract system installation.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\scripts\setup-windows.ps1
@@ -23,6 +24,23 @@ $Python = Join-Path $Backend ".venv\Scripts\python.exe"
 
 if (-not (Get-Command py -ErrorAction SilentlyContinue)) {
     throw "Python Launcher was not found. Install Python 3.12 from python.org, select 'Add python.exe to PATH', then rerun this script."
+}
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    throw "Node.js 20+ was not found. Install the Node.js LTS release, reopen PowerShell, then rerun this script."
+}
+if (-not (Get-Command corepack -ErrorAction SilentlyContinue)) {
+    throw "Corepack was not found with Node.js. Install a current Node.js LTS release, reopen PowerShell, then rerun this script."
+}
+
+Push-Location $RepoRoot
+try {
+    Write-Host "Installing local frontend dependencies..." -ForegroundColor Cyan
+    & corepack pnpm install --frozen-lockfile
+    Write-Host "Building local Tailwind and Turbo assets..." -ForegroundColor Cyan
+    & corepack pnpm run build:assets
+}
+finally {
+    Pop-Location
 }
 
 Push-Location $Backend

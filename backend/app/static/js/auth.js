@@ -1,9 +1,14 @@
 /* Auth pages (login / register / forgot / reset) */
 (function () {
   'use strict';
-  const { api, toast, navigate, csrfToken, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, toast, navigate, csrfToken, t } = shared;
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.Aegis.onPageLoad('auth', () => {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
       loginForm.addEventListener('submit', async (e) => {

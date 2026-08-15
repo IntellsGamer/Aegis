@@ -28,32 +28,6 @@
         return data;
     }
 
-    // Override tailwind config if loaded
-    if (typeof tailwind !== 'undefined' && tailwind.config) {
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        aegis: {
-                            50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9',
-                            400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490',
-                            800: '#155e75', 900: '#164e63'
-                        }
-                    },
-                    fontFamily: { mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'] },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
-                    }
-                }
-            }
-        };
-    }
-
     function toast(message, type = 'info') {
         const root = document.getElementById('toast-root');
         if (!root) return;
@@ -70,13 +44,17 @@
     }
 
     function setTheme(theme) {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
-        try { localStorage.setItem('aegis-theme', theme); } catch (e) { }
+        const resolvedTheme = theme === 'dark' ? 'dark' : 'light';
+        document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
+        document.documentElement.dataset.themePreference = resolvedTheme;
+        try { localStorage.setItem('aegis-theme', resolvedTheme); } catch (e) { }
     }
 
     function getTheme() {
-        try { return localStorage.getItem('aegis-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
-        catch (e) { return 'dark'; }
+        try {
+            const serverTheme = document.documentElement.dataset.themePreference;
+            return serverTheme || localStorage.getItem('aegis-theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        } catch (e) { return document.documentElement.classList.contains('dark') ? 'dark' : 'light'; }
     }
 
     function translate(key, fallback) {
@@ -173,7 +151,38 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const pageReadyEvent = window.Turbo ? 'turbo:load' : 'DOMContentLoaded';
+    const pageModules = window.__aegisPageModules || new Map();
+    const completedPageModules = window.__aegisCompletedPageModules || new Set();
+    window.__aegisPageModules = pageModules;
+    window.__aegisCompletedPageModules = completedPageModules;
+    if (window.Turbo && !window.__aegisTurboModuleResetBound) {
+        document.addEventListener('turbo:before-render', () => completedPageModules.clear());
+        window.__aegisTurboModuleResetBound = true;
+    }
+    function onPageLoad(moduleName, callback) {
+        let entry = pageModules.get(moduleName);
+        if (!entry) {
+            entry = {
+                callback,
+                run: () => {
+                    if (completedPageModules.has(moduleName)) return;
+                    completedPageModules.add(moduleName);
+                    pageModules.get(moduleName).callback();
+                },
+            };
+            pageModules.set(moduleName, entry);
+            document.addEventListener(pageReadyEvent, entry.run);
+        } else {
+            entry.callback = callback;
+        }
+        if (document.readyState !== 'loading') entry.run();
+    }
+
+    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, setTheme, getTheme, csrfToken, t: translate, onPageLoad };
+    window.dispatchEvent(new Event('aegis:ready'));
+
+    document.addEventListener(pageReadyEvent, () => {
         setTheme(getTheme());
 
         const overlay = document.getElementById('sidebar-overlay');
@@ -223,5 +232,4 @@
         connectSSE();
     });
 
-    window.Aegis = { api, toast, esc, badgeFor, fmtTime, navigate, setTheme, getTheme, csrfToken, t: translate };
 })();

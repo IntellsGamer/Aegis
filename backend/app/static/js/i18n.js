@@ -370,8 +370,10 @@
     autoRoots.forEach(translateAuto);
   }
 
+  let autoTranslationObserver = null;
   window.AegisI18n = { t, apply, locale, translations };
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener(window.Turbo ? 'turbo:load' : 'DOMContentLoaded', () => {
+    autoTranslationObserver?.disconnect();
     apply();
     const observer = new MutationObserver((records) => {
       records.forEach((record) => record.addedNodes.forEach((node) => {
@@ -382,6 +384,7 @@
       }));
     });
     document.querySelectorAll('[data-i18n-auto]').forEach((root) => observer.observe(root, { childList: true, subtree: true }));
+    autoTranslationObserver = observer;
     document.documentElement.dataset.i18nReady = 'true';
   });
 })();

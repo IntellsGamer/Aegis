@@ -1,7 +1,12 @@
 /* Scan analyzer page: explicit coverage, retention, and response workflow. */
 (function () {
   'use strict';
-  const { api, toast, esc, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, toast, esc, t } = shared;
   let currentKind = 'url';
   let currentScanId = null;
   let currentScanType = null;
@@ -250,7 +255,7 @@
     catch (_) { toast(t('scan.clipboard_unavailable', 'Clipboard access is unavailable'), 'error'); }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.Aegis.onPageLoad('scan', () => {
     document.querySelectorAll('.scan-run').forEach((button) => button.addEventListener('click', () => runScan(button.dataset.kind)));
     document.getElementById('new-scan-btn')?.addEventListener('click', () => { clearCurrentAssessment(); activate(currentKind); });
     document.getElementById('copy-evidence-btn')?.addEventListener('click', copyEvidence);

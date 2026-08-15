@@ -1,26 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}Set New Password{% endblock %}
 {% block content %}
-<div class="max-w-md mx-auto">
-  <div class="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-    <h1 class="text-xl font-bold mb-2">Set a new password</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Choose a strong password for {{ email }}.</p>
-    <form id="reset-form" data-email="{{ email }}" data-token="{{ token }}" class="space-y-4" novalidate>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="password">New password</label>
-        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="confirm">Confirm password</label>
-        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-      </div>
-      <button type="submit" class="w-full py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition disabled:opacity-50" id="reset-btn">Update Password</button>
+<section class="auth-page auth-page-compact" aria-labelledby="auth-title">
+  <div class="auth-intro">
+    <p class="auth-eyebrow">Account recovery</p>
+    <h1 id="auth-title">Set a stronger password.</h1>
+    <p>Use a unique password for AEGIS. The reset link is single-use and should never be shared with anyone.</p>
+  </div>
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="" class="auth-mark">
+      <div><p class="auth-kicker">New password</p><h2>Secure your account</h2><p>Choose a new password for {{ email }}.</p></div>
+    </div>
+    <form id="reset-form" data-email="{{ email }}" data-token="{{ token }}" class="auth-form" novalidate>
+      <div class="auth-field"><label for="password">New password</label><input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Create a new password"></div>
+      <div class="auth-field"><label for="confirm">Confirm password</label><input type="password" id="confirm" name="confirm_password" required autocomplete="new-password" placeholder="Repeat the new password"></div>
+      <button type="submit" class="auth-primary-action" id="reset-btn">Update password</button>
     </form>
   </div>
-</div>
+</section>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}" data-turbo-eval="always"></script>
 {% endblock %}

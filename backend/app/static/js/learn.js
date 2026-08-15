@@ -218,7 +218,7 @@
         }));
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    window.Aegis.onPageLoad('learn', async () => {
         document.querySelectorAll('.lesson-filter').forEach((b) => b.addEventListener('click', () => {
             document.querySelectorAll('.lesson-filter').forEach((x) => {
                 x.classList.remove('bg-white', 'dark:bg-slate-900', 'shadow', 'text-aegis-600', 'dark:text-aegis-400');

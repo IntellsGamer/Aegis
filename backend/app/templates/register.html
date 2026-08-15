@@ -1,45 +1,51 @@
 {% extends 'base.html' %}
 {% block title %}Create Account{% endblock %}
 {% block content %}
-<div class="max-w-md mx-auto">
-  <div class="p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-    <div class="flex items-center gap-2 mb-6">
-      <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="w-10 h-10">
+<section class="auth-page" aria-labelledby="auth-title">
+  <div class="auth-intro">
+    <p class="auth-eyebrow">Start with evidence</p>
+    <h1 id="auth-title">Build a safer decision habit.</h1>
+    <p>Create a private AEGIS workspace for assessments you choose to retain, evidence-led casefiles, and security preferences you control.</p>
+    <div class="auth-principles" aria-label="Account benefits">
+      <div><strong>One assessment flow</strong><span>Check URLs, emails, messages, QR codes, images, and files consistently.</span></div>
+      <div><strong>Reviewable records</strong><span>Open a casefile whenever an assessment needs a closer look.</span></div>
+      <div><strong>Privacy by choice</strong><span>Private scan retention is optional; public reports are always reviewed.</span></div>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="" class="auth-mark">
       <div>
-        <h1 class="text-xl font-bold">Create your account</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Free forever · No credit card</p>
+        <p class="auth-kicker">Create workspace</p>
+        <h2>Create your account</h2>
+        <p>It takes less than a minute to start assessing suspicious content.</p>
       </div>
     </div>
-    <form id="register-form" class="space-y-4" novalidate>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="username">Username</label>
-        <input type="text" id="username" name="username" required minlength="3" maxlength="50" autocomplete="username"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+    <form id="register-form" class="auth-form" novalidate>
+      <div class="auth-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="Choose a username">
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="email">Email</label>
-        <input type="email" id="email" name="email" required autocomplete="email"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      <div class="auth-field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="password">Password</label>
-        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
-        <p class="text-xs text-slate-400 mt-1">At least 8 characters with upper, lower and digits.</p>
+      <div class="auth-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" placeholder="Create a password">
+        <p class="auth-field-note">Use at least 8 characters, including upper and lower case letters and a number.</p>
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="confirm">Confirm password</label>
-        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password"
-               class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-aegis-500">
+      <div class="auth-field">
+        <label for="confirm">Confirm password</label>
+        <input type="password" id="confirm" name="confirm_password" required autocomplete="new-password" placeholder="Repeat your password">
       </div>
-      <button type="submit" class="w-full py-2.5 rounded-lg bg-aegis-600 hover:bg-aegis-500 text-white font-semibold transition disabled:opacity-50" id="register-btn">Create Account</button>
-      <p class="text-sm text-center text-slate-500">Already have an account?
-        <a href="{{ url_for('pages.login') }}" class="text-aegis-600 dark:text-aegis-400 hover:underline">Sign in</a>
-      </p>
+      <button type="submit" class="auth-primary-action" id="register-btn">Create account</button>
+      <p class="auth-switch">Already have an account? <a href="{{ url_for('pages.login') }}">Sign in</a></p>
     </form>
   </div>
-</div>
+</section>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}" data-turbo-eval="always"></script>
 {% endblock %}

@@ -382,8 +382,8 @@ html.dark .app-footer { background: rgba(2,8,23,.34); }
 }
 
 @media (min-width: 1024px) {
-  .app-main { margin-left: 17rem !important; }
-  html[dir="rtl"] .app-main { margin-left: 0 !important; margin-right: 17rem !important; }
+  body[data-authenticated="true"] .app-main { margin-left: 17rem !important; }
+  html[dir="rtl"] body[data-authenticated="true"] .app-main { margin-left: 0 !important; margin-right: 17rem !important; }
 }
 @media (max-width: 1023px) {
   .app-content { padding-top: 1.35rem !important; }
@@ -833,7 +833,7 @@ html.dark .app-header { background: rgba(9,9,11,.88) !important; box-shadow: non
 #sidebar-toggle { border-radius: .42rem !important; }
 .app-content { max-width: 1440px; padding-top: 1.5rem !important; padding-bottom: 2rem !important; }
 .app-footer { border-color: var(--aegis-line) !important; background: transparent !important; }
-@media (min-width: 1024px) { .app-main { margin-left: 15.5rem !important; } html[dir="rtl"] .app-main { margin-left: 0 !important; margin-right: 15.5rem !important; } }
+@media (min-width: 1024px) { body[data-authenticated="true"] .app-main { margin-left: 15.5rem !important; } html[dir="rtl"] body[data-authenticated="true"] .app-main { margin-left: 0 !important; margin-right: 15.5rem !important; } }
 
 /* A dashboard is an index, not a set of heroic cards. */
 .dashboard-page { gap: 1rem; }
@@ -1150,3 +1150,119 @@ html.dark .feedback-btn { color: #d4d4d8; border-color: #3f3f46; background: #18
 html.dark .feedback-btn:hover { color: #f4f4f5; border-color: #52525b; background: #27272a; }
 html.dark .feedback-btn[data-feedback="confirmed_benign"] { color: #a7f3d0; border-color: #047857; background: rgba(6,78,59,.28); }
 html.dark .feedback-btn[data-feedback="confirmed_malicious"] { color: #ffe4e6; border-color: #9f1239; background: #9f1239; }
+
+/* Account-entry surfaces share the same quiet, evidence-first system as the product workspace. */
+.auth-page {
+  width: min(100%, 70rem);
+  min-height: calc(100vh - 10rem);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(22rem, .92fr);
+  align-items: center;
+  gap: clamp(2rem, 7vw, 7rem);
+  padding: clamp(1.5rem, 4vw, 4rem) 0;
+}
+.auth-intro { max-width: 34rem; }
+.auth-eyebrow,
+.auth-kicker {
+  margin: 0;
+  color: var(--aegis-muted);
+  font-size: .65rem;
+  font-weight: 760;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.auth-intro h1 {
+  margin: .7rem 0 0;
+  color: var(--aegis-ink);
+  font-size: clamp(2.25rem, 4.3vw, 4rem);
+  font-weight: 760;
+  letter-spacing: -.07em;
+  line-height: .98;
+}
+.auth-intro > p:not(.auth-eyebrow) {
+  max-width: 31rem;
+  margin: 1.15rem 0 0;
+  color: var(--aegis-muted);
+  font-size: .98rem;
+  line-height: 1.72;
+}
+.auth-principles {
+  display: grid;
+  gap: 0;
+  max-width: 31rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--aegis-line);
+}
+.auth-principles > div {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: .78rem 0;
+  border-bottom: 1px solid var(--aegis-line);
+}
+.auth-principles strong { color: var(--aegis-ink); font-size: .75rem; font-weight: 720; }
+.auth-principles span { color: var(--aegis-muted); font-size: .72rem; line-height: 1.55; }
+.auth-card {
+  width: 100%;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--aegis-line);
+  border-radius: .7rem;
+  background: var(--aegis-panel-strong);
+  box-shadow: var(--aegis-shadow);
+}
+.auth-card-header { display: flex; align-items: flex-start; gap: .9rem; padding-bottom: 1.35rem; border-bottom: 1px solid var(--aegis-line); }
+.auth-mark { flex: 0 0 auto; width: 2rem; height: 2rem; }
+.auth-card h2 { margin: .25rem 0 0; color: var(--aegis-ink); font-size: 1.22rem; font-weight: 730; letter-spacing: -.035em; }
+.auth-card-header > div > p:last-child { margin: .35rem 0 0; color: var(--aegis-muted); font-size: .78rem; line-height: 1.5; }
+.auth-form { display: grid; gap: 1rem; margin-top: 1.35rem; }
+.auth-field { display: grid; gap: .42rem; }
+.auth-field label,
+.auth-options label { color: var(--aegis-ink); font-size: .76rem; font-weight: 680; }
+.auth-field input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .62rem .72rem;
+  border: 1px solid var(--aegis-line);
+  border-radius: .45rem;
+  color: var(--aegis-ink);
+  background: transparent;
+  font: inherit;
+  outline: none;
+}
+.auth-field input::placeholder { color: #a1a1aa; }
+.auth-field input:focus { border-color: #71717a; box-shadow: 0 0 0 2px rgba(161,161,170,.18); }
+.auth-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.auth-label-row a,
+.auth-switch a { color: var(--aegis-ink); font-weight: 690; text-decoration: underline; text-underline-offset: .18rem; }
+.auth-label-row a { font-size: .7rem; }
+.auth-options { display: flex; align-items: center; justify-content: space-between; }
+.auth-options label { display: inline-flex; align-items: center; gap: .45rem; font-weight: 500; }
+.auth-options input { width: .88rem; height: .88rem; accent-color: #0891b2; }
+.auth-field-note { margin: .08rem 0 0; color: var(--aegis-muted); font-size: .67rem; line-height: 1.5; }
+.auth-primary-action {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .62rem .8rem;
+  border: 1px solid #18181b;
+  border-radius: .45rem;
+  color: #fafafa;
+  background: #18181b;
+  font-size: .8rem;
+  font-weight: 700;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.auth-primary-action:hover { opacity: .86; transform: translateY(-1px); }
+.auth-primary-action:disabled { cursor: wait; opacity: .55; transform: none; }
+.auth-switch { margin: .05rem 0 0; color: var(--aegis-muted); font-size: .75rem; text-align: center; }
+html.dark .auth-primary-action { border-color: #f4f4f5; color: #18181b; background: #f4f4f5; }
+@media (max-width: 900px) {
+  .auth-page { grid-template-columns: 1fr; gap: 2rem; padding-block: 1.5rem 3rem; }
+  .auth-intro { max-width: none; }
+  .auth-card { max-width: 34rem; }
+}
+@media (max-width: 560px) {
+  .auth-page { min-height: auto; }
+  .auth-principles > div { grid-template-columns: 1fr; gap: .28rem; }
+  .auth-card { padding: 1.1rem; }
+}

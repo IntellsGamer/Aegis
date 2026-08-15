@@ -77,7 +77,7 @@
     document.getElementById('map-updated').textContent = `${data.total_reports || 0} ${t('map.approved_reports', 'approved reports')} ${t('map.in_last', 'in the last')} ${data.range_days || rangeDays} ${t('map.days', 'days')}`;
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.Aegis.onPageLoad('map', async () => {
     const radios = document.querySelectorAll('input[name=range]');
     radios.forEach((radio) => radio.addEventListener('change', () => load(parseInt(radio.value, 10)).catch(showError)));
     function showError() {

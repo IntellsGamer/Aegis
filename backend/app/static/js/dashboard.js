@@ -65,7 +65,7 @@
     if (score) new Chart(score, { type: 'line', data: { labels, datasets: [{ label: t('scan.trust_score', 'Trust'), data: days.map((date) => scores[date] ?? null), borderColor: '#10b981', pointRadius: 3, tension: 0.3, spanGaps: true }] }, options: { ...common, scales: { y: { min: 0, max: 100 } } } });
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  window.Aegis.onPageLoad('dashboard', async () => {
     try {
       const [stats, scanResult] = await Promise.all([api('GET', '/api/v1/analytics/summary'), api('GET', '/api/v1/scans?page=1&page_size=10')]);
       const scans = scanResult.items || [];

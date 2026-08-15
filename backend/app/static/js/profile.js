@@ -24,7 +24,7 @@
     } catch (error) { toast(`${t('profile.load_failed', 'Could not load preferences')}: ${error.message}`, 'error'); }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  window.Aegis.onPageLoad('profile', () => {
     loadPreferences();
     byId('profile-form')?.addEventListener('submit', async (event) => {
       event.preventDefault(); const button = disable(event.currentTarget, true);
