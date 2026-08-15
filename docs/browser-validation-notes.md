@@ -98,3 +98,7 @@ The final controlled Persian authority-lure scan rendered a threat result with a
 ## Mixed-direction dashboard scan-card validation — 2026-08-15
 
 The Persian dashboard was rechecked with Persian messages, English email content, URLs, decimal scores, timestamps, and Persian verdicts. Recent scan cards now isolate the source target with `dir="auto"` and `bdi`, keep the localized type/date line independent, and render score plus verdict inside an explicit LTR outcome cluster. Live DOM inspection confirmed `unicode-bidi: plaintext` for targets and LTR direction for timestamps and score/verdict clusters. The prior collapsed mixed-direction layout no longer occurs.
+
+## Dark sidebar icon contrast — 2026-08-15
+
+The dark Persian dashboard was rechecked after converting sidebar SVG backgrounds to `currentColor` CSS masks. The live sidebar visibly renders every navigation icon in the appropriate light foreground. Computed-style inspection confirmed a white active icon (`rgb(255, 255, 255)`) and slate inactive icons (`rgb(148, 163, 184)`), with a usable mask on all six navigation entries.
