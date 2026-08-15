@@ -1277,3 +1277,51 @@ html.dark .turbo-progress-bar {
   background: #a5f3fc;
   box-shadow: 0 0 8px rgba(165, 243, 252, .42);
 }
+
+/* Dark-mode refinement: calm graphite surfaces, with cyan reserved for meaning. */
+html.dark {
+  --aegis-ink: #ececea;
+  --aegis-muted: #aaa9a3;
+  --aegis-line: rgba(161, 161, 154, .20);
+  --aegis-panel: rgba(35, 35, 32, .88);
+  --aegis-panel-strong: #232320;
+  --aegis-cyan: #67d5dc;
+  --aegis-cyan-soft: rgba(103, 213, 220, .10);
+  --aegis-shadow: 0 20px 52px rgba(0, 0, 0, .17), 0 1px 0 rgba(255,255,255,.025) inset;
+  --aegis-shadow-hover: 0 24px 60px rgba(0, 0, 0, .22), 0 0 0 1px rgba(103,213,220,.10);
+}
+html.dark body {
+  background:
+    radial-gradient(820px 520px at 92% -15%, rgba(103, 213, 220, .055), transparent 68%),
+    radial-gradient(720px 500px at -12% 16%, rgba(244, 241, 231, .028), transparent 72%),
+    #1a1a18;
+}
+html.dark .app-sidebar {
+  border-right-color: rgba(161, 161, 154, .18) !important;
+  background: linear-gradient(180deg, rgba(34,34,31,.98), rgba(27,27,25,.96)) !important;
+  box-shadow: 12px 0 38px rgba(0,0,0,.12) !important;
+}
+html.dark .app-header { background: rgba(30,30,28,.82) !important; }
+html.dark .app-footer { background: rgba(27,27,25,.68); }
+html.dark .sidebar-account { background: rgba(42,42,39,.76); border-color: rgba(161,161,154,.22) !important; }
+html.dark .app-header input[type="search"] { background: rgba(42,42,39,.86) !important; }
+html.dark .dark\:bg-slate-950 { background-color: #1a1a18 !important; }
+html.dark .dark\:bg-slate-900 { background-color: #232320 !important; }
+html.dark .dark\:bg-slate-800 { background-color: #2b2b28 !important; }
+html.dark .dark\:bg-aegis-950 { background-color: rgba(21, 54, 57, .42) !important; }
+html.dark .dark\:border-slate-800 { border-color: rgba(161,161,154,.20) !important; }
+html.dark .app-nav .nav-item:hover { border-color: rgba(103,213,220,.18); background: rgba(103,213,220,.075) !important; }
+html.dark .app-nav .nav-item.bg-aegis-600 {
+  border-color: rgba(103,213,220,.26) !important;
+  background: rgba(103,213,220,.13) !important;
+  box-shadow: none !important;
+}
+html.dark .app-nav .nav-item.bg-aegis-600::after { background: #9be7e9; }
+html.dark .dashboard-hero {
+  border-color: rgba(161,161,154,.22);
+  color: #f2f1ed;
+  background: linear-gradient(118deg, #292925, #242421 62%, #20201e);
+  box-shadow: 0 20px 48px rgba(0,0,0,.13);
+}
+html.dark .dashboard-hero::after { border-color: rgba(235,232,221,.12); box-shadow: 0 0 0 3.2rem rgba(235,232,221,.024), 0 0 0 6.4rem rgba(235,232,221,.018); }
+html.dark .turbo-progress-bar { background: #8ce1e3; box-shadow: 0 0 8px rgba(140,225,227,.32); }

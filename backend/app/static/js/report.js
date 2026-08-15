@@ -1,7 +1,12 @@
 /* Assessment casefile: derives only from the authorized persisted scan record. */
 (function () {
   'use strict';
-  const { api, esc, badgeFor, toast, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, esc, badgeFor, toast, t } = shared;
   const scanId = window.__REPORT_SCAN_ID__ || window.location.pathname.split('/').pop();
   let casefile = null;
 
@@ -26,6 +31,9 @@
       'Bank impersonation': 'جعل هویت بانک',
       'Money transfer request': 'درخواست انتقال پول',
       'Remote access request': 'درخواست دسترسی از راه دور',
+      'Social engineering': 'مهندسی اجتماعی',
+      'The message asks you to verify your account through a provided link.': 'پیام از شما می‌خواهد حساب خود را از طریق پیوندی که خودش ارائه کرده تأیید کنید.',
+      'The message manipulates you using emotion, urgency, or authority.': 'پیام با احساسات، فوریت یا ادعای اختیار تلاش می‌کند شما را به اقدام وادار کند.',
       'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
       'Persian delivery-fee lure': 'فریب هزینهٔ تحویل فارسی',
       'Persian benefit-claim lure': 'فریب مطالبهٔ مزایای عمومی فارسی',
@@ -52,6 +60,10 @@
       'Stop interacting with this content. It has multiple independent signs of a likely scam or a verified threat match.': t('report.action_stop', 'Stop interacting with this content. It has multiple independent signs of a likely scam or a verified threat match.'),
       'Block and report the sender or URL. If financial or account data was shared, contact the legitimate provider immediately.': t('report.action_block', 'Block and report the sender or URL. If financial or account data was shared, contact the legitimate provider immediately.'),
       'Change exposed passwords and revoke active sessions from a trusted device.': t('report.action_passwords', 'Change exposed passwords and revoke active sessions from a trusted device.'),
+      'Treat this as unverified. Do not use message-provided links, phone numbers, or contact details to validate it.': 'این مورد را تأییدنشده در نظر بگیرید. برای راستی‌آزمایی از پیوند، شماره تلفن یا اطلاعات تماسی که خود پیام داده است استفاده نکنید.',
+      'Verify the request through a known official website, app, or an independent contact channel.': 'درخواست را از طریق وب‌سایت یا برنامهٔ رسمیِ شناخته‌شده، یا یک کانال تماس مستقل بررسی کنید.',
+      'Do not click links, open attachments, reply, or provide credentials or payment information.': 'روی پیوندها کلیک نکنید، پیوست‌ها را باز نکنید، پاسخ ندهید و اطلاعات ورود یا پرداخت ارائه نکنید.',
+      'Verify the claimed organization independently and report the message or site through its official channel.': 'سازمان ادعاشده را مستقل بررسی کنید و پیام یا وب‌سایت را از کانال رسمی آن گزارش دهید.',
     };
     return {
       ...item,

@@ -1,7 +1,12 @@
 /* Search page */
 (function () {
   'use strict';
-  const { api, esc, badgeFor, fmtTime } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, esc, badgeFor, fmtTime } = shared;
 
   function render(data) {
     const box = document.getElementById('search-results');

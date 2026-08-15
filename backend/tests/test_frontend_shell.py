@@ -65,3 +65,11 @@ def test_sidebar_offset_and_turbo_lifecycle_guards():
     assert "if (!profileForm.isConnected) return" in profile_script
     assert "Chart.getChart(activity)?.destroy()" in dashboard_script
     assert "Chart.getChart(score)?.destroy()" in dashboard_script
+
+
+def test_turbo_route_modules_guard_shared_client_bootstrap():
+    for module in ("admin.js", "dashboard.js", "learn.js", "map.js", "profile.js", "report.js", "search.js"):
+        source = (STATIC_ROOT / "js" / module).read_text(encoding="utf-8")
+        assert "const shared = window.Aegis;" in source
+        assert "if (!shared)" in source
+        assert "aegis:ready" in source

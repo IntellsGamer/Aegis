@@ -1,7 +1,12 @@
 /* Profile and preference controls aligned with the current account API. */
 (function () {
   'use strict';
-  const { api, toast, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, toast, t } = shared;
   const byId = (id) => document.getElementById(id);
 
   function disable(form, value) {

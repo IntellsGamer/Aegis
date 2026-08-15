@@ -1,7 +1,12 @@
 /* Verified public threat-map client. */
 (function () {
   'use strict';
-  const { api, esc, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, esc, t } = shared;
   let map = null;
   let markers = null;
 

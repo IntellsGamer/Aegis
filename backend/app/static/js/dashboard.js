@@ -1,7 +1,12 @@
 /* Dashboard: meaningful posture metrics and first-run guidance. */
 (function () {
   'use strict';
-  const { api, esc, badgeFor, fmtTime, t } = window.Aegis;
+  const shared = window.Aegis;
+  if (!shared) {
+    window.addEventListener('aegis:ready', () => window.location.reload(), { once: true });
+    return;
+  }
+  const { api, esc, badgeFor, fmtTime, t } = shared;
   const statCards = [
     { key: 'scans', label: () => t('dashboard.scans', 'Checks saved'), index: '01' },
     { key: 'threats', label: () => t('dashboard.threats', 'High-risk findings'), index: '02' },

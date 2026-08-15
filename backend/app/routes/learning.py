@@ -23,18 +23,20 @@ def lessons():
 @bp.get("/lessons/<slug>")
 def lesson(slug: str):
     lesson_data = learning_service.get_lesson(db_session(), slug)
-    # Ensure all fields are JSON serializable
+    lesson = lesson_data["lesson"]
+    # Serialize the underlying record; the service retains a wrapper for its
+    # internal contract, but clients need the lesson's actual display fields.
     return jsonify({
-        "id": lesson_data.get("id"), 
-        "slug": lesson_data.get("slug"), 
-        "title": lesson_data.get("title"), 
-        "category": lesson_data.get("category"),
-        "summary": lesson_data.get("summary"), 
-        "content": lesson_data.get("content"), 
-        "example": lesson_data.get("example"),
-        "tips": lesson_data.get("tips") if isinstance(lesson_data.get("tips"), list) else [],
-        "reading_time": lesson_data.get("reading_time"), 
-        "order": lesson_data.get("order"),
+        "id": lesson.id,
+        "slug": lesson.slug,
+        "title": lesson.title,
+        "category": lesson.category,
+        "summary": lesson.summary,
+        "content": lesson.content,
+        "example": lesson.example,
+        "tips": lesson.tips if isinstance(lesson.tips, list) else [],
+        "reading_time": lesson.reading_time,
+        "order": lesson.order,
     })
 
 
