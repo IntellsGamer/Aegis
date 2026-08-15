@@ -56,7 +56,7 @@
     if (empty) document.getElementById('map-empty-copy').textContent = t('map.no_reports', 'No approved reports are available for this period.');
   }
 
-  function renderPoints(points) {
+  function renderPoints(points, developmentDemo = false) {
     markers.clearLayers();
     const bounds = [];
     points.forEach((point) => {
@@ -71,7 +71,7 @@
         `<strong>${esc(point.country || t('map.unknown_country', 'Unknown country'))}</strong><br>` +
         `${esc(point.type || t('verdict.threat', 'threat'))} · ${esc(point.category || t('map.unknown', 'unknown'))}<br>` +
         `${count} ${t('map.approved_reports', 'approved reports')}<br>` +
-        `<span class="text-xs">${esc(point.provenance || t('map.approved_report', 'approved report'))} · ${esc(point.location_precision || t('map.country_aggregate', 'country aggregate'))}</span>`
+        `<span class="text-xs">${developmentDemo ? t('map.development_demo_marker', 'local development demo') : esc(point.provenance || t('map.approved_report', 'approved report'))} · ${esc(point.location_precision || t('map.country_aggregate', 'country aggregate'))}</span>`
       );
       marker.addTo(markers);
       bounds.push([Number(point.lat), Number(point.lng)]);
@@ -86,9 +86,12 @@
     const points = data.points || [];
     initializeMap();
     updateStats(points, Number(data.total_reports || 0));
-    renderPoints(points);
+    const developmentDemo = data.data_state === 'development_demo_reports';
+    renderPoints(points, developmentDemo);
     setEmpty(data, points.length === 0);
-    document.getElementById('map-provenance').lastChild.textContent = `${t('map.approved_community', 'Approved community reports')} · ${t('map.country_aggregate', 'country aggregate')}`;
+    document.getElementById('map-provenance').lastChild.textContent = developmentDemo
+      ? `${t('map.development_demo', 'Local development demo data')} · ${t('map.country_aggregate', 'country aggregate')}`
+      : `${t('map.approved_community', 'Approved community reports')} · ${t('map.country_aggregate', 'country aggregate')}`;
     document.getElementById('map-updated').textContent = `${data.total_reports || 0} ${t('map.approved_reports', 'approved reports')} ${t('map.in_last', 'in the last')} ${data.range_days || rangeDays} ${t('map.days', 'days')}`;
   }
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
+from app.config import settings
+
 from app.dependencies import db_session, optional_login
 from app.exceptions import ValidationError
 from app.repositories.admin_repo import ThreatReportRepository, ThreatRepository
@@ -79,8 +81,15 @@ def threat_map():
         "countries": countries,
         "total_reports": total_reports,
         "range_days": range_days,
-        "data_state": "verified_approved_reports",
+        "data_state": (
+            "development_demo_reports"
+            if settings.environment == "development" else "verified_approved_reports"
+        ),
         "location_precision": "country_aggregate",
+        "development_demo_country": (
+            settings.development_report_country
+            if settings.environment == "development" else None
+        ),
         "empty_reason": (
             "No approved reports with a verified country are available for this period."
             if not points else None

@@ -49,6 +49,29 @@ def _public_ip(ip: str | None) -> str | None:
     return str(address) if address.is_global else None
 
 
+def development_country(ip: str | None) -> dict:
+    """Return an explicit local-demo country for loopback/private development traffic.
+
+    This is intentionally unavailable in test and production environments. It
+    exists so local installations can demonstrate the human-approval → map
+    workflow without pretending that `127.0.0.1` has a real geolocation.
+    """
+    if settings.environment != "development" or _public_ip(ip):
+        return {}
+    code = (settings.development_report_country or "").strip().upper()
+    centroid = country_centroid(code)
+    name = country_name(code)
+    if not code or not centroid or not name:
+        return {}
+    return {
+        "country": code,
+        "country_name": name,
+        "location_source": "development_demo_country",
+        "location_precision": "development_country",
+        "is_development_location": True,
+    }
+
+
 def lookup(ip: str | None) -> dict:
     """Return optional real GeoIP enrichment or an empty result.
 

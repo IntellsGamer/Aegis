@@ -1,6 +1,8 @@
 """Tests for governed threat intelligence and measured analyst outcomes."""
 from __future__ import annotations
 
+from app.config import settings
+
 ADMIN = {"identifier": "admin@aegis.local", "password": "Admin@2024!"}
 
 
@@ -109,4 +111,34 @@ def test_scan_owner_can_record_outcome_feedback(client):
     assert after_approval["total_reports"] == 1
     assert after_approval["points"][0]["country_code"] == "IR"
     # Keep shared test data independent after proving the approval boundary.
+    assert client.post(f"/api/v1/admin/reports/{report_id}/reject").status_code == 200
+
+
+def test_development_loopback_report_uses_explicit_demo_country_only_after_approval(client, monkeypatch):
+    """Local demo data must be clearly scoped to development and human approval."""
+    monkeypatch.setattr(settings, "environment", "development")
+    monkeypatch.setattr(settings, "development_report_country", "IR")
+    client.post("/api/v1/auth/register", json={
+        "username": "localmapuser", "email": "localmap@example.com", "password": "Str0ngPass!"
+    })
+    assert client.post("/api/v1/auth/login", json={
+        "identifier": "localmap@example.com", "password": "Str0ngPass!"
+    }).status_code == 200
+
+    scan = client.post("/api/v1/scans/text", json={
+        "text": "Local-only map workflow assessment."
+    }).get_json()
+    assert scan["country"] == "IR"
+    feedback = client.post(
+        f"/api/v1/scans/{scan['scan_id']}/feedback",
+        json={"verdict": "confirmed_malicious"},
+    ).get_json()
+    assert feedback["triage_report"]["map_eligible_after_approval"] is True
+
+    _login_admin(client)
+    report_id = feedback["triage_report"]["id"]
+    assert client.post(f"/api/v1/admin/reports/{report_id}/approve").status_code == 200
+    mapped = client.get("/api/v1/threats/map?range=1").get_json()
+    assert mapped["data_state"] == "development_demo_reports"
+    assert any(point["country_code"] == "IR" for point in mapped["points"])
     assert client.post(f"/api/v1/admin/reports/{report_id}/reject").status_code == 200

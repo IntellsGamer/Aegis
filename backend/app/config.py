@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     # Optional local MaxMind-compatible City MMDB path. When unset, no IP
     # geolocation occurs and the public map remains real-data-only.
     geoip_city_db: Optional[str] = None
+    # Local loopback requests cannot have a real geolocation. This is used only
+    # by the development server to exercise the moderation → map flow and is
+    # never consulted in test or production environments.
+    development_report_country: Optional[str] = "IR"
 
     # --- Deterministic evidence engine ---
     evidence_engine_version: str = "evidence-fusion-v2"

@@ -46,7 +46,27 @@ def _geo_from_request() -> dict:
             "ip": ip,
         }
     geo = geo_service.lookup(ip)
-    return {**geo, "ip": ip}
+    if geo:
+        return {**geo, "ip": ip}
+    # Loopback/private traffic has no genuine GeoIP answer. In development only,
+    # attach the explicitly configured demo country so local moderation and map
+    # behavior can be exercised without claiming a real client location.
+    return {**geo_service.development_country(ip), "ip": ip}
+
+
+def _report_location(scan) -> dict:
+    """Return persisted country data, or an explicit development demo fallback."""
+    if scan.country:
+        return {"country": scan.country, "country_name": scan.country_name}
+    demo = geo_service.development_country(scan.ip_address)
+    if demo:
+        # Preserve this explicit local-demo origin on the scan as well, so later
+        # feedback and casefile views consistently describe map eligibility.
+        scan.country = demo["country"]
+        scan.country_name = demo["country_name"]
+        db_session().add(scan)
+        db_session().flush()
+    return demo
 
 
 def _validate_json(schema_class, extra_none_keys=()):
@@ -400,6 +420,7 @@ def submit_scan_feedback(scan_id: int):
         triage_report = reports.get_for_scan(scan.id)
         if triage_report is None:
             content = (scan.input_url or scan.input_text or scan.file_name or f"AEGIS assessment {scan.id}").strip()
+            report_location = _report_location(scan)
             triage_report = reports.create({
                 "user_id": user.id,
                 "scan_id": scan.id,
@@ -410,8 +431,8 @@ def submit_scan_feedback(scan_id: int):
                     f"User-confirmed malicious assessment {scan.id}. "
                     f"{(data.get('rationale') or scan.summary or '')[:850]}"
                 ).strip(),
-                "country": scan.country,
-                "country_name": scan.country_name,
+                "country": report_location.get("country"),
+                "country_name": report_location.get("country_name"),
                 "latitude": None,
                 "longitude": None,
             })
@@ -419,11 +440,18 @@ def submit_scan_feedback(scan_id: int):
 
     response = {"id": outcome.id, "verdict": outcome.verdict, "detail": "Feedback recorded"}
     if triage_report:
+        development_location = geo_service.development_country(scan.ip_address)
+        is_development_demo = bool(
+            development_location
+            and triage_report.country == development_location.get("country")
+        )
         response["triage_report"] = {
             "id": triage_report.id,
             "status": triage_report.status,
             "created": triage_created,
             "map_eligible_after_approval": bool(triage_report.country),
+            "development_demo_location": is_development_demo,
+            "country": triage_report.country,
         }
     return jsonify(response), 201
 
