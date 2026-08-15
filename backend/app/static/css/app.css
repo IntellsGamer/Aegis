@@ -148,3 +148,42 @@ html[dir="rtl"] input[type="url"],
 html[dir="rtl"] input[type="email"],
 html[dir="rtl"] input.font-mono,
 html[dir="rtl"] textarea.font-mono { direction: ltr; text-align: left; }
+
+/* Recent scan cards can contain Persian prose beside URLs, English email text,
+   dates and decimal scores. Isolate each semantic region instead of letting the
+   Unicode bidirectional algorithm reorder a whole row. */
+.scan-card-target {
+  unicode-bidi: plaintext;
+}
+.scan-card-meta,
+.scan-card-outcome {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.scan-card-meta {
+  flex-wrap: wrap;
+  unicode-bidi: isolate;
+}
+.scan-card-time,
+.scan-card-score {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.scan-card-outcome {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+html[dir="rtl"] .scan-card-meta {
+  justify-content: flex-start;
+}
+html[dir="rtl"] .scan-card-outcome {
+  flex-direction: row;
+}
+@media (max-width: 480px) {
+  .scan-card { align-items: flex-start; }
+  .scan-card-outcome { padding-top: 0.125rem; }
+}

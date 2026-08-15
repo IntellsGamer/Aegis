@@ -24,6 +24,12 @@
     }).join('');
   }
 
+  function scanScore(score) {
+    if (score === null || score === undefined || score === '') return '—';
+    const value = Number(score);
+    return Number.isFinite(value) ? `${value.toFixed(1)}/100` : '—';
+  }
+
   function renderScans(scans) {
     const box = document.getElementById('recent-scans');
     if (!box) return;
@@ -31,7 +37,7 @@
       box.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 p-5 text-center dark:border-slate-700"><p class="font-medium">No stored scans yet</p><p class="mt-1 text-sm text-slate-500">Run a scan and choose to retain it when you need a history or report.</p><a class="mt-3 inline-flex text-sm font-semibold text-aegis-600 hover:underline dark:text-aegis-400" href="/scan">Start a scan →</a></div>';
       return;
     }
-    box.innerHTML = scans.slice(0, 5).map((scan) => `<a href="/report/${scan.id}" class="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-aegis-500/50 dark:border-slate-800 dark:bg-slate-900/50"><div class="min-w-0"><p class="truncate text-sm font-medium">${esc(scan.target)}</p><p class="text-xs text-slate-500">${esc(scanTypeLabel(scan.scan_type))} · ${fmtTime(scan.created_at)}</p></div><div class="flex shrink-0 items-center gap-2"><span class="font-mono text-sm">${scan.trust_score ?? '—'}</span>${badgeFor(scan.verdict)}</div></a>`).join('');
+    box.innerHTML = scans.slice(0, 5).map((scan) => `<a href="/report/${scan.id}" class="scan-card flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-aegis-500/50 dark:border-slate-800 dark:bg-slate-900/50"><div class="min-w-0 flex-1"><p class="scan-card-target truncate text-sm font-medium" dir="auto"><bdi>${esc(scan.target)}</bdi></p><div class="scan-card-meta mt-1 text-xs text-slate-500"><span class="scan-card-type">${esc(scanTypeLabel(scan.scan_type))}</span><span aria-hidden="true">·</span><time class="scan-card-time" dir="ltr">${esc(fmtTime(scan.created_at))}</time></div></div><div class="scan-card-outcome shrink-0" dir="ltr"><data class="scan-card-score font-mono text-sm" value="${scan.trust_score ?? ''}">${scanScore(scan.trust_score)}</data>${badgeFor(scan.verdict)}</div></a>`).join('');
   }
 
   function renderThreats(threats) {

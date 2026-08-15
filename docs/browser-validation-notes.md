@@ -94,3 +94,7 @@ The revised Persian scanner was opened in message mode with the controlled ficti
 A final scanner reload confirmed the revised native Persian copy, correct right-side navigation order, and consistent dark-mode selector treatment before the last server-generated evidence wording check.
 
 The final controlled Persian authority-lure scan rendered a threat result with all AEGIS-generated evidence titles, action guidance, and Persian-motif metadata in Persian. The only Latin text left in the result is the source URL and engine identifier; the submitted message and URL remain exact evidence, not translated content.
+
+## Mixed-direction dashboard scan-card validation — 2026-08-15
+
+The Persian dashboard was rechecked with Persian messages, English email content, URLs, decimal scores, timestamps, and Persian verdicts. Recent scan cards now isolate the source target with `dir="auto"` and `bdi`, keep the localized type/date line independent, and render score plus verdict inside an explicit LTR outcome cluster. Live DOM inspection confirmed `unicode-bidi: plaintext` for targets and LTR direction for timestamps and score/verdict clusters. The prior collapsed mixed-direction layout no longer occurs.
