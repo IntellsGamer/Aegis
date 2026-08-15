@@ -239,3 +239,13 @@ def test_language_selectors_offer_only_english_and_persian():
     assert 'value="ar"' not in profile_template
     assert 'العربية' not in base_template
     assert 'العربية' not in profile_template
+
+
+def test_mobile_layout_keeps_the_scanner_single_column_and_spaced():
+    stylesheet = (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+
+    assert "Mobile rhythm refinement" in stylesheet
+    assert ".scan-workspace {\n    grid-template-columns: minmax(0, 1fr) !important;" in stylesheet
+    assert ".scanner-tabs {\n    grid-template-columns: repeat(2, minmax(0, 1fr));" in stylesheet
+    assert "body[data-page=\"learn\"] .space-y-6" in stylesheet
+    assert "body[data-page=\"profile\"] .app-content > .mx-auto { row-gap: 1.5rem !important; }" in stylesheet
