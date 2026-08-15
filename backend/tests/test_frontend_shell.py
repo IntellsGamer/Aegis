@@ -204,3 +204,26 @@ def test_mobile_sidebar_uses_a_direction_aware_open_state():
     assert "aria-expanded" in app_script
     assert "#sidebar.is-open { transform: translateX(0) !important; }" in app_css
     assert 'aria-controls="sidebar" aria-expanded="false"' in base_template
+
+
+def test_persian_scan_and_casefile_localize_safe_dynamic_payloads():
+    scan_script = (STATIC_ROOT / "js" / "scan.js").read_text(encoding="utf-8")
+    report_script = (STATIC_ROOT / "js" / "report.js").read_text(encoding="utf-8")
+    catalog = (STATIC_ROOT / "js" / "i18n.js").read_text(encoding="utf-8")
+
+    for source in (scan_script, report_script):
+        assert "No high-risk evidence was observed. This is not proof of safety" in source
+        assert "Use a password manager and multi-factor authentication" in source
+        assert "HTTPS enabled" in source
+        assert "No scam patterns found" in source
+    assert "The SSL certificate is valid and trusted." in report_script
+    for detector in ("Persian legal-case pressure lure", "Persian legal attachment lure", "Persian familiar-person transfer lure", "Persian deferred-repayment pressure", "Persian invoice-pressure lure", "Persian stranded-friend transfer lure"):
+        assert detector in scan_script
+        assert detector in report_script
+    assert "appears to be safe" in report_script
+    assert "localizeSeverity" in report_script
+    assert "localizeNetworkAcquisition" in report_script
+    assert "otp: 'کد یک‌بارمصرف'" in report_script
+    assert "toLocaleString(isPersian() ? 'fa-IR' : undefined)" in report_script
+    for key in ("report.summary_safe", "report.action_low_evidence", "report.title_https", "report.desc_https"):
+        assert key in catalog
