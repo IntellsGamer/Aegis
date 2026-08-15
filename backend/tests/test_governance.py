@@ -83,11 +83,30 @@ def test_scan_owner_can_record_outcome_feedback(client):
     assert client.post("/api/v1/auth/login", json={
         "identifier": "feedback@example.com", "password": "Str0ngPass!"
     }).status_code == 200
-    scan = client.post("/api/v1/scans/text", json={
-        "text": "Urgent: verify your account at http://paypa1-login.example now."
-    }).get_json()
+    scan = client.post(
+        "/api/v1/scans/text",
+        json={"text": "A message the user later independently confirmed as malicious."},
+        headers={"cf-ipcountry": "IR"},
+    ).get_json()
     assert scan["scan_id"]
 
     feedback = client.post(f"/api/v1/scans/{scan['scan_id']}/feedback", json={"verdict": "confirmed_malicious"})
     assert feedback.status_code == 201
-    assert feedback.get_json()["verdict"] == "confirmed_malicious"
+    feedback_body = feedback.get_json()
+    assert feedback_body["verdict"] == "confirmed_malicious"
+    assert feedback_body["triage_report"]["created"] is True
+    assert feedback_body["triage_report"]["map_eligible_after_approval"] is True
+
+    _login_admin(client)
+    triage = client.get("/api/v1/admin/triage?limit=25").get_json()
+    assert scan["scan_id"] in {item["scan_id"] for item in triage["items"]}
+
+    report_id = feedback_body["triage_report"]["id"]
+    before_approval = client.get("/api/v1/threats/map?range=1").get_json()
+    assert before_approval["total_reports"] == 0
+    assert client.post(f"/api/v1/admin/reports/{report_id}/approve").status_code == 200
+    after_approval = client.get("/api/v1/threats/map?range=1").get_json()
+    assert after_approval["total_reports"] == 1
+    assert after_approval["points"][0]["country_code"] == "IR"
+    # Keep shared test data independent after proving the approval boundary.
+    assert client.post(f"/api/v1/admin/reports/{report_id}/reject").status_code == 200

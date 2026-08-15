@@ -1469,3 +1469,70 @@ html.dark .scan-progress::before {
   background: #67d5dc;
   box-shadow: 0 0 0 .2rem rgba(103,213,220,.13);
 }
+
+
+/* Light workspace surfaces must use their own hierarchy; translucent white copy
+   is reserved for graphite mode and becomes washed out on light panels. */
+html:not(.dark) .dashboard-hero {
+  color: #0f172a;
+  border-color: rgba(8, 145, 178, .24);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(34, 211, 238, .25), transparent 28%),
+    linear-gradient(135deg, #ecfeff 0%, #f0fdfa 44%, #f8fafc 100%);
+  box-shadow: 0 18px 44px rgba(14, 116, 144, .11);
+}
+html:not(.dark) .dashboard-hero::after {
+  border-color: rgba(8, 145, 178, .18);
+  box-shadow: 0 0 0 3.2rem rgba(34, 211, 238, .045), 0 0 0 6.4rem rgba(34, 211, 238, .025);
+}
+html:not(.dark) .dashboard-hero .page-eyebrow { color: #0e7490; }
+html:not(.dark) .dashboard-hero-description { color: #334155; }
+html:not(.dark) .dashboard-primary-action {
+  color: #fff;
+  background: #0e7490;
+  box-shadow: 0 8px 18px rgba(14, 116, 144, .18);
+}
+html:not(.dark) .dashboard-primary-action:hover { background: #155e75; }
+html:not(.dark) .dashboard-secondary-action {
+  color: #0f4c5c;
+  border-color: rgba(8, 145, 178, .3);
+  background: rgba(255, 255, 255, .68);
+}
+html:not(.dark) .dashboard-secondary-action:hover { background: rgba(207, 250, 254, .88); }
+html:not(.dark) .dashboard-hero-status {
+  border-color: rgba(8, 145, 178, .22);
+  background: rgba(255, 255, 255, .68);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, .055);
+}
+html:not(.dark) .hero-status-head,
+html:not(.dark) .dashboard-hero-status > span { color: #475569; }
+html:not(.dark) .hero-status-orb { background: #059669; box-shadow: 0 0 0 .25rem rgba(5, 150, 105, .12); }
+
+/* Moderation controls carry denser information, so their secondary copy needs
+   a firmer light-mode contrast and must not wrap into unreadable tab fragments. */
+html:not(.dark) .admin-page > .mb-6 > p,
+html:not(.dark) .admin-page .text-slate-500 { color: #475569 !important; }
+.admin-page #admin-tabs {
+  align-items: center;
+  padding-bottom: .15rem;
+}
+.admin-page .admin-tab { white-space: nowrap; }
+html:not(.dark) .admin-page .admin-tab:not(.bg-aegis-600) {
+  border-color: rgba(148, 163, 184, .42) !important;
+  background: rgba(255, 255, 255, .78) !important;
+  color: #475569 !important;
+}
+html:not(.dark) .admin-page .admin-tab:not(.bg-aegis-600):hover {
+  border-color: rgba(8, 145, 178, .54) !important;
+  color: #0e7490 !important;
+  background: rgba(236, 254, 255, .78) !important;
+}
+@media (max-width: 1380px) {
+  .admin-page #admin-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  .admin-page #admin-tabs::after { content: ''; min-width: .1rem; }
+}

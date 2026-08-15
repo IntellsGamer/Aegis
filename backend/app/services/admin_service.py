@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Scan, ScanOutcome, Threat
@@ -98,12 +98,21 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
     authenticated governance action and never changes the evidence-fusion score.
     """
     limit = max(1, min(int(limit), 100))
+    user_confirmed_malicious = select(ScanOutcome.scan_id).where(
+        ScanOutcome.verdict == "confirmed_malicious"
+    )
     candidates = db.scalars(
         select(Scan)
-        .where(Scan.risk_level.in_(("high", "critical")), Scan.status == "completed")
+        .where(
+            Scan.status == "completed",
+            or_(
+                Scan.risk_level.in_(("high", "critical")),
+                Scan.id.in_(user_confirmed_malicious),
+            ),
+        )
         .options(selectinload(Scan.findings))
         .order_by(Scan.completed_at.desc(), Scan.id.desc())
-        .limit(limit * 3)
+        .limit(limit * 4)
     ).all()
     # A safety-boundary block prevents acquisition; it is not proof of a
     # malicious destination and must never be offered for analyst confirmation.
@@ -119,7 +128,7 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         for outcome in outcomes:
             latest_outcome.setdefault(outcome.scan_id, outcome)
 
-    severity_priority = {"critical": 100, "high": 70}
+    severity_priority = {"critical": 100, "high": 70, "medium": 45, "low": 35}
     items = []
     for scan in scans:
         findings = sorted(scan.findings, key=lambda item: item.impact or 0.0)[:4]
@@ -127,7 +136,7 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         for finding in scan.findings:
             families[finding.category or "analysis"] = families.get(finding.category or "analysis", 0) + 1
         outcome = latest_outcome.get(scan.id)
-        assessment_state = "limited" if any(item.code == "destination_unresolved" for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
+        assessment_state = "limited" if any(item.code in {"destination_unresolved", "tls_certificate_probe_limited"} for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
         items.append({
             "scan_id": scan.id,
             "target": (scan.input_url or scan.input_text or scan.file_name or "")[:500],
@@ -137,7 +146,7 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
             "confidence": scan.confidence,
             "assessment_state": assessment_state,
             "created_at": scan.created_at.isoformat() if scan.created_at else None,
-            "priority": severity_priority.get(scan.risk_level, 0) + round((1 - (scan.trust_score or 100) / 100) * 10),
+            "priority": severity_priority.get(scan.risk_level, 0) + (30 if outcome and outcome.verdict == "confirmed_malicious" else 0) + round((1 - (scan.trust_score or 100) / 100) * 10),
             "evidence_families": [{"name": key, "count": value} for key, value in sorted(families.items())],
             "strongest_evidence": [{
                 "code": item.code, "title": item.title, "severity": item.severity,
@@ -151,7 +160,7 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         })
     return {
         "items": items, "total": len(items), "limit": limit,
-        "purpose": "Human review queue for high-risk persisted assessments. Safety-boundary-only blocks are excluded; an outcome is separate from the engine score.",
+        "purpose": "Human review queue for high-risk assessments and user-confirmed malicious reports. Safety-boundary-only blocks are excluded; an outcome is separate from the engine score.",
     }
 
 

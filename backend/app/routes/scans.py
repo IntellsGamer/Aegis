@@ -32,9 +32,19 @@ MAX_UPLOAD = settings.max_upload_mb * 1024 * 1024
 
 
 def _geo_from_request() -> dict:
-    ip = None
     forwarded = request.headers.get("x-forwarded-for")
     ip = forwarded.split(",")[0].strip() if forwarded else request.remote_addr
+    # When AEGIS runs behind Cloudflare, its country header is already coarse
+    # enough for the approved-report map and avoids a second geo lookup. Unknown
+    # values are intentionally ignored; no fallback country is invented.
+    cloudflare_country = (request.headers.get("cf-ipcountry") or "").strip().upper()
+    if cloudflare_country and cloudflare_country != "XX" and geo_service.country_centroid(cloudflare_country):
+        return {
+            "country": cloudflare_country,
+            "country_name": geo_service.country_name(cloudflare_country),
+            "location_precision": "cloudflare_country",
+            "ip": ip,
+        }
     geo = geo_service.lookup(ip)
     return {**geo, "ip": ip}
 
@@ -201,7 +211,7 @@ def scan_image():
     else:
         data = _decode_data_uri(image_data)
         saved = _save_bytes(data, "image.png", "image/png", "image")
-    return jsonify(_run_uploaded("image", saved))
+    return _run_uploaded("image", saved)
 
 
 @bp.post("/qr")
@@ -216,7 +226,7 @@ def scan_qr():
     else:
         data = _decode_data_uri(image_data)
         saved = _save_bytes(data, "qr.png", "image/png", "qr")
-    return jsonify(_run_uploaded("qr", saved))
+    return _run_uploaded("qr", saved)
 
 
 @bp.post("/file")
@@ -226,7 +236,7 @@ def scan_file():
     if file is None:
         raise ValidationError("Provide a file")
     saved = _save_upload(file, "file")
-    return jsonify(_run_uploaded("file", saved))
+    return _run_uploaded("file", saved)
 
 
 def _save_bytes(data: bytes, name: str, mime: str, kind: str) -> dict:
@@ -360,6 +370,7 @@ def submit_scan_feedback(scan_id: int):
     measured review, not automatic model training or rule rewrites.
     """
     from app.dependencies import current_user
+    from app.repositories.admin_repo import ThreatReportRepository
     from app.repositories.governance_repo import GovernanceRepository
 
     scan, _ = _get_scan_or_404(scan_id)
@@ -381,7 +392,40 @@ def submit_scan_feedback(scan_id: int):
         )
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc
-    return jsonify({"id": outcome.id, "verdict": outcome.verdict, "detail": "Feedback recorded"}), 201
+
+    triage_report = None
+    triage_created = False
+    if outcome.verdict == "confirmed_malicious":
+        reports = ThreatReportRepository(db_session())
+        triage_report = reports.get_for_scan(scan.id)
+        if triage_report is None:
+            content = (scan.input_url or scan.input_text or scan.file_name or f"AEGIS assessment {scan.id}").strip()
+            triage_report = reports.create({
+                "user_id": user.id,
+                "scan_id": scan.id,
+                "content_type": scan.scan_type,
+                "content": content[:500],
+                "category": "phishing",
+                "description": (
+                    f"User-confirmed malicious assessment {scan.id}. "
+                    f"{(data.get('rationale') or scan.summary or '')[:850]}"
+                ).strip(),
+                "country": scan.country,
+                "country_name": scan.country_name,
+                "latitude": None,
+                "longitude": None,
+            })
+            triage_created = True
+
+    response = {"id": outcome.id, "verdict": outcome.verdict, "detail": "Feedback recorded"}
+    if triage_report:
+        response["triage_report"] = {
+            "id": triage_report.id,
+            "status": triage_report.status,
+            "created": triage_created,
+            "map_eligible_after_approval": bool(triage_report.country),
+        }
+    return jsonify(response), 201
 
 
 def _build_casefile(scan, repo) -> dict:

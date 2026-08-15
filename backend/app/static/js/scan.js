@@ -300,9 +300,15 @@
       const verdict = button.dataset.feedback;
       button.disabled = true;
       try {
-        await api('POST', `/api/v1/scans/${currentScanId}/feedback`, { verdict });
-        feedbackPanel.innerHTML = `<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">${t('scan.thanks', 'Thanks. Your outcome was recorded separately for quality review.')}</p>`;
-        toast(t('scan.outcome_recorded', 'Outcome recorded'), 'success');
+        const response = await api('POST', `/api/v1/scans/${currentScanId}/feedback`, { verdict });
+        const triage = response.triage_report;
+        const message = triage
+          ? (triage.map_eligible_after_approval
+            ? t('scan.triage_queued', 'Feedback recorded and queued for analyst review. It will appear in threat intelligence and on the country map only after analyst approval.')
+            : t('scan.triage_queued_no_location', 'Feedback recorded and queued for analyst review. No trustworthy country was available for this assessment, so it cannot appear on the country map.'))
+          : t('scan.thanks', 'Thanks. Your outcome was recorded separately for quality review.');
+        feedbackPanel.innerHTML = `<p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">${esc(message)}</p>`;
+        toast(triage ? t('scan.triage_queued', 'Queued for analyst review') : t('scan.outcome_recorded', 'Outcome recorded'), 'success');
       } catch (error) { toast(error.message, 'error'); button.disabled = false; }
     });
   });

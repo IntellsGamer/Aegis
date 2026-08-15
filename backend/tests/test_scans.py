@@ -1,4 +1,7 @@
 """Scan API tests: anonymous text scan, retrieval, PDF, history."""
+from io import BytesIO
+
+
 PHISH = ("URGENT: your account will be locked unless you click "
          "http://paypa1-login.example to verify immediately.")
 
@@ -36,6 +39,20 @@ def test_get_scan_and_pdf(client):
     pdf = client.get(f"/api/v1/scans/{scan_id}/report.pdf")
     assert pdf.status_code == 200
     assert pdf.data.startswith(b"%PDF")
+
+
+def test_uploaded_pdf_returns_the_assessment_response(client):
+    """Upload handlers must return the helper response directly, not JSON-wrap it."""
+    pdf = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n"
+    response = client.post(
+        "/api/v1/scans/file",
+        data={"file": (BytesIO(pdf), "letter.pdf"), "save_history": "false"},
+        content_type="multipart/form-data",
+    )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["scan_type"] == "file"
+    assert payload["retention"] == "not_stored"
 
 
 def test_scans_history_requires_auth(client):

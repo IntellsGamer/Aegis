@@ -124,6 +124,14 @@ class ThreatReportRepository:
     def get(self, report_id: int) -> ThreatReport | None:
         return self.db.get(ThreatReport, report_id)
 
+    def get_for_scan(self, scan_id: int) -> ThreatReport | None:
+        """Return the newest community report linked to one assessment."""
+        return self.db.scalar(
+            select(ThreatReport)
+            .where(ThreatReport.scan_id == scan_id)
+            .order_by(ThreatReport.id.desc())
+        )
+
     def update_status(self, report: ThreatReport, status: str) -> None:
         report.status = status
         self.db.add(report)

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Admin Panel{% endblock %}
 {% block content %}
+<div class="admin-page">
 <div class="mb-6">
   <h1 class="text-2xl font-bold">Admin Panel</h1>
   <p class="text-sm text-slate-500 dark:text-slate-400">Platform analytics, trust rule tuning, threat intelligence and moderation.</p>
@@ -32,6 +33,7 @@
 </div>
 
 <div id="admin-content"></div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/admin.js') }}" data-turbo-eval="always"></script>
