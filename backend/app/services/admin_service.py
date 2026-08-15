@@ -7,6 +7,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Scan, ScanOutcome, Threat, ThreatReport
+from app.services import geo_service
 from app.repositories.admin_repo import AuditLogRepository, ThreatReportRepository, ThreatRepository
 from app.repositories.scan_repo import ScanRepository
 from app.repositories.user_repo import UserRepository
@@ -148,6 +149,13 @@ def triage_queue(db: Session, limit: int = 25) -> dict:
         outcome = latest_outcome.get(scan.id)
         assessment_state = "limited" if any(item.code in {"destination_unresolved", "tls_certificate_probe_limited"} for item in scan.findings) else "blocked" if any(item.code == "unsafe_destination" for item in scan.findings) else "complete"
         community_report = reports_by_scan.get(scan.id)
+        if community_report and community_report.status == "pending" and not community_report.country:
+            demo_location = geo_service.development_country(scan.ip_address)
+            if demo_location:
+                community_report.country = demo_location["country"]
+                community_report.country_name = demo_location["country_name"]
+                db.add(community_report)
+                db.flush()
         items.append({
             "scan_id": scan.id,
             "target": (scan.input_url or scan.input_text or scan.file_name or "")[:500],

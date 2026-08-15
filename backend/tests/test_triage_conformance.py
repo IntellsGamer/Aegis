@@ -76,3 +76,30 @@ def test_admin_triage_exposes_pending_linked_community_report(client):
     assert item["community_report"]["status"] == "pending"
     assert item["community_report"]["country"] == "IR"
     assert item["community_report"]["map_eligible"] is True
+
+
+def test_triage_repairs_legacy_local_pending_report_in_development(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "environment", "test")
+    client.post("/api/v1/auth/register", json={
+        "username": "legacyreportuser", "email": "legacyreport@example.com", "password": "Str0ngPass!"
+    })
+    assert client.post("/api/v1/auth/login", json={
+        "identifier": "legacyreport@example.com", "password": "Str0ngPass!"
+    }).status_code == 200
+    scan = client.post("/api/v1/scans/text", json={"text": "Legacy localhost assessment."}).get_json()
+    assert scan["country"] is None
+    feedback = client.post(
+        f"/api/v1/scans/{scan['scan_id']}/feedback",
+        json={"verdict": "confirmed_malicious"},
+    ).get_json()
+    assert feedback["triage_report"]["map_eligible_after_approval"] is False
+
+    monkeypatch.setattr(settings, "environment", "development")
+    monkeypatch.setattr(settings, "development_report_country", "IR")
+    assert client.post("/api/v1/auth/login", json=ADMIN).status_code == 200
+    triage = client.get("/api/v1/admin/triage?limit=25").get_json()
+    item = next(row for row in triage["items"] if row["scan_id"] == scan["scan_id"])
+    assert item["community_report"]["country"] == "IR"
+    assert item["community_report"]["map_eligible"] is True
