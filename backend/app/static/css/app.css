@@ -102,8 +102,19 @@ html[dir="rtl"] .leaflet-container,
 html[dir="rtl"] .font-mono { direction: ltr; text-align: left; }
 html[dir="rtl"] #sidebar { left: auto; right: 0; transform: translateX(100%); border-left: 1px solid rgb(226 232 240); border-right: 0; }
 html[dir="rtl"].dark #sidebar { border-left-color: rgb(30 41 59); }
-html[dir="rtl"] .nav-item { flex-direction: row-reverse; }
-html[dir="rtl"] #sidebar .flex.items-center.gap-3 { flex-direction: row-reverse; }
+/* Flex rows already start at the right in an RTL formatting context. Reversing
+   them puts the icon on the wrong side, so preserve DOM order: icon/mark first,
+   then the label to its left. */
+html[dir="rtl"] .nav-item,
+html[dir="rtl"] .sidebar-brand,
+html[dir="rtl"] .public-brand,
+html[dir="rtl"] #sidebar .p-4 > .flex.items-center.gap-3 { flex-direction: row; }
+html[dir="rtl"] .nav-item { justify-content: flex-start; }
+html[dir="rtl"] .nav-icon { flex: 0 0 auto; }
+html[dir="rtl"] .sidebar-brand,
+html[dir="rtl"] .public-brand { direction: rtl; }
+html[dir="rtl"] .sidebar-brand > span,
+html[dir="rtl"] .public-brand { unicode-bidi: plaintext; }
 @media (min-width: 1024px) {
   html[dir="rtl"] #sidebar { transform: translateX(0); }
   html[dir="rtl"] .lg\:ml-64 { margin-left: 0 !important; margin-right: 16rem !important; }

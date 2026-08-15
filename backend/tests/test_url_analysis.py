@@ -1,7 +1,7 @@
 """Precision regressions for local URL lexical analysis."""
 from __future__ import annotations
 
-from app.ai.url_analysis import detect_typosquatting
+from app.ai.url_analysis import contains_suspicious_keywords, detect_typosquatting
 
 
 def test_typosquatting_uses_domain_label_not_whole_hostname_noise():
@@ -19,3 +19,12 @@ def test_typosquatting_detects_mutated_brand_token():
 def test_typosquatting_detects_compound_brand_label_but_not_legitimate_subdomain():
     assert detect_typosquatting("paypal-security.example")[0] == "paypal"
     assert detect_typosquatting("login.paypal.com")[0] is None
+
+
+def test_percent_encoded_persian_action_path_is_explicit_keyword_evidence():
+    keywords = contains_suspicious_keywords(
+        "https://example.com/%D9%88%D8%B1%D9%88%D8%AF?reason=%D8%AA%D8%A7%D9%8A%D9%8A%D8%AF"
+    )
+
+    assert "ورود" in keywords
+    assert "تایید" in keywords

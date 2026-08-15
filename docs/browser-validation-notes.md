@@ -82,3 +82,15 @@ Map remediation retest passed: dynamic report-count status and empty-state expla
 Learning-center retest found the static lesson, simulator, scenario, filter, and progress UI localized. Two quiz-card compound strings remain English because their description and threshold are rendered as a single dynamic node; these are being localized directly in the client catalog next.
 Administrator retest found its heading, metric cards, navigation, search, and delete controls localized. The remaining `7 threat(s)` is a count-format string to correct; rows otherwise contain raw indicators and unlocalized threat taxonomy values that should be localized as controlled categories, not mutated as indicator data.
 Analyst-triage audit found translated workflow chrome, outcome controls, casefile action, and labels. Remaining English is split into (a) raw evidence titles/bodies, which must remain faithful to source content, and (b) the server-provided queue-purpose prose, which is Aegis interface copy and needs a local translated summary. Controlled assessment states and evidence-family identifiers will be localized as display labels without changing stored values.
+
+## RTL navigation and native Persian copy re-audit — 2026-08-15
+
+The authenticated Persian dashboard and scanner were rechecked after the shared RTL hierarchy correction. In the right-side sidebar, each navigation icon now appears at the right of its label, and the AEGIS mark follows the same order: shield mark on the right and the AEGIS wordmark on the left. The scanner’s dark-mode mode selector retains a quiet inactive state and a clear, restrained cyan active state after switching modes.
+
+The scanner’s high-traffic Persian copy was rewritten in a native product voice. The primary path now uses concise, user-oriented wording such as «بررسی کلاهبرداری»، «نشانه‌های پیدا‌شده»، and «کارهایی که اکنون باید انجام دهید», instead of literal terms such as «تحلیل‌گر اسکن» and English-shaped phrasing.
+
+The revised Persian scanner was opened in message mode with the controlled fictional authority-lure fixture. The visible scanner chrome uses the revised native copy, the right-side navigation preserves icon-before-label order in RTL, and the selector remains visually distinct without the earlier flat cyan slab.
+
+A final scanner reload confirmed the revised native Persian copy, correct right-side navigation order, and consistent dark-mode selector treatment before the last server-generated evidence wording check.
+
+The final controlled Persian authority-lure scan rendered a threat result with all AEGIS-generated evidence titles, action guidance, and Persian-motif metadata in Persian. The only Latin text left in the result is the source URL and engine identifier; the submitted message and URL remain exact evidence, not translated content.

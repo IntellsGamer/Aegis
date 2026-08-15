@@ -232,6 +232,15 @@ DEFAULT_RULES: list[dict] = [
     {"code": "unknown_sender", "name": "Unknown sender", "category": "email_auth",
      "impact": -5, "weight": 1.0, "severity": "medium", "enabled": True,
      "explain": "The message comes from an address you do not know."},
+    {"code": "persian_authority_lure", "name": "Persian authority credential or payment lure", "category": "fraud",
+     "impact": -22, "weight": 1.0, "severity": "critical", "enabled": True,
+     "explain": "A claimed Persian authority is paired with an action request for money or sensitive credentials."},
+    {"code": "persian_delivery_fee_lure", "name": "Persian delivery-fee lure", "category": "fraud",
+     "impact": -18, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "A delivery notice combines a payment request with pressure or an embedded link."},
+    {"code": "persian_benefit_lure", "name": "Persian benefit-claim lure", "category": "fraud",
+     "impact": -20, "weight": 1.0, "severity": "high", "enabled": True,
+     "explain": "A public-benefit claim is paired with a pressured request for money or sensitive credentials."},
 
     # --- Positive signals ---
     {"code": "brand_confirmed", "name": "Legitimate domain match", "category": "reputation",

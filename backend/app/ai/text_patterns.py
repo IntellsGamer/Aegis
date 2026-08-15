@@ -9,6 +9,22 @@ import re
 import unicodedata
 from typing import Pattern
 
+# Persian messages are routinely written with a mixture of Arabic and Persian
+# code points (for example ي/ی and ك/ک), optional diacritics and half spaces.
+# Normalize only for matching: the original submitted content remains the
+# evidence record shown to the user.
+_PERSIAN_TRANSLATION = str.maketrans({
+    "ي": "ی", "ى": "ی", "ك": "ک", "ة": "ه", "ۀ": "ه", "ؤ": "و",
+    "إ": "ا", "أ": "ا", "ٱ": "ا", "ـ": "", "\u200c": " ",
+})
+
+
+def normalize_persian_for_matching(value: str) -> str:
+    """Normalize common Persian/Arabic presentation variants for deterministic matching."""
+    normalized = unicodedata.normalize("NFKC", value or "").translate(_PERSIAN_TRANSLATION)
+    return "".join(char for char in normalized if not unicodedata.category(char).startswith("M"))
+
+
 # --------------------------------------------------------------------------
 # Urgency / pressure
 # --------------------------------------------------------------------------
@@ -22,8 +38,8 @@ URGENCY_TERMS: list[str] = [
     # Persian (Farsi) urgency terms
     "فوری", "هر چه سریعتر", "بلافاصله", "الان", "همین الان",
     "امروز", "قبل از اینکه دیر شود", "آخرین فرصت", "عجله کن",
-    "تأخیر نکن", "تا ۲۴ ساعت", "اخطار نهایی", "همین حالا",
-    "کلیک کن", "تأیید کن", "بروزرسانی کن",
+    "تأخیر نکن", "تا ۲۴ ساعت", "تا 24 ساعت", "اخطار نهایی", "همین حالا",
+    "کلیک کن", "کلیک کنید", "تأیید کن", "تایید کنید", "به‌روزرسانی کنید", "بروزرسانی کن",
 ]
 
 # --------------------------------------------------------------------------
@@ -40,7 +56,7 @@ FEAR_TERMS: list[str] = [
     "freeze your assets", "seize your account", "identity theft has been detected",
     "violation of", "terminated", "permanently suspended",
     # Persian (Farsi) fear terms
-    "حساب شما مسدود خواهد شد", "حساب شما تعلیق شد", "حساب شما غیرفعال شد",
+    "حساب شما مسدود خواهد شد", "حساب شما مسدود می‌شود", "حساب شما مسدود میشود", "حساب شما تعلیق شد", "حساب شما غیرفعال شد",
     "حساب شما قفل خواهد شد", "حساب شما در حالت تعلیق", "موقتاً مسدود شد",
     "فعالیت مشکوک", "فعالیت غیرعادی", "نفوذ امنیتی",
     "حساب شما در معرض خطر است", "دسترسی غیرمجاز",
@@ -176,9 +192,9 @@ OTP_TERMS: list[str] = [
     "authentication code", "2fa code", "two factor code",
     "the code", "your code is", "enter the code",
     # Persian (Farsi) OTP terms
-    "رمز تایید", "رمز یکبار مصرف", "کد تایید", "کد امنیتی",
-    "کد فعال‌سازی", "کد احراز هویت", "کد پیامکی",
-    "کد", "رمز شما", "رمز ورود شما", "کد را وارد کنید",
+    "رمز تایید", "رمز تأیید", "رمز یکبار مصرف", "رمز یک بار مصرف", "کد تایید", "کد تأیید", "کد امنیتی",
+    "کد فعال‌سازی", "کد فعال سازی", "کد احراز هویت", "کد پیامکی", "کد پویا",
+    "رمز ورود شما", "کد را وارد کنید", "کد را ارسال کنید", "کد را بفرستید",
 ]
 
 PASSWORD_TERMS: list[str] = [
@@ -195,9 +211,9 @@ VERIFICATION_TERMS: list[str] = [
     "re-verify", "klick to verify", "update your account", "confirm your details",
     "validate your account", "identity confirmation",
     # Persian (Farsi) verification terms
-    "حساب خود را تایید کنید", "تایید حساب", "تایید هویت",
-    "مجدداً تایید کنید", "برای تایید کلیک کنید", "حساب خود را بروزرسانی کنید",
-    "اطلاعات خود را تایید کنید", "احراز هویت",
+    "حساب خود را تایید کنید", "حساب خود را تأیید کنید", "تایید حساب", "تأیید حساب", "تایید هویت", "تأیید هویت",
+    "مجدداً تایید کنید", "مجدداً تأیید کنید", "برای تایید کلیک کنید", "برای تأیید کلیک کنید", "حساب خود را بروزرسانی کنید",
+    "حساب خود را به‌روزرسانی کنید", "اطلاعات خود را تایید کنید", "اطلاعات خود را تأیید کنید", "احراز هویت",
 ]
 
 # --------------------------------------------------------------------------
@@ -249,9 +265,9 @@ MONEY_TRANSFER_TERMS: list[str] = [
     "cash app", "zelle", "venmo", "pay advance", "processing fee",
     "clearing fee", "transfer fee", "delivery fee", "tax to release",
     # Persian (Farsi) money transfer terms
-    "وایر", "مانی‌گرام", "حواله", "پول بفرست",
-    "کارمزد", "کارمزد انتقال", "کارمزد تحویل", "مالیات برای آزادسازی",
-    "واریز", "برداشت", "انتقال پول",
+    "وایر", "مانی‌گرام", "حواله", "پول بفرست", "کارت به کارت",
+    "کارمزد", "کارمزد انتقال", "کارمزد تحویل", "مالیات برای آزادسازی", "هزینه فعال‌سازی", "هزینه فعال سازی",
+    "واریز وجه", "مبلغ را واریز کنید", "انتقال پول",
 ]
 
 # --------------------------------------------------------------------------
@@ -283,15 +299,16 @@ SHORTENER_RE = re.compile(
 
 IP_ADDR_RE = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
 
-# Phrase-level matchers that need word boundaries.
-WORD_RE = re.compile(r"[a-z0-9']+", re.IGNORECASE)
+# Phrase-level matchers that need word boundaries. Persian letters are Unicode
+# word characters, so the same boundary logic works after normalization.
+WORD_RE = re.compile(r"[a-z0-9\u0600-\u06FF']+", re.IGNORECASE)
 
 
 def build_compiled(terms: list[str]) -> list[Pattern]:
     return [
-        re.compile(rf"\b{re.escape(t)}\b", re.IGNORECASE)
-        for t in terms
-        if len(t) > 2
+        re.compile(rf"(?<!\w){re.escape(normalize_persian_for_matching(term))}(?!\w)", re.IGNORECASE)
+        for term in terms
+        if len(normalize_persian_for_matching(term)) > 2
     ]
 
 
@@ -338,13 +355,86 @@ def find_matches(patterns: list[Pattern], text: str) -> list[str]:
 _ACTION_REQUEST_RE = re.compile(
     r"\b(?:click|open|visit|login|log in|sign in|verify|confirm|update|"
     r"enter|send|pay|transfer|share|download|install|reply|call)\b|"
-    r"(?:کلیک|وارد|تایید|تأیید|ارسال|پرداخت|انتقال|دانلود|نصب|تماس)",
+    r"(?:کلیک(?:\s*(?:کن(?:ید)?|نمایید))?|باز\s*(?:کن(?:ید)?|نمایید)|"
+    r"وارد\s*(?:کن(?:ید)?|نمایید)|(?:تایید|تأیید)\s*(?:کن(?:ید)?|نمایید)?|"
+    r"احراز\s+هویت\s*(?:کن(?:ید)?|نمایید)?|ارسال\s*(?:کن(?:ید)?|نمایید)|"
+    r"پرداخت\s*(?:کن(?:ید)?|نمایید)|انتقال\s*(?:دهید|کن(?:ید)?|نمایید)|"
+    r"دانلود\s*(?:کن(?:ید)?|نمایید)|نصب\s*(?:کن(?:ید)?|نمایید)|"
+    r"تماس\s*(?:بگیر(?:ید)?|بگیرید)|ثبت\s+نام\s*(?:کن(?:ید)?|نمایید)|"
+    r"اقدام\s*(?:کن(?:ید)?|نمایید)|(?:به\s+)?روزرسانی\s*(?:کن(?:ید)?|نمایید))",
     re.IGNORECASE,
 )
 
 
 def has_request_context(text: str) -> bool:
     return bool(_ACTION_REQUEST_RE.search(text))
+
+
+_PERSIAN_AUTHORITY_RE = re.compile(
+    r"(?:سازمان\s+مالیاتی|اداره\s+مالیات|قوه\s+قضائیه|سامانه\s+ثنا|پلیس\s+فتا|"
+    r"شاپرک|همراه\s*بانک|بانک\s*(?:ملی|ملت|صادرات|تجارت|پاسارگاد|سامان|پارسیان|آینده))"
+)
+_PERSIAN_DELIVERY_RE = re.compile(r"(?:مرسوله|بسته(?:\s+شما)?|کد\s+رهگیری|پست(?:\s+پیشتاز)?)")
+_PERSIAN_WELFARE_RE = re.compile(r"(?:یارانه|سهام\s+عدالت|کالابرگ)")
+_PERSIAN_PAYMENT_RE = re.compile(r"(?:کارت\s+به\s+کارت|شماره\s+کارت|کارمزد|هزینه(?:\s+فعالسازی|\s+فعال‌سازی)?|پرداخت|واریز\s+وجه)")
+_PERSIAN_CREDENTIAL_RE = re.compile(r"(?:رمز\s*(?:عبور|ورود|یک\s*بار\s*مصرف|تایید|تأیید)|کد\s*(?:تایید|تأیید|پویا|امنیتی|پیامکی)|کارت\s+ملی)")
+_PERSIAN_PRESSURE_RE = re.compile(r"(?:فوری|بلافاصله|همین\s+حالا|اخطار\s+نهایی|تا\s*24\s*ساعت|تا\s*۲۴\s*ساعت)")
+
+
+def persian_scam_motifs(text: str, request_context: bool) -> list[dict]:
+    """Return high-specificity Persian scam motifs from observable co-occurrences.
+
+    Each motif requires multiple independently meaningful cues. A named service,
+    a delivery notice, or a welfare benefit alone never produces one of these
+    findings, which keeps ordinary Persian news and account notifications from
+    being treated as scams.
+    """
+    if not re.search(r"[\u0600-\u06FF]", text):
+        return []
+
+    has_authority = bool(_PERSIAN_AUTHORITY_RE.search(text))
+    has_delivery = bool(_PERSIAN_DELIVERY_RE.search(text))
+    has_welfare = bool(_PERSIAN_WELFARE_RE.search(text))
+    has_payment = bool(_PERSIAN_PAYMENT_RE.search(text))
+    has_credential = bool(_PERSIAN_CREDENTIAL_RE.search(text))
+    has_pressure = bool(_PERSIAN_PRESSURE_RE.search(text))
+    motifs: list[dict] = []
+
+    def add(code: str, title: str, description: str, evidence: list[str]) -> None:
+        motifs.append({
+            "category": "fraud",
+            "code": code,
+            "title": title,
+            "description": description,
+            "evidence": "; ".join(evidence)[:500],
+            "severity": _severity_for_code(code),
+            "impact": 0.0,
+            "confidence": 0.91,
+            "extra": {"source": "persian_contextual_pattern", "match_count": len(evidence)},
+        })
+
+    if has_authority and request_context and (has_payment or has_credential):
+        add(
+            "persian_authority_lure",
+            "Persian authority credential or payment lure",
+            "A claimed Persian authority is paired with a request for money or sensitive credentials.",
+            ["ادعای نهاد رسمی", "درخواست اقدام", "درخواست پرداخت یا اطلاعات حساس"],
+        )
+    if has_delivery and request_context and has_payment and (has_pressure or URL_RE.search(text)):
+        add(
+            "persian_delivery_fee_lure",
+            "Persian delivery-fee lure",
+            "A delivery notice combines a payment request with pressure or a link.",
+            ["اعلان تحویل", "درخواست پرداخت", "فشار زمانی یا پیوند"],
+        )
+    if has_welfare and request_context and (has_payment or has_credential) and (has_pressure or URL_RE.search(text)):
+        add(
+            "persian_benefit_lure",
+            "Persian benefit-claim lure",
+            "A public-benefit claim is paired with a pressured request for money or credentials.",
+            ["ادعای مزایای عمومی", "درخواست اقدام", "درخواست پرداخت یا اطلاعات حساس"],
+        )
+    return motifs
 
 
 def analyze_language_quality(text: str) -> dict:
@@ -486,7 +576,9 @@ def sanitize_text(text: str) -> str:
     """
     if not text:
         return text
-    
+
+    text = normalize_persian_for_matching(text)
+
     # Complete list of invisible/control characters to strip
     # This covers all known invisible unicode characters
     invisible_chars = re.compile(
@@ -622,8 +714,12 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
         # Generic topical language is deliberately weak until the message asks
         # the recipient to do something. This prevents false positives such as
         # a news article that mentions Bitcoin or an ordinary bank newsletter.
-        requires_action = category in {"bank", "government", "crypto", "fake_job", "romance"}
-        contextual = request_context or category not in {"bank", "government", "crypto", "fake_job", "romance"}
+        # High-risk topics become evidence only when the message asks the reader
+        # to do something. This is especially important in Persian, where words
+        # such as «بانک», «کد» and «پرداخت» are common in legitimate notices.
+        action_gated = {"bank", "government", "crypto", "fake_job", "romance", "otp", "password", "verification", "identity", "remote", "money"}
+        requires_action = category in action_gated
+        contextual = request_context or not requires_action
         if requires_action and not contextual:
             continue
 
@@ -648,6 +744,10 @@ def scan_patterns(text: str) -> tuple[list[dict], int]:
         )
         total_signals += count
         evidence_parts.extend(examples)
+
+    motifs = persian_scam_motifs(text, request_context)
+    findings.extend(motifs)
+    total_signals += len(motifs)
 
     # Grammar / language quality
     quality = analyze_language_quality(text)
@@ -697,6 +797,9 @@ def _severity_for_code(code: str) -> str:
         "crypto_scam": "critical",
         "phishing_link": "critical",
         "remote_access": "critical",
+        "persian_authority_lure": "critical",
+        "persian_delivery_fee_lure": "high",
+        "persian_benefit_lure": "high",
         "romance_scam": "high",
         "verification_request": "high",
         "urgency_words": "high",

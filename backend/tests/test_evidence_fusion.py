@@ -106,3 +106,50 @@ def test_first_rendered_csrf_token_authorizes_a_live_scan_submission():
         )
         assert scan.status_code == 200
         assert scan.get_json()["verdict"] == "threat"
+
+
+def test_persian_authority_credential_lure_reaches_critical_risk():
+    result, raw = _assess(
+        "ابلاغیه فوری سامانه ثنا: برای جلوگیری از مسدود شدن پرونده، همین حالا "
+        "کد تأیید و شماره کارت ملی خود را در https://paypa1-login.example/ورود وارد کنید."
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert result.risk_level == "critical"
+    assert {"persian_authority_lure", "requests_otp", "identity_theft"} <= codes
+    assert raw["meta"]["predictor"] == "deterministic-evidence-fusion"
+
+
+def test_persian_delivery_fee_lure_requires_multiple_observable_cues():
+    result, raw = _assess(
+        "مرسوله شما در انتظار است. برای پرداخت کارمزد تحویل، همین حالا از "
+        "https://example.com/پرداخت اقدام کنید."
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert "persian_delivery_fee_lure" in codes
+    assert "suspicious_keywords_url" in codes
+    assert result.risk_level in {"high", "critical"}
+
+
+def test_persian_safety_article_does_not_trigger_bank_or_otp_impersonation():
+    result, raw = _assess(
+        "راهنمای بانک ملی درباره امنیت: هرگز رمز یکبار مصرف خود را با کسی "
+        "به اشتراک نگذارید. برای اطلاعات بیشتر به وب‌سایت رسمی بانک مراجعه کنید."
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert result.risk_level == "low"
+    assert "bank_impersonation" not in codes
+    assert "requests_otp" not in codes
+    assert "persian_authority_lure" not in codes
+
+
+def test_persian_and_arabic_glyph_variants_normalize_before_matching():
+    result, raw = _assess(
+        "اطلاعیه فوری: حساب شما مسدود می‌شود. براي تاييد حساب، كد امنيتي خود را همين حالا ارسال كنيد."
+    )
+
+    codes = {item["code"] for item in raw["findings"]}
+    assert {"urgency_words", "fear_tactics", "requests_otp", "verification_request"} <= codes
+    assert result.risk_level in {"high", "critical"}

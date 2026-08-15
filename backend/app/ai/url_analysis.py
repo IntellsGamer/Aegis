@@ -50,6 +50,10 @@ SUSPICIOUS_KEYWORDS: list[str] = [
     "banking", "suspend", "blocked", "disabled", "alert", "invoice", "refund",
     "reward", "bonus", "prize", "free", "win", "claim", "track", "unusual",
     "authenticate", "required", "billing", "renew", "gift", "bonus", "crypto",
+    # Persian action terms often appear percent-encoded in malicious URL paths
+    # or query parameters. They remain only one local, explainable cue.
+    "ورود", "تایید", "تأیید", "احراز", "حساب", "رمز", "کارت", "پرداخت",
+    "جایزه", "برنده", "یارانه", "سهام", "ابلاغیه", "ثنا", "شاپرک",
 ]
 
 SUSPICIOUS_PATH_KEYWORDS: list[str] = [
@@ -193,9 +197,13 @@ def is_shortened(url: str) -> tuple[bool, str | None]:
     return False, None
 
 
+def _normalize_persian_url_text(value: str) -> str:
+    return unquote(value).lower().translate(str.maketrans({"ي": "ی", "ى": "ی", "ك": "ک", "ۀ": "ه", "ة": "ه", "\u200c": " "}))
+
+
 def contains_suspicious_keywords(url: str) -> list[str]:
-    lower = url.lower()
-    return [k for k in SUSPICIOUS_KEYWORDS if re.search(rf"\b{re.escape(k)}\b", lower)]
+    lower = _normalize_persian_url_text(url)
+    return [k for k in SUSPICIOUS_KEYWORDS if re.search(rf"(?<!\w){re.escape(k)}(?!\w)", lower)]
 
 
 def tracking_params(parsed) -> list[str]:

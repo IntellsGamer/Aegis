@@ -27,7 +27,7 @@
              bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-none flex flex-col"
       aria-label="Main navigation">
       <div class="flex items-center gap-3 px-5 h-16 border-b border-slate-200 dark:border-slate-800">
-        <a href="{{ url_for('pages.dashboard') }}" class="flex items-center gap-2">
+        <a href="{{ url_for('pages.dashboard') }}" class="sidebar-brand flex items-center gap-2">
           <img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="w-9 h-9">
           <span class="text-xl font-bold tracking-wide text-slate-900 dark:text-white">AEGIS</span>
         </a>
@@ -107,7 +107,7 @@
       {% endif %}
       {% if not user %}
       <header class="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-        <a href="{{ url_for('pages.home') }}" class="flex items-center gap-2 text-sm font-bold"><img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="h-7 w-7">AEGIS</a>
+        <a href="{{ url_for('pages.home') }}" class="public-brand flex items-center gap-2 text-sm font-bold"><img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="h-7 w-7">AEGIS</a>
         <div class="header-language-control flex items-center gap-2"><label for="language-select" class="text-xs font-medium text-slate-500" data-i18n="header.language">Language</label><select id="language-select" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium text-slate-700 outline-none transition focus:border-aegis-500 focus:ring-2 focus:ring-aegis-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Language" data-i18n-aria-label="header.language"><option value="en" {% if locale == 'en' %}selected{% endif %}>English</option><option value="fa" {% if locale == 'fa' %}selected{% endif %}>فارسی</option><option value="ar" {% if locale == 'ar' %}selected{% endif %}>العربية</option></select></div>
       </header>
       {% endif %}

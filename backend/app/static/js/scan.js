@@ -18,6 +18,46 @@
   const feedbackPanelMarkup = feedbackPanel?.innerHTML || '';
   const panels = {};
 
+  function isPersian() { return window.AegisI18n?.locale?.() === 'fa'; }
+  function localizeEngineCopy(value) {
+    const text = String(value || '');
+    if (!isPersian()) return text;
+    const translations = {
+      'Requests verification code': 'درخواست کد تأیید',
+      'Identity theft attempt': 'تلاش برای سرقت هویت',
+      'Poor grammar / broken language': 'نگارش نامتعارف یا ناقص',
+      'Account verification request': 'درخواست تأیید حساب',
+      'Requests password': 'درخواست گذرواژه',
+      'Fear tactics detected': 'تاکتیک‌های ترساننده شناسایی شد',
+      'Government impersonation': 'جعل هویت نهاد دولتی',
+      'Bank impersonation': 'جعل هویت بانک',
+      'Money transfer request': 'درخواست انتقال پول',
+      'Remote access request': 'درخواست دسترسی از راه دور',
+      'Stop interacting with this content. It has multiple independent signs of a likely scam or a verified threat match.': 'از هرگونه تعامل با این محتوا دست بکشید. چند نشانهٔ مستقل از کلاه‌برداری محتمل یا تطابق با تهدید تأییدشده وجود دارد.',
+      'Block and report the sender or URL. If financial or account data was shared, contact the legitimate provider immediately.': 'فرستنده یا نشانی وب را مسدود و گزارش کنید. اگر دادهٔ مالی یا حساب خود را به اشتراک گذاشته‌اید، فوراً با ارائه‌دهندهٔ اصلی تماس بگیرید.',
+      'Change exposed passwords and revoke active sessions from a trusted device.': 'گذرواژه‌های در معرض خطر را تغییر دهید و نشست‌های فعال را از یک دستگاه مطمئن لغو کنید.',
+      'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
+      'Persian delivery-fee lure': 'فریب هزینهٔ تحویل فارسی',
+      'Persian benefit-claim lure': 'فریب مطالبهٔ مزایای عمومی فارسی',
+    };
+    return translations[text] || text;
+  }
+  function localizeRecommendation(value) {
+    const text = localizeEngineCopy(value);
+    if (!isPersian() || !text.startsWith('Evidence to verify: ')) return text;
+    const evidence = text.slice('Evidence to verify: '.length);
+    const titles = {
+      'Brand-like destination hostname': 'نام میزبان شبیه برند',
+      'Suspicious link in email': 'پیوند مشکوک در ایمیل',
+      'Urgency language detected': 'زبان فوریت‌ساز شناسایی شد',
+      'Requests verification code': 'درخواست کد تأیید',
+      'Identity theft attempt': 'تلاش برای سرقت هویت',
+      'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
+    };
+    const title = Object.keys(titles).find((candidate) => evidence.startsWith(candidate));
+    return `شواهد نیازمند بررسی: ${title ? `${titles[title]}${evidence.slice(title.length)}` : evidence}`;
+  }
+
   function resetFeedbackPanel() {
     if (!feedbackPanel) return;
     feedbackPanel.innerHTML = feedbackPanelMarkup;
@@ -38,7 +78,7 @@
     currentKind = kind;
     tabs.forEach((tab) => {
       const active = tab.dataset.tab === kind;
-      tab.className = `scan-tab px-3 py-2.5 rounded-xl border text-sm font-medium transition ${active ? 'border-aegis-500 bg-aegis-50 dark:bg-aegis-950 text-aegis-700 dark:text-aegis-300' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:border-aegis-400'}`;
+      tab.className = `scan-tab min-h-12 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-aegis-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950 ${active ? 'border-aegis-400 bg-gradient-to-br from-aegis-50 to-cyan-100 text-aegis-800 shadow-sm ring-1 ring-aegis-200 dark:border-aegis-400 dark:from-aegis-900 dark:to-slate-900 dark:text-aegis-100 dark:ring-aegis-500/30 dark:shadow-[0_0_0_1px_rgba(34,211,238,0.18),0_12px_28px_rgba(8,145,178,0.18)]' : 'border-slate-200 bg-white text-slate-600 hover:border-aegis-400 hover:bg-aegis-50 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-aegis-500/70 dark:hover:bg-slate-800 dark:hover:text-slate-100'}`;
       tab.setAttribute('aria-selected', String(active));
     });
     Object.entries(panels).forEach(([panelKind, panel]) => panel.classList.toggle('hidden', panelKind !== kind));
@@ -166,7 +206,7 @@
       const contribution = neutral ? t('scan.coverage_note', 'Coverage note · no score effect') : `${Math.abs(impact).toFixed(1)} ${hostile ? t('scan.risk_weight', 'risk weight') : t('scan.protective_weight', 'protective weight')}`;
       return `<div class="flex items-start gap-3 py-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
         <span class="mt-1.5 h-2 w-2 rounded-full shrink-0 ${dot}"></span>
-        <div class="flex-1"><p class="text-sm font-medium">${esc(reason.reason)}</p>
+        <div class="flex-1"><p class="text-sm font-medium">${esc(localizeEngineCopy(reason.reason))}</p>
         <p class="mt-0.5 text-xs text-slate-500">${t('scan.reliability', 'Evidence reliability')} ${reason.confidence !== null ? (Number(reason.confidence) * 100).toFixed(0) + '%' : '—'} · ${contribution}</p></div></div>`;
     }).join('');
   }
@@ -180,7 +220,7 @@
     const scoreClass = limited ? 'text-slate-500' : score >= 85 ? 'text-emerald-500' : score >= 60 ? 'text-amber-500' : 'text-red-500';
     const barClass = limited ? 'bg-slate-400' : score >= 85 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500';
     const confidence = data.confidence !== null && data.confidence !== undefined ? `${(Number(data.confidence) * 100).toFixed(0)}%` : '—';
-    const highlights = (data.highlights || []).map((item) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(item)}</span>`).join('');
+    const highlights = (data.highlights || []).map((item) => `<span class="rounded bg-slate-100 px-2 py-1 text-xs dark:bg-slate-800">${esc(localizeEngineCopy(item))}</span>`).join('');
     const stored = data.retention === 'not_stored' ? t('scan.not_stored', 'Result was not stored') : data.scan_id ? t('scan.saved_history', 'Saved in scan history') : t('scan.storage_unknown', 'Storage status unavailable');
     const resultTitle = limited ? t('scan.coverage_limited', 'Coverage limited') : t('scan.trust_score', 'Trust score');
     const resultValue = limited ? '—' : `${data.trust_score ?? '—'}`;
@@ -194,9 +234,9 @@
       </div>
       <div class="mb-6 h-2.5 rounded-full bg-slate-200 dark:bg-slate-800"><div class="h-2.5 rounded-full ${barClass}" style="width: ${limited ? Math.max(8, Number(data.confidence || 0) * 100) : score}%"></div></div>
       <div class="grid gap-6 lg:grid-cols-2"><section><h2 class="font-semibold">${t('scan.evidence_reviewed', 'Evidence reviewed')}</h2><div class="mt-2">${reasonRows(data) || `<p class="text-sm text-slate-500">${t('scan.no_evidence', 'No specific evidence was available.')}</p>`}</div></section>
-      <section><h2 class="font-semibold">${t('scan.recommendations', 'Recommended next steps')}</h2><ul class="mt-3 space-y-2">${(data.recommendations || []).map((item) => `<li class="flex gap-2 text-sm"><span class="text-aegis-500">→</span><span>${esc(item)}</span></li>`).join('') || `<li class="text-sm text-slate-500">${t('scan.no_action', 'No additional action is suggested.')}</li>`}</ul>
+      <section><h2 class="font-semibold">${t('scan.recommendations', 'Recommended next steps')}</h2><ul class="mt-3 space-y-2">${(data.recommendations || []).map((item) => `<li class="flex gap-2 text-sm"><span class="text-aegis-500">→</span><span>${esc(localizeRecommendation(item))}</span></li>`).join('') || `<li class="text-sm text-slate-500">${t('scan.no_action', 'No additional action is suggested.')}</li>`}</ul>
       <h3 class="mt-6 font-semibold">${t('scan.highlights', 'Evidence highlights')}</h3><div class="mt-2 flex flex-wrap gap-2">${highlights || '<span class="text-sm text-slate-500">—</span>'}</div></section></div>
-      <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500"><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${esc(stored)}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">scan type: ${esc(data.scan_type || currentScanType || '')}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">engine: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
+      <div class="mt-6 flex flex-wrap items-center gap-2 text-xs text-slate-500"><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${esc(stored)}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${t('report.assessment', 'assessment')}: ${t(`dashboard.scan_type_${data.scan_type || currentScanType}`, data.scan_type || currentScanType || '')}</span><span class="rounded bg-slate-100 px-2 py-1 dark:bg-slate-800">${t('report.engine', 'engine')}: ${esc(data.model_used || 'evidence-fusion-v2')}</span></div>
     </article>`;
     document.getElementById('download-pdf-btn')?.classList.toggle('hidden', !currentScanId);
     document.getElementById('casefile-btn')?.classList.toggle('hidden', !currentScanId);
