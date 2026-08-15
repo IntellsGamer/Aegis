@@ -1,7 +1,7 @@
 /* Auth pages (login / register / forgot / reset) */
 (function () {
   'use strict';
-  const { api, toast, navigate, csrfToken } = window.Aegis;
+  const { api, toast, navigate, csrfToken, t } = window.Aegis;
 
   document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
@@ -9,17 +9,17 @@
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('login-btn');
-        btn.disabled = true; btn.textContent = 'Signing in…';
+        btn.disabled = true; btn.textContent = t('auth.signing_in', 'Signing in…');
         try {
           const data = await api('POST', '/api/v1/auth/login', {
             identifier: document.getElementById('email').value.trim(),
             password: document.getElementById('password').value,
           });
-          toast('Signed in successfully', 'success');
+          toast(t('auth.signed_in', 'Signed in successfully'), 'success');
           navigate(data.redirect_url || '/dashboard');
         } catch (err) {
           toast(err.message, 'error');
-          btn.disabled = false; btn.textContent = 'Sign In';
+          btn.disabled = false; btn.textContent = t('auth.sign_in', 'Sign In');
         }
       });
     }
@@ -31,19 +31,19 @@
         const btn = document.getElementById('register-btn');
         const pw = document.getElementById('password').value;
         const confirm = document.getElementById('confirm').value;
-        if (pw !== confirm) { toast('Passwords do not match', 'error'); return; }
-        btn.disabled = true; btn.textContent = 'Creating account…';
+        if (pw !== confirm) { toast(t('auth.password_mismatch', 'Passwords do not match'), 'error'); return; }
+        btn.disabled = true; btn.textContent = t('auth.creating_account', 'Creating account…');
         try {
           await api('POST', '/api/v1/auth/register', {
             username: document.getElementById('username').value.trim(),
             email: document.getElementById('email').value.trim(),
             password: pw,
           });
-          toast('Account created — sign in now', 'success');
+          toast(t('auth.account_created', 'Account created — sign in now'), 'success');
           navigate('/login');
         } catch (err) {
           toast(err.message, 'error');
-          btn.disabled = false; btn.textContent = 'Create Account';
+          btn.disabled = false; btn.textContent = t('auth.create_account', 'Create Account');
         }
       });
     }
@@ -56,7 +56,7 @@
         btn.disabled = true;
         try {
           await api('POST', '/api/v1/auth/forgot-password', { email: document.getElementById('email').value.trim() });
-          toast('If that email exists, a reset link has been sent.', 'success');
+          toast(t('auth.reset_sent', 'If that email exists, a reset link has been sent.'), 'success');
         } catch (err) {
           toast(err.message, 'error');
         } finally {
@@ -72,19 +72,19 @@
         const btn = document.getElementById('reset-btn');
         const pw = document.getElementById('password').value;
         const confirm = document.getElementById('confirm').value;
-        if (pw !== confirm) { toast('Passwords do not match', 'error'); return; }
-        btn.disabled = true; btn.textContent = 'Updating…';
+        if (pw !== confirm) { toast(t('auth.password_mismatch', 'Passwords do not match'), 'error'); return; }
+        btn.disabled = true; btn.textContent = t('auth.updating', 'Updating…');
         try {
           await api('POST', '/api/v1/auth/reset-password', {
             email: resetForm.dataset.email,
             token: resetForm.dataset.token,
             new_password: pw,
           });
-          toast('Password updated — sign in', 'success');
+          toast(t('auth.password_updated', 'Password updated — sign in'), 'success');
           navigate('/login');
         } catch (err) {
           toast(err.message, 'error');
-          btn.disabled = false; btn.textContent = 'Update Password';
+          btn.disabled = false; btn.textContent = t('auth.update_password', 'Update Password');
         }
       });
     }

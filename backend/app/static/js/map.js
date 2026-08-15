@@ -1,7 +1,7 @@
 /* Verified public threat-map client. */
 (function () {
   'use strict';
-  const { api, esc } = window.Aegis;
+  const { api, esc, t } = window.Aegis;
   let map = null;
   let markers = null;
 
@@ -38,7 +38,7 @@
     const panel = document.getElementById('map-empty');
     panel.classList.toggle('hidden', !empty);
     panel.classList.toggle('flex', empty);
-    if (empty) document.getElementById('map-empty-copy').textContent = data.empty_reason || 'No approved reports are available for this period.';
+    if (empty) document.getElementById('map-empty-copy').textContent = t('map.no_reports', 'No approved reports are available for this period.');
   }
 
   function renderPoints(points) {
@@ -53,10 +53,10 @@
         fillOpacity: 0.72, weight: 2,
       });
       marker.bindPopup(
-        `<strong>${esc(point.country || 'Unknown country')}</strong><br>` +
-        `${esc(point.type || 'threat')} · ${esc(point.category || 'unknown')}<br>` +
-        `${count} approved report${count === 1 ? '' : 's'}<br>` +
-        `<span class="text-xs">${esc(point.provenance || 'approved report')} · ${esc(point.location_precision || 'country aggregate')}</span>`
+        `<strong>${esc(point.country || t('map.unknown_country', 'Unknown country'))}</strong><br>` +
+        `${esc(point.type || t('verdict.threat', 'threat'))} · ${esc(point.category || t('map.unknown', 'unknown'))}<br>` +
+        `${count} ${t('map.approved_reports', 'approved reports')}<br>` +
+        `<span class="text-xs">${esc(point.provenance || t('map.approved_report', 'approved report'))} · ${esc(point.location_precision || t('map.country_aggregate', 'country aggregate'))}</span>`
       );
       marker.addTo(markers);
       bounds.push([Number(point.lat), Number(point.lng)]);
@@ -73,8 +73,8 @@
     updateStats(points, Number(data.total_reports || 0));
     renderPoints(points);
     setEmpty(data, points.length === 0);
-    document.getElementById('map-provenance').lastChild.textContent = `Approved community reports · ${String(data.location_precision || 'country aggregate').replaceAll('_', ' ')}`;
-    document.getElementById('map-updated').textContent = `${data.total_reports || 0} approved report${Number(data.total_reports || 0) === 1 ? '' : 's'} in the last ${data.range_days || rangeDays} day${Number(data.range_days || rangeDays) === 1 ? '' : 's'}`;
+    document.getElementById('map-provenance').lastChild.textContent = `${t('map.approved_community', 'Approved community reports')} · ${t('map.country_aggregate', 'country aggregate')}`;
+    document.getElementById('map-updated').textContent = `${data.total_reports || 0} ${t('map.approved_reports', 'approved reports')} ${t('map.in_last', 'in the last')} ${data.range_days || rangeDays} ${t('map.days', 'days')}`;
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -82,8 +82,8 @@
     radios.forEach((radio) => radio.addEventListener('change', () => load(parseInt(radio.value, 10)).catch(showError)));
     function showError() {
       document.getElementById('map-total').textContent = '—';
-      document.getElementById('map-updated').textContent = 'Map data could not be loaded.';
-      window.Aegis.toast('Failed to load verified map data', 'error');
+      document.getElementById('map-updated').textContent = t('map.load_failed', 'Map data could not be loaded.');
+      window.Aegis.toast(t('map.load_failed', 'Failed to load verified map data'), 'error');
     }
     try {
       await load(1);

@@ -13,8 +13,11 @@ bp = Blueprint("pages", __name__)
 
 def _base_context(active: str = "") -> dict:
     user = current_user()
+    requested_locale = (user.locale if user else request.cookies.get("aegis_locale", "en")).lower()
+    locale = requested_locale if requested_locale in {"en", "fa", "ar", "ur", "he"} else "en"
     return {
         "user": user,
+        "locale": locale,
         "active": active,
         "app_version": settings.app_version,
         "csrf_token": getattr(g, "csrf_token", request.cookies.get("aegis_csrf", "")),

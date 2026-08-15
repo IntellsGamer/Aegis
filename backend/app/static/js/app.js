@@ -205,9 +205,11 @@
                 const locale = languageSelect.value;
                 languageSelect.disabled = true;
                 try {
-                    await api('PATCH', '/api/v1/users/me', { locale });
-                    // The following reload lets Flask render lang/dir before the
-                    // page becomes visible, rather than flipping direction mid-form.
+                    document.cookie = `aegis_locale=${encodeURIComponent(locale)}; Path=/; Max-Age=31536000; SameSite=Lax`;
+                    if (document.body.dataset.authenticated === 'true') {
+                        await api('PATCH', '/api/v1/users/me', { locale });
+                    }
+                    // Reload so Flask renders lang/dir before the page is visible.
                     window.location.reload();
                 } catch (error) {
                     toast(error.message || 'Could not update language', 'error');

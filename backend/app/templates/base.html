@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ user.locale if user and user.locale else 'en' }}" dir="{{ 'rtl' if user and user.locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="dark" data-i18n-ready="{{ 'false' if user and user.locale == 'fa' else 'true' }}">
+<html lang="{{ locale }}" dir="{{ 'rtl' if locale in ['fa', 'ar', 'ur', 'he'] else 'ltr' }}" class="dark" data-i18n-ready="{{ 'false' if locale == 'fa' else 'true' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
   {% block head %}{% endblock %}
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen antialiased transition-colors"
-      data-page="{{ active }}" data-locale="{{ user.locale if user and user.locale else 'en' }}">
+      data-page="{{ active }}" data-locale="{{ locale }}" data-authenticated="{{ 'true' if user else 'false' }}">
   <div class="flex min-h-screen">
     {% if user %}
     <!-- Sidebar -->
@@ -87,9 +87,9 @@
         <div class="header-language-control flex items-center gap-2">
           <label for="language-select" class="hidden text-xs font-medium text-slate-500 sm:block" data-i18n="header.language">Language</label>
           <select id="language-select" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium text-slate-700 outline-none transition focus:border-aegis-500 focus:ring-2 focus:ring-aegis-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Language" data-i18n-aria-label="header.language">
-            <option value="en" {% if not user.locale or user.locale == 'en' %}selected{% endif %}>English</option>
-            <option value="fa" {% if user.locale == 'fa' %}selected{% endif %}>فارسی</option>
-            <option value="ar" {% if user.locale == 'ar' %}selected{% endif %}>العربية</option>
+            <option value="en" {% if locale == 'en' %}selected{% endif %}>English</option>
+            <option value="fa" {% if locale == 'fa' %}selected{% endif %}>فارسی</option>
+            <option value="ar" {% if locale == 'ar' %}selected{% endif %}>العربية</option>
           </select>
         </div>
         <button data-action="toggle-theme" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Toggle theme" data-i18n-aria-label="header.theme">
@@ -105,8 +105,14 @@
         </div>
       </header>
       {% endif %}
+      {% if not user %}
+      <header class="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+        <a href="{{ url_for('pages.home') }}" class="flex items-center gap-2 text-sm font-bold"><img src="{{ url_for('static', filename='icons/icon.svg') }}" alt="AEGIS" class="h-7 w-7">AEGIS</a>
+        <div class="header-language-control flex items-center gap-2"><label for="language-select" class="text-xs font-medium text-slate-500" data-i18n="header.language">Language</label><select id="language-select" class="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm font-medium text-slate-700 outline-none transition focus:border-aegis-500 focus:ring-2 focus:ring-aegis-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" aria-label="Language" data-i18n-aria-label="header.language"><option value="en" {% if locale == 'en' %}selected{% endif %}>English</option><option value="fa" {% if locale == 'fa' %}selected{% endif %}>فارسی</option><option value="ar" {% if locale == 'ar' %}selected{% endif %}>العربية</option></select></div>
+      </header>
+      {% endif %}
 
-      <main class="flex-1 px-4 lg:px-8 py-6 lg:py-8">
+      <main class="flex-1 px-4 lg:px-8 py-6 lg:py-8" data-i18n-auto>
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
