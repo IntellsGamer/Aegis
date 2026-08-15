@@ -19,7 +19,17 @@
 
   function initializeMap() {
     if (map) return;
-    map = L.map('map', { worldCopyJump: true, minZoom: 2 }).setView([20, 0], 2);
+    map = L.map('map', {
+      worldCopyJump: true,
+      minZoom: 2,
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      tap: true,
+    }).setView([20, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors',

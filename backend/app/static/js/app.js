@@ -201,13 +201,16 @@
         const toggle = document.getElementById('sidebar-toggle');
         const sidebar = document.getElementById('sidebar');
         if (toggle && sidebar) {
-            toggle.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-                if (overlay) overlay.classList.toggle('hidden');
-            });
-            if (overlay) overlay.addEventListener('click', () => {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+            const setSidebarOpen = (open) => {
+                sidebar.classList.toggle('is-open', open);
+                if (overlay) overlay.classList.toggle('hidden', !open);
+                toggle.setAttribute('aria-expanded', String(open));
+                toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+            };
+            toggle.addEventListener('click', () => setSidebarOpen(!sidebar.classList.contains('is-open')));
+            if (overlay) overlay.addEventListener('click', () => setSidebarOpen(false));
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && sidebar.classList.contains('is-open')) setSidebarOpen(false);
             });
         }
 

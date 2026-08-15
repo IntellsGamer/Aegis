@@ -23,7 +23,7 @@
   </div>
   <div class="relative">
     <div id="map" class="h-[58vh] min-h-[420px] bg-slate-100 dark:bg-slate-950" aria-label="Map of verified country-level threat reports"></div>
-    <div id="map-empty" class="absolute inset-0 hidden items-center justify-center bg-slate-50/95 p-8 text-center dark:bg-slate-950/95">
+    <div id="map-empty" class="pointer-events-none absolute inset-0 hidden items-center justify-center bg-slate-50/95 p-8 text-center dark:bg-slate-950/95" role="status" aria-live="polite">
       <div class="max-w-sm">
         <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-aegis-100 text-aegis-700 dark:bg-aegis-950 dark:text-aegis-300">✓</div>
         <h2 class="font-semibold">No verified reports in this period</h2>

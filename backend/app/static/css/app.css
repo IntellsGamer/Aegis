@@ -125,7 +125,8 @@ html[dir="rtl"] .public-brand { unicode-bidi: plaintext; }
   html[dir="rtl"] #sidebar { transform: translateX(0); }
   html[dir="rtl"] .lg\:ml-64 { margin-left: 0 !important; margin-right: 16rem !important; }
 }
-html[dir="rtl"] #sidebar.is-open { transform: translateX(0); }
+#sidebar.is-open { transform: translateX(0) !important; }
+html[dir="rtl"] #sidebar.is-open { transform: translateX(0) !important; }
 
 /* Persian header and form refinements. The browser uses native Arabic-script
    glyphs where available; these fallbacks improve readability on Windows too. */
@@ -1060,6 +1061,7 @@ html.dark body[data-page="report"] #report-content .bg-slate-950 { background: #
 body[data-page="report"] #report-content .case-step + span { line-height: 1.55; }
 
 body[data-page="map"] #map { border: 1px solid var(--aegis-line); border-radius: .62rem; box-shadow: none !important; }
+body[data-page="map"] #map-empty { pointer-events: none; }
 body[data-page="map"] .leaflet-control { border: 1px solid var(--aegis-line) !important; border-radius: .42rem !important; box-shadow: none !important; }
 body[data-page="map"] .leaflet-control a { color: var(--aegis-ink) !important; background: var(--aegis-panel) !important; }
 body[data-page="map"] .rounded-2xl { border-radius: .62rem !important; box-shadow: none !important; }

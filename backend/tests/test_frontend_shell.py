@@ -175,3 +175,32 @@ def test_retired_guided_demo_is_not_exposed_from_scan_or_home():
     assert "credential-lure" not in scan_script
     assert "load-demo-btn" not in scan_template
     assert "credential-lure" not in home_template
+
+
+def test_map_keeps_direct_leaflet_input_enabled_when_empty():
+    map_script = (STATIC_ROOT / "js" / "map.js").read_text(encoding="utf-8")
+    map_template = (TEMPLATE_ROOT / "map.html").read_text(encoding="utf-8")
+
+    for interaction in (
+        "dragging: true",
+        "touchZoom: true",
+        "scrollWheelZoom: true",
+        "doubleClickZoom: true",
+        "boxZoom: true",
+        "keyboard: true",
+    ):
+        assert interaction in map_script
+    assert 'id="map-empty" class="pointer-events-none' in map_template
+    assert 'body[data-page="map"] #map-empty { pointer-events: none; }' in (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+
+
+def test_mobile_sidebar_uses_a_direction_aware_open_state():
+    app_script = (STATIC_ROOT / "js" / "app.js").read_text(encoding="utf-8")
+    app_css = (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+    base_template = (TEMPLATE_ROOT / "base.html").read_text(encoding="utf-8")
+
+    assert "sidebar.classList.toggle('is-open', open)" in app_script
+    assert "overlay.classList.toggle('hidden', !open)" in app_script
+    assert "aria-expanded" in app_script
+    assert "#sidebar.is-open { transform: translateX(0) !important; }" in app_css
+    assert 'aria-controls="sidebar" aria-expanded="false"' in base_template
