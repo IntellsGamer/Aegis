@@ -160,6 +160,9 @@ def test_learning_choices_shuffle_display_order_without_losing_original_answer_i
     assert "function shuffledChoices(options)" in learn_script
     assert "window.crypto.getRandomValues(value)" in learn_script
     assert learn_script.count("data-i=\"${choice.originalIndex}\"") == 2
+    assert "const button = event.currentTarget;" in learn_script
+    assert "button?.isConnected" in learn_script
+    assert "event.currentTarget.isConnected" not in learn_script
     assert "romance-oil-rig" not in learn_script
 
 

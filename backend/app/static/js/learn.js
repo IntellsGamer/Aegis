@@ -141,7 +141,15 @@
       view.detail.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-zinc-900/95"><div class="flex items-center justify-between gap-4 mb-4"><h2 class="text-xl font-bold" dir="auto">${esc(lesson.title)}</h2><button class="lesson-back text-sm text-aegis-600 dark:text-aegis-300 hover:underline">${ui('allLessons', 'All lessons')} ←</button></div><p class="text-xs text-slate-400 mb-4">${esc(lesson.category || '')} · ${lesson.reading_time ? `${esc(String(lesson.reading_time))} ${ui('minutes', 'min')}` : ''}</p>${pre(lesson.content)}${lesson.example ? `<h3 class="font-semibold mt-6 mb-2">${ui('example', 'Example')}</h3>${pre(lesson.example)}` : ''}${(lesson.tips || []).length ? `<h3 class="font-semibold mt-6 mb-2">${ui('tips', 'Key tips')}</h3><ul class="list-disc ps-5 space-y-1 text-sm">${lesson.tips.map((tip) => `<li>${esc(tip)}</li>`).join('')}</ul>` : ''}<div class="mt-6 flex gap-3"><button class="lesson-complete px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition">${ui('markComplete', 'Mark complete')}</button></div></div>`;
       view.detail.querySelector('.lesson-back').addEventListener('click', () => { view.detail.classList.add('hidden'); view.lessons.classList.remove('hidden'); });
       view.detail.querySelector('.lesson-complete').addEventListener('click', async (event) => {
-        try { await api('POST', `/api/v1/learning/lessons/${slug}/progress`, { progress: 1, completed: true }); if (!event.currentTarget.isConnected) return; toast(ui('lessonCompleted', 'Lesson completed'), 'success'); event.currentTarget.textContent = `✓ ${ui('completed', 'Completed')}`; event.currentTarget.disabled = true; loadProgress(view); } catch (error) { toast(error.message, 'error'); }
+        const button = event.currentTarget;
+        try {
+          await api('POST', `/api/v1/learning/lessons/${slug}/progress`, { progress: 1, completed: true });
+          if (!button?.isConnected) return;
+          toast(ui('lessonCompleted', 'Lesson completed'), 'success');
+          button.textContent = `✓ ${ui('completed', 'Completed')}`;
+          button.disabled = true;
+          loadProgress(view);
+        } catch (error) { toast(error.message, 'error'); }
       });
     } catch (error) { if (isActive(view)) toast(error.message, 'error'); }
   }
