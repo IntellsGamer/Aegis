@@ -249,3 +249,15 @@ def test_mobile_layout_keeps_the_scanner_single_column_and_spaced():
     assert ".scanner-tabs {\n    grid-template-columns: repeat(2, minmax(0, 1fr));" in stylesheet
     assert "body[data-page=\"learn\"] .space-y-6" in stylesheet
     assert "body[data-page=\"profile\"] .app-content > .mx-auto { row-gap: 1.5rem !important; }" in stylesheet
+
+
+def test_integrity_surface_ltr_sidebar_and_autofill_have_explicit_theme_guards():
+    report_script = (STATIC_ROOT / "js" / "report.js").read_text(encoding="utf-8")
+    app_css = (STATIC_ROOT / "css" / "app.css").read_text(encoding="utf-8")
+
+    assert "case-integrity" in report_script
+    assert "case-integrity-fingerprint" in report_script
+    assert 'html[dir="ltr"] #sidebar' in app_css
+    assert 'html[dir="ltr"] body[data-authenticated="true"] .app-main' in app_css
+    assert "input:-webkit-autofill" in app_css
+    assert "-webkit-text-fill-color: var(--aegis-ink) !important" in app_css

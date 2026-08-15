@@ -1536,3 +1536,61 @@ html:not(.dark) .admin-page .admin-tab:not(.bg-aegis-600):hover {
   }
   .admin-page #admin-tabs::after { content: ''; min-width: .1rem; }
 }
+
+/* Reliability pass: casefile fingerprint, desktop LTR shell, and browser autofill. */
+body[data-page="report"] #report-content .case-integrity {
+  border: 1px solid var(--aegis-line) !important;
+  background: var(--aegis-panel) !important;
+  color: var(--aegis-ink) !important;
+}
+body[data-page="report"] #report-content .case-integrity summary { color: var(--aegis-ink) !important; }
+body[data-page="report"] #report-content .case-integrity-fingerprint {
+  color: var(--aegis-ink) !important;
+  background: transparent !important;
+}
+html.dark body[data-page="report"] #report-content .case-integrity {
+  border-color: #3f3f46 !important;
+  background: #18181b !important;
+  color: #f4f4f5 !important;
+}
+html.dark body[data-page="report"] #report-content .case-integrity-fingerprint { color: #f4f4f5 !important; }
+
+@media (min-width: 1024px) {
+  html[dir="ltr"] #sidebar {
+    left: 0 !important;
+    right: auto !important;
+    transform: translateX(0) !important;
+  }
+  html[dir="ltr"] body[data-authenticated="true"] .app-main {
+    margin-left: 15.5rem !important;
+    margin-right: 0 !important;
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--aegis-ink) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--aegis-panel) inset !important;
+  box-shadow: 0 0 0 1000px var(--aegis-panel) inset !important;
+  caret-color: var(--aegis-ink);
+  transition: background-color 9999s ease-out 0s;
+}
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark textarea:-webkit-autofill,
+html.dark select:-webkit-autofill {
+  -webkit-text-fill-color: #f4f4f5 !important;
+  -webkit-box-shadow: 0 0 0 1000px #18181b inset !important;
+  box-shadow: 0 0 0 1000px #18181b inset !important;
+  caret-color: #f4f4f5;
+}
+input:-moz-autofill,
+textarea:-moz-autofill,
+select:-moz-autofill {
+  color: var(--aegis-ink) !important;
+  background: var(--aegis-panel) !important;
+}
