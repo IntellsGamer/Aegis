@@ -227,3 +227,15 @@ def test_persian_scan_and_casefile_localize_safe_dynamic_payloads():
     assert "toLocaleString(isPersian() ? 'fa-IR' : undefined)" in report_script
     for key in ("report.summary_safe", "report.action_low_evidence", "report.title_https", "report.desc_https"):
         assert key in catalog
+
+
+def test_language_selectors_offer_only_english_and_persian():
+    base_template = (TEMPLATE_ROOT / "base.html").read_text(encoding="utf-8")
+    profile_template = (TEMPLATE_ROOT / "profile.html").read_text(encoding="utf-8")
+
+    assert 'value="en"' in base_template and 'value="fa"' in base_template
+    assert 'value="en"' in profile_template and 'value="fa"' in profile_template
+    assert 'value="ar"' not in base_template
+    assert 'value="ar"' not in profile_template
+    assert 'العربية' not in base_template
+    assert 'العربية' not in profile_template
