@@ -257,7 +257,7 @@ def scan_to_dict(scan: Scan) -> dict:
     """Serialize a completed Scan for the API and report pages."""
     target = scan.input_url or scan.input_text or scan.file_name or ""
     finding_codes = {finding.code for finding in scan.findings}
-    if "destination_unresolved" in finding_codes:
+    if {"destination_unresolved", "tls_certificate_probe_limited"} & finding_codes:
         assessment_state = "limited"
     elif "unsafe_destination" in finding_codes:
         assessment_state = "blocked"

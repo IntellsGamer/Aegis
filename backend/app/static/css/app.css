@@ -1440,3 +1440,32 @@ html.dark .aegis-evidence-value {
   body[data-page="learn"] .app-content > .mx-auto > h1 { margin-bottom: .2rem; }
   body[data-page="learn"] .app-content > .mx-auto > p { margin-bottom: 1.15rem; }
 }
+
+
+/* Scanner progress stays explicit during bounded remote acquisition without
+   interrupting the compact task surface. */
+.scan-progress {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 1.7rem;
+  margin: .7rem 0 0;
+  color: var(--aegis-muted);
+  font-size: .67rem;
+  font-weight: 620;
+  line-height: 1.45;
+}
+.scan-progress::before {
+  content: '';
+  width: .42rem;
+  height: .42rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #0891b2;
+  box-shadow: 0 0 0 .2rem rgba(8,145,178,.12);
+}
+.scan-progress.hidden { display: none; }
+html.dark .scan-progress::before {
+  background: #67d5dc;
+  box-shadow: 0 0 0 .2rem rgba(103,213,220,.13);
+}

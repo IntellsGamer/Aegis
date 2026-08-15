@@ -51,14 +51,16 @@ BRAND_FAVICONS = {
     "linkedin": "https://www.linkedin.com/favicon.ico",
 }
 
-SSL_TIMEOUT = 6.0
+# A TLS probe is supplementary evidence. Keep it short so an unreachable
+# certificate endpoint cannot dominate the whole URL assessment wall time.
+SSL_TIMEOUT = 3.0
 
 
 def _ssl_info(host: str, port: int = 443) -> dict:
     """Fetch and inspect the TLS certificate for a host."""
-    result = {"verified": False, "expired": False, "self_signed": False,
-              "mismatch": False, "issuer": None, "subject": None, "error": None,
-              "expires": None, "valid_days": None, "version": None}
+    result = {"verified": False, "verification_error": False, "expired": False,
+              "self_signed": False, "mismatch": False, "issuer": None, "subject": None,
+              "error": None, "expires": None, "valid_days": None, "version": None}
     ctx = ssl.create_default_context()
     try:
         with socket.create_connection((host, port), timeout=SSL_TIMEOUT) as raw:
@@ -67,6 +69,7 @@ def _ssl_info(host: str, port: int = 443) -> dict:
                 version = sock.version()
     except ssl.SSLCertVerificationError as exc:
         result["verified"] = False
+        result["verification_error"] = True
         msg = str(exc).lower()
         if "expired" in msg:
             result["expired"] = True
@@ -391,9 +394,17 @@ def _scan_url_sync(url: str, known_threats: list[str] | None = None) -> dict:
                 add("ssl_cert_mismatch", "transport", "Certificate hostname mismatch",
                     "The certificate does not match the domain.", "high", ssl_info.get("error"), 0.9)
             if not (ssl_info.get("expired") or ssl_info.get("self_signed") or ssl_info.get("mismatch")):
-                add("ssl_cert_untrusted", "transport", "Untrusted certificate",
-                    "The certificate is not trusted by the system CA store.",
-                    "high", ssl_info.get("error"), 0.8)
+                if ssl_info.get("verification_error"):
+                    add("ssl_cert_untrusted", "transport", "Untrusted certificate",
+                        "The certificate is not trusted by the system CA store.",
+                        "high", ssl_info.get("error"), 0.8)
+                elif ssl_info.get("error"):
+                    add("tls_certificate_probe_limited", "availability",
+                        "TLS certificate could not be verified",
+                        "AEGIS could not complete the certificate check for this destination. "
+                        "This is a coverage limitation, not evidence of a threat.",
+                        "info", ssl_info.get("error"), 0.85,
+                        {"source": "tls_probe", "assessment_state": "limited"})
 
     # ---- 2. Address form ---------------------------------------------------
     if is_ip_address(host):

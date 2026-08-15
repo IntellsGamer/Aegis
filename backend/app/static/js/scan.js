@@ -35,7 +35,7 @@
       'Treat this as unverified. Do not use message-provided links, phone numbers, or contact details to validate it.': t('report.action_unverified', 'Treat this as unverified. Do not use message-provided links, phone numbers, or contact details to validate it.'),
       'Verify the request through a known official website, app, or an independent contact channel.': t('report.action_verify_official', 'Verify the request through a known official website, app, or an independent contact channel.'),
       'If information was already shared, change affected credentials and contact the real service immediately.': t('report.action_shared_info', 'If information was already shared, change affected credentials and contact the real service immediately.'),
-      'HTTPS enabled': t('report.title_https', 'HTTPS enabled'), 'Valid SSL certificate': t('report.title_ssl_valid', 'Valid SSL certificate'),
+      'HTTPS enabled': t('report.title_https', 'HTTPS enabled'), 'Valid SSL certificate': t('report.title_ssl_valid', 'Valid SSL certificate'), 'TLS certificate could not be verified': t('report.title_tls_limited', 'TLS certificate check unavailable'),
       'Long-established domain': t('report.title_domain_very_old', 'Long-established domain'), 'Established domain': t('report.title_domain_old', 'Established domain'),
       'No scam patterns found': t('report.title_no_scam_patterns', 'No scam patterns found'),
       'No high-risk evidence observed': t('report.highlight_no_high_risk', 'No high-risk evidence observed'),
@@ -62,6 +62,7 @@
       'Urgency language detected': 'زبان فوریت‌ساز شناسایی شد',
       'Requests verification code': 'درخواست کد تأیید',
       'Identity theft attempt': 'تلاش برای سرقت هویت',
+      'TLS certificate could not be verified': t('report.title_tls_limited', 'TLS certificate check unavailable'),
       'Persian authority credential or payment lure': 'فریب با جعل نهاد فارسی و درخواست اعتبار یا پرداخت',
       'Persian legal-case pressure lure': t('report.title_persian_legal_case', 'Persian legal-case pressure lure'), 'Persian legal attachment lure': t('report.title_persian_legal_attachment', 'Persian legal attachment lure'),
       'Persian familiar-person transfer lure': t('report.title_persian_familiar_transfer', 'Persian familiar-person transfer lure'), 'Persian deferred-repayment pressure': t('report.title_persian_deferred_repayment', 'Persian deferred-repayment pressure'),
@@ -89,6 +90,27 @@
     currentResult = null;
     resetFeedbackPanel();
   }
+
+  function beginScanProgress(kind) {
+    const progress = document.getElementById('scan-progress');
+    if (!progress) return () => {};
+    const timers = [];
+    const show = (key, fallback) => {
+      progress.textContent = t(key, fallback);
+      progress.classList.remove('hidden');
+    };
+    show('scan.progress_start', 'Preparing assessment…');
+    if (kind === 'url') {
+      timers.push(window.setTimeout(() => show('scan.progress_remote', 'Checking the destination safely…'), 900));
+    }
+    timers.push(window.setTimeout(() => show('scan.progress_extended', 'Remote checks are still running; coverage limits will be shown clearly.'), 4500));
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      progress.classList.add('hidden');
+      progress.textContent = '';
+    };
+  }
+
   document.querySelectorAll('.scan-panel').forEach((panel) => { panels[panel.dataset.panel] = panel; });
 
   function activate(kind) {
@@ -142,9 +164,10 @@
   async function runScan(kind) {
     const button = document.querySelector(`.scan-run[data-kind="${kind}"]`);
     if (!button) return;
-          button.disabled = true;
-      button.textContent = t('scan.analyzing', 'Analyzing…');
-      clearCurrentAssessment();
+    button.disabled = true;
+    button.textContent = t('scan.analyzing', 'Analyzing…');
+    const stopProgress = beginScanProgress(kind);
+    clearCurrentAssessment();
       const payload = { is_public: false };
 
     try {
@@ -182,6 +205,7 @@
     } catch (error) {
       toast(error.message || t('scan.failure', 'The scan could not be completed'), 'error');
     } finally {
+      stopProgress();
       button.disabled = false;
       button.textContent = t('scan.analyze', 'Analyze');
     }
