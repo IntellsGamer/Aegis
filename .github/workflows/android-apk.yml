@@ -148,7 +148,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            set -euxo pipefail
+            set -eu
             adb install -r artifacts/standard/app-debug.apk
             adb shell pm path com.intellsgamer.aegisshare
             adb install -r artifacts/compatibility/app-debug.apk
