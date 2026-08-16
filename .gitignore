@@ -15,3 +15,6 @@ uploads/
 
 # Local frontend dependencies; package.json and pnpm-lock.yaml define reproducible installs.
 node_modules/
+
+# Local downloads from GitHub Actions release and APK artifact retrieval.
+artifacts/
