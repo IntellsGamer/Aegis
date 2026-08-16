@@ -7,6 +7,17 @@
     return;
   }
   const { api, toast, navigate, csrfToken, t } = shared;
+  const SHARE_HANDOFF_KEY = 'aegis-share.pending.v1';
+
+  function postLoginDestination(data) {
+    try {
+      const handoff = JSON.parse(sessionStorage.getItem(SHARE_HANDOFF_KEY) || 'null');
+      if (handoff?.content && (handoff.mode === 'message' || handoff.mode === 'url')) return '/scan';
+    } catch (_) {
+      sessionStorage.removeItem(SHARE_HANDOFF_KEY);
+    }
+    return data.redirect_url || '/dashboard';
+  }
 
   window.Aegis.onPageLoad('auth', () => {
     const loginForm = document.getElementById('login-form');
@@ -21,7 +32,7 @@
             password: document.getElementById('password').value,
           });
           toast(t('auth.signed_in', 'Signed in successfully'), 'success');
-          navigate(data.redirect_url || '/dashboard');
+          navigate(postLoginDestination(data));
         } catch (err) {
           toast(err.message, 'error');
           btn.disabled = false; btn.textContent = t('auth.sign_in', 'Sign In');

@@ -12,6 +12,7 @@
   let currentScanType = null;
   let currentScanTarget = null;
   let currentResult = null;
+  const SHARE_HANDOFF_KEY = 'aegis-share.pending.v1';
   const tabs = document.querySelectorAll('.scan-tab');
   const feedbackPanel = document.getElementById('feedback-panel');
   const feedbackPanelMarkup = feedbackPanel?.innerHTML || '';
@@ -125,6 +126,57 @@
     document.getElementById('scan-box')?.classList.remove('hidden');
   }
 
+  function captureSharedHandoffFragment() {
+    const rawFragment = window.location.hash.replace(/^#/, '');
+    if (!rawFragment.startsWith('aegis-share=')) return;
+    try {
+      const payload = JSON.parse(decodeURIComponent(rawFragment.slice('aegis-share='.length)));
+      const mode = payload?.mode === 'url' ? 'url' : payload?.mode === 'message' ? 'message' : null;
+      const content = typeof payload?.content === 'string' ? payload.content : '';
+      const age = Date.now() - Number(payload?.createdAt || 0);
+      if (payload?.v === 1 && mode && content.trim() && content.length <= 20_000 && age >= 0 && age < 30 * 60 * 1000) {
+        try {
+          sessionStorage.setItem(SHARE_HANDOFF_KEY, JSON.stringify({ mode, content }));
+        } catch (_) {
+          // Storage may be unavailable in restricted browser contexts; do not block scanning.
+        }
+      }
+    } catch (_) {
+      // Ignore malformed handoffs; the fragment is untrusted user-controlled input.
+    } finally {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    }
+  }
+
+  function readSharedHandoff() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(SHARE_HANDOFF_KEY) || 'null');
+      if (!saved || (saved.mode !== 'message' && saved.mode !== 'url') || typeof saved.content !== 'string' || !saved.content.trim() || saved.content.length > 20_000) return null;
+      return saved;
+    } catch (_) {
+      sessionStorage.removeItem(SHARE_HANDOFF_KEY);
+      return null;
+    }
+  }
+
+  // Capture immediately, before Turbo's page-ready lifecycle can render or cache the destination.
+  captureSharedHandoffFragment();
+
+  function applySharedHandoff() {
+    const handoff = readSharedHandoff();
+    if (!handoff) return;
+    const kind = handoff.mode === 'message' ? 'text' : 'url';
+    const input = document.getElementById(kind === 'text' ? 'text-input' : 'url-input');
+    if (!input) return;
+    activate(kind);
+    input.value = handoff.content;
+    toast(t('scan.share_ready', 'Shared content is ready to review. Analyze it when you are ready.'), 'info');
+  }
+
+  function clearSharedHandoff() {
+    sessionStorage.removeItem(SHARE_HANDOFF_KEY);
+  }
+
   tabs.forEach((tab) => tab.addEventListener('click', () => activate(tab.dataset.tab)));
 
   function bindDrop(zoneId, inputId, previewId, onSelect) {
@@ -202,6 +254,7 @@
       currentScanTarget = data.target || '';
       currentResult = data;
       renderResult(data);
+      clearSharedHandoff();
     } catch (error) {
       toast(error.message || t('scan.failure', 'The scan could not be completed'), 'error');
     } finally {
@@ -281,6 +334,7 @@
   }
 
   window.Aegis.onPageLoad('scan', () => {
+    applySharedHandoff();
     document.querySelectorAll('.scan-run').forEach((button) => button.addEventListener('click', () => runScan(button.dataset.kind)));
     document.getElementById('new-scan-btn')?.addEventListener('click', () => { clearCurrentAssessment(); activate(currentKind); });
     document.getElementById('copy-evidence-btn')?.addEventListener('click', copyEvidence);

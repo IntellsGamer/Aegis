@@ -154,6 +154,20 @@ def test_report_evidence_has_an_explicit_graphite_dark_surface():
     assert "background: #2b2b28" in app_css
 
 
+def test_android_share_handoff_prefills_the_right_scan_and_survives_login():
+    scan_script = (STATIC_ROOT / "js" / "scan.js").read_text(encoding="utf-8")
+    auth_script = (STATIC_ROOT / "js" / "auth.js").read_text(encoding="utf-8")
+
+    assert "aegis-share.pending.v1" in scan_script
+    assert "rawFragment.startsWith('aegis-share=')" in scan_script
+    assert "activate(kind)" in scan_script
+    assert "input.value = handoff.content" in scan_script
+    assert "content.length <= 20_000" in scan_script
+    assert "clearSharedHandoff();" in scan_script
+    assert "aegis-share.pending.v1" in auth_script
+    assert "return '/scan';" in auth_script
+
+
 def test_learning_choices_shuffle_display_order_without_losing_original_answer_indexes():
     learn_script = (STATIC_ROOT / "js" / "learn.js").read_text(encoding="utf-8")
 
