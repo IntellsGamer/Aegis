@@ -6,7 +6,10 @@ import type { ExpoConfig } from "expo/config";
 // e.g., "my-app" created at 2024-01-15 10:30:45 -> "space.manus.my.app.t20240115103045"
 // Bundle ID can only contain letters, numbers, and dots
 // Android requires each dot-separated segment to start with a letter
-const rawBundleId = "com.intellsgamer.aegisshare";
+const isCompatibilityBuild = process.env.AEGIS_COMPAT_BUILD === "1";
+const rawBundleId = isCompatibilityBuild
+  ? "com.intellsgamer.aegisshare.compat"
+  : "com.intellsgamer.aegisshare";
 const bundleId =
   rawBundleId
     .replace(/[-_]/g, ".") // Replace hyphens/underscores with dots
@@ -28,12 +31,12 @@ const schemeFromBundleId = `manus${timestamp}`;
 
 const env = {
   // App branding - update these values directly (do not use env vars)
-  appName: "AEGIS Share",
-  appSlug: "aegis-share",
+  appName: isCompatibilityBuild ? "AEGIS Share Compat" : "AEGIS Share",
+  appSlug: isCompatibilityBuild ? "aegis-share-compat" : "aegis-share",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
   logoUrl: "/manus-storage/aegis-share-launcher-icon_c079bdf1.png",
-  scheme: "aegisshare",
+  scheme: isCompatibilityBuild ? "aegissharecompat" : "aegisshare",
   iosBundleId: bundleId,
   androidPackage: bundleId,
 };
@@ -41,7 +44,7 @@ const env = {
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
-  version: "1.0.0",
+  version: isCompatibilityBuild ? "1.0.1" : "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
@@ -135,6 +138,7 @@ const config: ExpoConfig = {
         android: {
           buildArchs: ["armeabi-v7a", "arm64-v8a"],
           minSdkVersion: 24,
+          useLegacyPackaging: isCompatibilityBuild,
         },
       },
     ],
