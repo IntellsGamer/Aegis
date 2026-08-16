@@ -1,0 +1,41 @@
+name: Test Published APKs on Android 11 ARM64
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install-release-apks:
+    name: Install published ARM APKs on Android 11
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Download published release APKs
+        run: |
+          set -eu
+          mkdir -p artifacts
+          gh release download aegis-share-v1.0.0 --repo IntellsGamer/Aegis \
+            --pattern AEGIS-Share-debug.apk --pattern AEGIS-Share-compat.apk \
+            --dir artifacts
+
+      - name: Install published APKs with Android 11 ARM64 package manager
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: arm64-v8a
+          profile: pixel_7_pro
+          disable-linux-hw-accel: true
+          emulator-boot-timeout: 1200
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            set -eu
+            adb install -r artifacts/AEGIS-Share-debug.apk
+            adb shell pm path com.intellsgamer.aegisshare
+            adb install -r artifacts/AEGIS-Share-compat.apk
+            adb shell pm path com.intellsgamer.aegisshare.compat
